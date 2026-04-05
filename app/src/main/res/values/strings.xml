@@ -1,3 +1,28 @@
 <resources>
     <string name="app_name">SolveLog-JetpackCompose</string>
+
+    <!--  App bar title -->
+    <string name="app_bar_title_editor">ログ一覧</string>
+    <string name="app_bar_title_statistics">統計情報</string>
+    <string name="app_bar_title_measurement">計測</string>
+    <string name="app_bar_title_setting">設定</string>
+
+    <!--  Tab title  -->
+    <string name="tab_editor">ログ一覧</string>
+    <string name="tab_statistics">統計情報</string>
+    <string name="tab_measurement">計測</string>
+    <string name="tab_setting">設定</string>
+
+    <!-- Editor -->
+
+    <!-- Statistics -->
+
+    <!-- Measurement -->
+
+    <!-- Setting -->
+    <string name="setting_notification">通知設定</string>
+    <string name="setting_dark_theme">ダークテーマ</string>
+    <string name="setting_about_this_app">このアプリについて</string>
+
+    <string name="error">Error</string>
 </resources>

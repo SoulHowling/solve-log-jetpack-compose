@@ -1,5 +1,6 @@
 package com.soulhowling.solvelog_jetpackcompose
 
+import androidx.annotation.StringRes
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.BarChart
 import androidx.compose.material.icons.filled.Edit
@@ -7,25 +8,29 @@ import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material.icons.filled.Timer
 import androidx.compose.ui.graphics.vector.ImageVector
 
-sealed class Screens(val route: String, val title: String, val icon: ImageVector) {
+sealed class Screens(
+    val route: String,
+    @get:StringRes val title: Int,
+    val icon: ImageVector
+) {
     data object SolveLogEditor: Screens(
         route = "solve_log_editor",
-        title = "Editor",
+        title = R.string.tab_editor,
         icon = Icons.Default.Edit
         )
     data object LogStatistics: Screens(
         route = "log_statistics",
-        title = "Statistics",
+        title = R.string.tab_statistics,
         icon = Icons.Default.BarChart
     )
     data object Measurement: Screens(
         route = "measurement",
-        title = "Measurement",
+        title = R.string.tab_measurement,
         icon = Icons.Default.Timer
     )
     data object Setting: Screens(
         route = "setting",
-        title = "Setting",
+        title = R.string.tab_setting,
         icon = Icons.Default.Settings
     )
 }

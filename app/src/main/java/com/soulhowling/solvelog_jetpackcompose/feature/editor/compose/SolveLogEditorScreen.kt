@@ -1,6 +1,7 @@
 package com.soulhowling.solvelog_jetpackcompose.feature.editor.compose
 
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.fillMaxSize
@@ -13,35 +14,39 @@ import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.soulhowling.solvelog_jetpackcompose.ui.theme.SolveLogJetpackComposeTheme
 
+private const val CONTENT_PADDING = 16
+
 @Composable
 fun SolveLogEditorScreen() {
-    Scaffold(
-        floatingActionButton = {
-            NewLogButton(onClick = { /*TODO*/ })
-        }
-    ) { innerPadding ->
+    Box(modifier = Modifier.fillMaxSize()) {
         LazyColumn(
             modifier = Modifier
-                .fillMaxSize()
-                .padding(innerPadding),
-            contentPadding = PaddingValues(16.dp),
+                .fillMaxSize(),
+            contentPadding = PaddingValues(CONTENT_PADDING.dp),
             verticalArrangement = Arrangement.spacedBy(12.dp)
         ) {
-            items(5) { index ->
+            items(10) { index ->
                 SolveLogItemCard(
                     title = "Log #${index + 1}",
                     description = "Description for Log #${index + 1}"
                 )
             }
         }
+
+        NewLogButton(
+            modifier = Modifier
+                .align(Alignment.BottomEnd)
+                .padding(16.dp),
+            onClick = { /* TODO */ }
+        )
     }
 }
 
@@ -71,9 +76,10 @@ fun SolveLogItemCard(title: String, description: String) {
 }
 
 @Composable
-fun NewLogButton(onClick: () -> Unit) {
+fun NewLogButton(modifier: Modifier, onClick: () -> Unit) {
     FloatingActionButton(
         onClick = { onClick() },
+        modifier = modifier
     ) {
         Icon(Icons.Filled.Add, "Floating Action Button")
     }
