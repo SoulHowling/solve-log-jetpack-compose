@@ -47,7 +47,7 @@ fun MeasurementScreen() {
     }
 }
 
-@Preview
+@Preview(showBackground = true)
 @Composable
 fun MeasurementScreenPreview() {
     SolveLogJetpackComposeTheme {
