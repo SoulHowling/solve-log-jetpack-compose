@@ -1,5 +1,6 @@
 package com.soulhowling.solvelog_jetpackcompose.feature.settings.compose
 
+import androidx.annotation.StringRes
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.lazy.LazyColumn
@@ -17,25 +18,30 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
 import com.soulhowling.solvelog_jetpackcompose.ui.theme.SolveLogJetpackComposeTheme
 import com.soulhowling.solvelog_jetpackcompose.utils.LogUtils
 
 @Composable
 fun SettingScreen() {
-    val settingsOptions = listOf("通知設定", "ダークテーマ", "アプリについて")
+    val settingsOptions = listOf(
+        SettingItem.Notification,
+        SettingItem.DarkTheme,
+        SettingItem.AboutThisApp
+    )
     var isDarkTheme by remember { mutableStateOf(false) }
 
     LazyColumn(modifier = Modifier.fillMaxSize()) {
         items(settingsOptions) { option ->
             SettingItem(
-                title = option,
+                titleResId = option.titleResId,
                 onClick = {
                     LogUtils.d("$option がクリックされた")
                 },
                 trailingContent = {
                     when (option) {
-                        "ダークテーマ" -> {
+                        is SettingItem.DarkTheme -> {
                             Switch(
                                 checked = isDarkTheme,
                                 onCheckedChange = {
@@ -60,12 +66,12 @@ fun SettingScreen() {
 
 @Composable
 fun SettingItem(
-    title: String,
+    @StringRes titleResId: Int,
     onClick: () -> Unit,
     trailingContent: @Composable (() -> Unit)? = null
 ) {
     ListItem(
-        headlineContent = { Text(text = title) },
+        headlineContent = { Text(text = stringResource(id = titleResId)) },
         trailingContent = trailingContent,
         modifier = Modifier.clickable { onClick() }
     )
