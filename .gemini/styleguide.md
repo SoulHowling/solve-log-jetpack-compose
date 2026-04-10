@@ -1,2 +1,1 @@
-Posts a code review in Japanese language.
-Posts a summary in Japanese language.
+日本語で回答してください。
