@@ -17,6 +17,7 @@ import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.navigation.NavDestination
 import androidx.navigation.NavDestination.Companion.hierarchy
@@ -82,10 +83,10 @@ fun MainScreen() {
 @Composable
 fun TopAppBar(currentDestination: NavDestination?, items: List<Screens>) {
     val currentScreen = items.find { it.route == currentDestination?.route }
-    val title = currentScreen?.title ?: "Solve Log"
+    val title = currentScreen?.title ?: R.string.error
 
     TopAppBar(
-        title = { Text(title) },
+        title = { Text(stringResource(id = title)) },
         colors = TopAppBarDefaults.topAppBarColors(
             containerColor = MaterialTheme.colorScheme.primaryContainer,
             titleContentColor = MaterialTheme.colorScheme.onPrimaryContainer,
@@ -104,7 +105,7 @@ fun BottomNavigation(
         items.forEach { screen ->
             NavigationBarItem(
                 icon = { Icon(screen.icon, contentDescription = null) },
-                label = { Text(screen.title) },
+                label = { Text(stringResource(screen.title)) },
                 selected = currentDestination?.hierarchy?.any { it.route == screen.route } == true,
                 onClick = {
                     navController.navigate(screen.route) {
