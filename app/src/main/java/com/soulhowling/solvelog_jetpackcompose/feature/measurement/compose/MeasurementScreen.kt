@@ -21,7 +21,7 @@ fun MeasurementScreen() {
 
     Column(modifier = Modifier.fillMaxSize()) {
         PrimaryTabRow(selectedTabIndex = pagerState.currentPage) {
-            val titles = listOf("Stopwatch", "Timer")
+            val titles = listOf("Stopwatch", "Timer") // TODO
             titles.forEachIndexed { index, title ->
                 Tab(
                     selected = pagerState.currentPage == index,

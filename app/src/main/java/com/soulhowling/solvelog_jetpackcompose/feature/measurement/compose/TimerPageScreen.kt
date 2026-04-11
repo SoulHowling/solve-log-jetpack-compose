@@ -48,7 +48,7 @@ fun TimerPageScreen() {
                 end = Dimensions.PADDING_MEDIUM,
                 bottom = Dimensions.LIST_BOTTOM_WITH_FAB
             ),
-            verticalArrangement = Arrangement.spacedBy(12.dp)
+            verticalArrangement = Arrangement.spacedBy(Dimensions.SPACING_MEDIUM)
         ) {
             items(timers) { time ->
                 TimerItemCard(time = time)
@@ -95,13 +95,13 @@ fun TimerItemCard(time: Int) {
                 verticalAlignment = Alignment.CenterVertically
             ) {
                 IconButton(onClick = { LogUtils.d("タイマー開始: $time 秒") }) {
-                    Icon(Icons.Default.PlayArrow, contentDescription = "開始")
+                    Icon(Icons.Default.PlayArrow, contentDescription = "開始") // TODO
                 }
                 IconButton(onClick = { LogUtils.d("タイマー一時停止: $time 秒") }) {
-                    Icon(Icons.Default.Pause, contentDescription = "一時停止")
+                    Icon(Icons.Default.Pause, contentDescription = "一時停止") // TODO
                 }
                 IconButton(onClick = { LogUtils.d("タイマーリセット: $time 秒") }) {
-                    Icon(Icons.Default.Refresh, contentDescription = "リセット")
+                    Icon(Icons.Default.Refresh, contentDescription = "リセット") // TODO
                 }
             }
         }
@@ -109,12 +109,12 @@ fun TimerItemCard(time: Int) {
 }
 
 @Composable
-fun NewTimerButton(modifier: Modifier, onClick: () -> Unit) {
+fun NewTimerButton(modifier: Modifier = Modifier, onClick: () -> Unit) {
     FloatingActionButton(
         onClick = { onClick() },
         modifier = modifier
     ) {
-        Icon(Icons.Filled.Add, "Floating Action Button")
+        Icon(Icons.Filled.Add, "Floating Action Button") // TODO
     }
 }
 

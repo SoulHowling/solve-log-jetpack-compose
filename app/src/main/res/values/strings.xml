@@ -2,27 +2,37 @@
     <string name="app_name">SolveLog-JetpackCompose</string>
 
     <!--  App bar title -->
-    <string name="app_bar_title_editor">ログ一覧</string>
-    <string name="app_bar_title_statistics">統計情報</string>
-    <string name="app_bar_title_measurement">計測</string>
-    <string name="app_bar_title_setting">設定</string>
+    <string name="app_bar_title_editor">Log List</string>
+    <string name="app_bar_title_statistics">Statistics</string>
+    <string name="app_bar_title_measurement">Measurement</string>
+    <string name="app_bar_title_setting">Settings</string>
 
     <!--  Tab title  -->
-    <string name="tab_editor">ログ一覧</string>
-    <string name="tab_statistics">統計情報</string>
-    <string name="tab_measurement">計測</string>
-    <string name="tab_setting">設定</string>
+    <string name="tab_editor">Logs</string>
+    <string name="tab_statistics">Stats</string>
+    <string name="tab_measurement">Measure</string>
+    <string name="tab_setting">Settings</string>
 
     <!-- Editor -->
 
     <!-- Statistics -->
 
     <!-- Measurement -->
+    <string name="measurement_stopwatch_title">Stopwatch</string>
+    <string name="measurement_timer_title">Timer</string>
+    <string name="measurement_start_button">Start</string>
+    <string name="measurement_stop_button">Stop</string>
+    <string name="measurement_reset_button">Reset</string>
 
     <!-- Setting -->
-    <string name="setting_notification">通知設定</string>
-    <string name="setting_dark_theme">ダークテーマ</string>
-    <string name="setting_about_this_app">このアプリについて</string>
+    <string name="setting_notification">Notifications</string>
+    <string name="setting_dark_theme">Dark theme</string>
+    <string name="setting_wipe_data">Wipe data</string>
+    <string name="setting_about_this_app">About this app</string>
 
     <string name="error">Error</string>
+
+    <!-- content description -->
+    <!-- Editor -->
+    <string name="talkback_new_log_button">Add new log</string>
 </resources>

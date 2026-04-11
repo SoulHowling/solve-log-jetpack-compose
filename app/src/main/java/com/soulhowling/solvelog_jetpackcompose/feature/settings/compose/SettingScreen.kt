@@ -28,6 +28,7 @@ fun SettingScreen() {
     val settingsOptions = listOf(
         SettingItem.Notification,
         SettingItem.DarkTheme,
+        SettingItem.WipeData,
         SettingItem.AboutThisApp
     )
     var isDarkTheme by remember { mutableStateOf(false) }

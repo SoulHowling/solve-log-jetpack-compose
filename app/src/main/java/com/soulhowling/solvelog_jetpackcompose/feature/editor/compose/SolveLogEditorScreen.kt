@@ -21,7 +21,9 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
+import com.soulhowling.solvelog_jetpackcompose.R
 import com.soulhowling.solvelog_jetpackcompose.ui.theme.Dimensions
 import com.soulhowling.solvelog_jetpackcompose.ui.theme.SolveLogJetpackComposeTheme
 
@@ -95,12 +97,12 @@ fun SolveLogItemCard(
 }
 
 @Composable
-fun NewLogButton(modifier: Modifier, onClick: () -> Unit) {
+fun NewLogButton(modifier: Modifier = Modifier, onClick: () -> Unit) {
     FloatingActionButton(
         onClick = { onClick() },
         modifier = modifier
     ) {
-        Icon(Icons.Filled.Add, "Floating Action Button")
+        Icon(Icons.Filled.Add, stringResource(id = R.string.talkback_new_log_button))
     }
 }
 

@@ -13,7 +13,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.tooling.preview.Preview
-import androidx.compose.ui.unit.dp
+import com.soulhowling.solvelog_jetpackcompose.ui.theme.Dimensions
 import com.soulhowling.solvelog_jetpackcompose.ui.theme.SolveLogJetpackComposeTheme
 import com.soulhowling.solvelog_jetpackcompose.utils.LogUtils
 
@@ -29,14 +29,14 @@ fun StopWatchPageScreen() {
                 style = MaterialTheme.typography.displayLarge
             )
             
-            Spacer(modifier = Modifier.height(32.dp))
+            Spacer(modifier = Modifier.height(Dimensions.SPACING_LARGE))
             
             Button(
                 onClick = {
-                    LogUtils.d("ストップウォッチ開始")
+                    LogUtils.d("ストップウォッチ開始") // TODO
                 }
             ) {
-                Text(text = "開始")
+                Text(text = "開始") // TODO
             }
         }
     }
