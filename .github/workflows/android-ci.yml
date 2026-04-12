@@ -2,6 +2,7 @@ name: Android PR Checks
 on:
   issue_comment:
     types: [ created ]
+  workflow_dispatch:
 jobs:
   build-and-test:
     if: github.event.issue.pull_request && github.event.comment.body == 'testme'
@@ -17,6 +18,7 @@ jobs:
         with:
           java-version: '17'
           distribution: 'temurin'
+          cache: 'gradle'
 
       - name: Grant execute permission for gradlew
         run: chmod +x gradlew
