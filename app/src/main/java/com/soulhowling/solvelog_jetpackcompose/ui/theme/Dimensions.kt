@@ -7,6 +7,8 @@ object Dimensions {
     val PADDING_MEDIUM = 16.dp
 
     val SPACING_SMALL = 4.dp
+    val SPACING_SMALL_MEDIUM = 8.dp
+
     val SPACING_MEDIUM = 12.dp
 
     val SPACING_MEDIUM_LARGE = 16.dp

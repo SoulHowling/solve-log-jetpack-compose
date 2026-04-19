@@ -24,6 +24,12 @@
     <string name="measurement_stop_button">停止</string>
     <string name="measurement_reset_button">リセット</string>
 
+    <!-- Timer -->
+    <string name="timer_add_title">タイマーを追加</string>
+    <string name="timer_add_description">セットする時間を入力してください</string>
+    <string name="timer_add_confirm_button">追加</string>
+    <string name="timer_add_cancel_button">キャンセル</string>
+
     <!-- Setting -->
     <string name="setting_notification">通知設定</string>
     <string name="setting_dark_theme">ダークテーマ</string>
