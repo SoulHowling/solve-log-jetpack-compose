@@ -25,8 +25,8 @@ class Alarm(private val context: Context) {
                     .build()
             )
             isLooping = true
-            prepare()
-            start()
+            setOnPreparedListener { start() }
+            prepareAsync()
         }
     }
 

@@ -21,6 +21,7 @@ abstract class SolveLogDatabase : RoomDatabase() {
 
     companion object {
         private const val DATABASE_NAME = "solve_log_database"
+        private const val SQL_DEFAULT_TIMER = "INSERT INTO timer_state (initialSeconds, remainingSeconds, isRunning) VALUES (60, 60, 0);"
         @Volatile
         private var instance: SolveLogDatabase? = null
 
@@ -31,17 +32,8 @@ abstract class SolveLogDatabase : RoomDatabase() {
                     .addCallback(object: Callback() {
                         override fun onCreate(db: SupportSQLiteDatabase) {
                             super.onCreate(db)
-                            instance.let { database ->
-                                scope.launch(Dispatchers.IO) {
-                                    val timerDao = database?.timerDao()
-                                    val defaultTimer = TimerState(
-                                        id = 0,
-                                        initialSeconds = 60,
-                                        remainingSeconds = 60,
-                                        isRunning = false
-                                    )
-                                    timerDao?.upsertTimerState(defaultTimer)
-                                }
+                            scope.launch(Dispatchers.IO) {
+                                db.execSQL(SQL_DEFAULT_TIMER)
                             }
                         }
                     })

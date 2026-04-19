@@ -41,22 +41,23 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
+import com.soulhowling.solvelog_jetpackcompose.R
 import com.soulhowling.solvelog_jetpackcompose.ui.theme.Dimensions
 import com.soulhowling.solvelog_jetpackcompose.ui.theme.SolveLogJetpackComposeTheme
 import com.soulhowling.solvelog_jetpackcompose.utils.LogUtils
-import kotlinx.coroutines.delay
 import java.util.Locale
 
 @Composable
 fun TimerPageScreen(
     viewModel: TimerViewModel = viewModel()
 ) {
-    val timers by viewModel.timers.collectAsStateWithLifecycle()
+    val timers by viewModel.displayTimers.collectAsStateWithLifecycle()
 
     TimerPageContent(
         timers = timers,
@@ -64,7 +65,6 @@ fun TimerPageScreen(
         onPause = { viewModel.pause(it)},
         onStop = { viewModel.stop(it) },
         onReset = { viewModel.reset(it) },
-        onTick = { viewModel.tick(it) },
         onAddTimer = { minutes, seconds -> viewModel.insertTimer(minutes, seconds) },
         onDeleteTimer = { viewModel.deleteTimer(it) }
     )
@@ -77,7 +77,6 @@ fun TimerPageContent(
     onPause: (Int) -> Unit,
     onStop: (Int) -> Unit,
     onReset: (Int) -> Unit,
-    onTick: (Int) -> Unit,
     onAddTimer: (Int, Int) -> Unit,
     onDeleteTimer: (Int) -> Unit
 ) {
@@ -101,7 +100,6 @@ fun TimerPageContent(
                     onPause = { onPause(timer.id)},
                     onStop = { onStop(timer.id) },
                     onReset = { onReset(timer.id) },
-                    onTick = { onTick(timer.id) },
                     onDelete = { onDeleteTimer(timer.id) }
                 )
             }
@@ -135,16 +133,8 @@ fun TimerItemCard(
     onPause: () -> Unit,
     onStop: () -> Unit,
     onReset: () -> Unit,
-    onTick: () -> Unit,
     onDelete: () -> Unit
 ) {
-    LaunchedEffect(timer.isRunning, timer.remainingSeconds) {
-        if (timer.isTicking()) {
-            delay(1000L)
-            onTick()
-        }
-    }
-
     Card(
         modifier = Modifier.fillMaxWidth(),
         elevation = CardDefaults.cardElevation(defaultElevation = Dimensions.SPACING_SMALL),
@@ -276,14 +266,14 @@ fun TimerAddDialog(
 
     AlertDialog(
         onDismissRequest = onDismiss,
-        title = { Text("タイマーを追加") },
+        title = { Text(stringResource(R.string.timer_add_title)) },
         text = {
             Column(
                 verticalArrangement = Arrangement.spacedBy(Dimensions.SPACING_SMALL_MEDIUM),
                 horizontalAlignment = Alignment.Start
             ) {
                 Text(
-                    text = "セットする時間を入力してください",
+                    text = stringResource(R.string.timer_add_description),
                     modifier = Modifier.fillMaxWidth(),
                     textAlign = TextAlign.Start,
                 )
@@ -317,12 +307,12 @@ fun TimerAddDialog(
                     onConfirm(minutes, seconds)
                 }
             ) {
-                Text("追加")
+                Text(stringResource(R.string.timer_add_confirm_button))
             }
         },
         dismissButton = {
             TextButton(onClick = onDismiss) {
-                Text("キャンセル")
+                Text(stringResource(R.string.timer_add_cancel_button))
             }
         }
     )
@@ -386,7 +376,6 @@ fun TimerPageScreenPreview() {
             onPause = {},
             onStop = {},
             onReset = {},
-            onTick = {},
             onAddTimer = { _, _ -> },
             onDeleteTimer = {}
         )
