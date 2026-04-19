@@ -69,9 +69,12 @@ class TimerViewModel(application: Application): AndroidViewModel(application) {
         super.onCleared()
         tickerJob?.cancel()
         tickerJob = null
+
+        val runningTimers = displayTimers.value.filter { it.isRunning }
+        if (runningTimers.isEmpty()) return
         CoroutineScope(Dispatchers.IO + NonCancellable).launch {
-            displayTimers.value.forEach { timer ->
-                pause(timer.id)
+            runningTimers.forEach { timer ->
+                repository.upsertTimer(timer.copy(isRunning = false))
             }
         }
     }
