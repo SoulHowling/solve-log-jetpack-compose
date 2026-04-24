@@ -9,7 +9,8 @@ data class TimerState(
     val id: Int = 0,
     val initialSeconds: Int,
     val remainingSeconds: Int,
-    val isRunning: Boolean = false
+    val isRunning: Boolean = false,
+    val lastModified: Long = System.currentTimeMillis()
 ) {
     fun isTicking(): Boolean {
         return  isRunning && remainingSeconds > 0
@@ -25,7 +26,10 @@ data class TimerState(
 
     fun tick(): TimerState {
         return if (remainingSeconds > 0) {
-            this.copy(remainingSeconds = remainingSeconds - 1)
+            this.copy(
+                remainingSeconds = remainingSeconds - 1,
+                lastModified = System.currentTimeMillis()
+            )
         } else {
             this
         }

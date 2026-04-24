@@ -55,11 +55,11 @@ class TimerViewModel(application: Application): AndroidViewModel(application) {
                 // カウントダウン中（isRunning）の項目の値は上書きしない
                 _displayTimers.value = dbTimers.map { dbTimer ->
                     val displayTimer = currentDisplay.find { it.id == dbTimer.id }
-                    if (displayTimer != null && displayTimer.isRunning) {
-                        // 実行中の場合は、メモリ上の状態を維持しつつDBの最新情報を反映（必要があれば）
-                        // ここではカウントのズレを防ぐため、実行中はメモリ側を優先
+                    if (displayTimer != null && displayTimer.lastModified >= dbTimer.lastModified) {
+                        // メモリ上のデータの方が新しい（または同じ）場合は、メモリ側を優先
                         displayTimer
                     } else {
+                        // DBの方が新しい、あるいは初回読み込みの場合はDBを優先
                         dbTimer
                     }
                 }
@@ -173,7 +173,11 @@ class TimerViewModel(application: Application): AndroidViewModel(application) {
     private fun updateTimerState(timerId: Int, transform: (TimerState) -> TimerState) {
         val currentList = _displayTimers.value
         val updatedList = currentList.map { 
-            if (it.id == timerId) transform(it) else it 
+            if (it.id == timerId) {
+                transform(it).copy(lastModified = System.currentTimeMillis())
+            } else {
+                it
+            }
         }
         _displayTimers.value = updatedList
         

@@ -21,7 +21,7 @@ abstract class SolveLogDatabase : RoomDatabase() {
 
     companion object {
         private const val DATABASE_NAME = "solve_log_database"
-        private const val SQL_DEFAULT_TIMER = "INSERT INTO timer_state (initialSeconds, remainingSeconds, isRunning) VALUES (60, 60, 0);"
+        private const val SQL_DEFAULT_TIMER = "INSERT INTO timer_state (initialSeconds, remainingSeconds, isRunning, lastModified) VALUES (60, 60, 0, 0);"
         @Volatile
         private var instance: SolveLogDatabase? = null
 
