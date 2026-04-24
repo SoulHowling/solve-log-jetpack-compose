@@ -24,6 +24,12 @@
     <string name="measurement_stop_button">Stop</string>
     <string name="measurement_reset_button">Reset</string>
 
+    <!-- Timer -->
+    <string name="timer_add_title">Add Timer</string>
+    <string name="timer_add_description">Please enter the time to set</string>
+    <string name="timer_add_confirm_button">Add</string>
+    <string name="timer_add_cancel_button">Cancel</string>
+
     <!-- Setting -->
     <string name="setting_notification">Notifications</string>
     <string name="setting_dark_theme">Dark theme</string>

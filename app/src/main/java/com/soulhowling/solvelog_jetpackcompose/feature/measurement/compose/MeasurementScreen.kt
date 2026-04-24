@@ -11,6 +11,8 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.tooling.preview.Preview
+import com.soulhowling.solvelog_jetpackcompose.feature.measurement.stopwatch.StopWatchPageScreen
+import com.soulhowling.solvelog_jetpackcompose.feature.measurement.timer.TimerPageScreen
 import com.soulhowling.solvelog_jetpackcompose.ui.theme.SolveLogJetpackComposeTheme
 import kotlinx.coroutines.launch
 

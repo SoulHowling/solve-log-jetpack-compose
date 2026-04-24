@@ -1,4 +1,4 @@
-package com.soulhowling.solvelog_jetpackcompose.feature.measurement.compose
+package com.soulhowling.solvelog_jetpackcompose.feature.measurement.stopwatch
 
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
