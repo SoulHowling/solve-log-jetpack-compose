@@ -5,6 +5,7 @@ import android.media.AudioAttributes
 import android.media.MediaPlayer
 import android.media.RingtoneManager
 import android.net.Uri
+import com.soulhowling.solvelog_jetpackcompose.utils.LogUtils
 
 class Alarm(private val context: Context) {
     private var mediaPlayer: MediaPlayer? = null
@@ -26,6 +27,11 @@ class Alarm(private val context: Context) {
             )
             isLooping = true
             setOnPreparedListener { start() }
+            setOnErrorListener { _, what, extra ->
+                LogUtils.e("MediaPlayer error: what=$what, extra=$extra")
+                stop()
+                true
+            }
             prepareAsync()
         }
     }

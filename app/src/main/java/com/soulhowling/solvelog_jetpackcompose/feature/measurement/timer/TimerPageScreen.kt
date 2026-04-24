@@ -158,7 +158,7 @@ fun TimerItemCard(
 
             LinearProgressIndicator(
                 progress = {
-                    if (timer.hasTimeLeft()) {
+                    if (timer.hasTimeLeft() && timer.initialSeconds > 0) {
                         timer.remainingSeconds.toFloat() / timer.initialSeconds.toFloat()
                     } else {
                         0f

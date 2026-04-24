@@ -66,9 +66,9 @@ class TimerViewModel(application: Application): AndroidViewModel(application) {
     }
 
     override fun onCleared() {
-        super.onCleared()
         tickerJob?.cancel()
         tickerJob = null
+        alarm.stop()
 
         val runningTimers = displayTimers.value.filter { it.isRunning }
         if (runningTimers.isEmpty()) return
@@ -77,6 +77,7 @@ class TimerViewModel(application: Application): AndroidViewModel(application) {
                 repository.upsertTimer(timer.copy(isRunning = false))
             }
         }
+        super.onCleared()
     }
 
     private fun updateTicker() {
@@ -102,13 +103,13 @@ class TimerViewModel(application: Application): AndroidViewModel(application) {
 
     private fun tickAll() {
         val currentList = _displayTimers.value
-        var finishedTimer: TimerState? = null
+        val finishedTimers = mutableListOf<TimerState>()
         
         val updatedList = currentList.map { timer ->
             if (timer.isTicking()) {
                 val next = timer.tick()
                 if (next.isFinished()) {
-                    finishedTimer = next
+                    finishedTimers.add(next)
                 }
                 next
             } else {
@@ -117,11 +118,12 @@ class TimerViewModel(application: Application): AndroidViewModel(application) {
         }
         _displayTimers.value = updatedList
         
-        finishedTimer?.let {
+        if (finishedTimers.isNotEmpty()) {
             alarm.play()
-            // 終了したタイマーの状態をDBに保存
             viewModelScope.launch {
-                repository.upsertTimer(it.copy(isRunning = false))
+                finishedTimers.forEach {
+                    repository.upsertTimer(it.copy(isRunning = false))
+                }
             }
         }
 
