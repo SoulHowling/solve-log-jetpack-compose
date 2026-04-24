@@ -41,12 +41,15 @@ class TimerViewModel(application: Application): AndroidViewModel(application) {
             started = SharingStarted.WhileSubscribed(5000),
             initialValue = emptyList()
         )
+        initTimers()
+    }
 
+    private fun initTimers() {
         // DBの更新を監視し、表示用リストの項目を同期する
         viewModelScope.launch {
             timers.collectLatest { dbTimers ->
                 val currentDisplay = _displayTimers.value
-                
+
                 // 初回読み込み時、またはリストの項目（ID）に変化があった場合のみ同期
                 // 毎秒のカウントダウン中は、表示用リストの値を優先するため、
                 // カウントダウン中（isRunning）の項目の値は上書きしない
