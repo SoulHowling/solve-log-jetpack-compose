@@ -32,11 +32,15 @@
 
     <!-- Setting -->
     <string name="setting_notification">通知設定</string>
-    <string name="setting_dark_theme">ダークテーマ</string>
+    <string name="setting_app_theme">アプリのテーマ</string>
     <string name="setting_wipe_data">データ消去</string>
     <string name="setting_about_this_app">このアプリについて</string>
 
-    <string name="error">Error</string>
+    <string name="theme_system">システム</string>
+    <string name="theme_light">ライト</string>
+    <string name="theme_dark">ダーク</string>
+
+    <string name="error">エラー</string>
 
     <!-- content description -->
     <!-- Editor -->

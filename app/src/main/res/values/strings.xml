@@ -32,9 +32,13 @@
 
     <!-- Setting -->
     <string name="setting_notification">Notifications</string>
-    <string name="setting_dark_theme">Dark theme</string>
+    <string name="setting_app_theme">App theme</string>
     <string name="setting_wipe_data">Wipe data</string>
     <string name="setting_about_this_app">About this app</string>
+
+    <string name="theme_system">System</string>
+    <string name="theme_light">Light</string>
+    <string name="theme_dark">Dark</string>
 
     <string name="error">Error</string>
 
