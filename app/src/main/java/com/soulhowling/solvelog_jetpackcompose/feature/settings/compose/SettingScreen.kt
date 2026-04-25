@@ -29,10 +29,22 @@ import com.soulhowling.solvelog_jetpackcompose.ui.theme.SolveLogJetpackComposeTh
 import com.soulhowling.solvelog_jetpackcompose.ui.theme.ThemeMode
 import com.soulhowling.solvelog_jetpackcompose.utils.LogUtils
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun SettingScreen(
     viewModel: SettingViewModel = viewModel()
+) {
+    val themeMode by viewModel.themeMode.collectAsState()
+    SettingScreenContent(
+        themeMode = themeMode,
+        onThemeModeChange = { viewModel.setThemeMode(it) }
+    )
+}
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+fun SettingScreenContent(
+    themeMode: ThemeMode,
+    onThemeModeChange: (ThemeMode) -> Unit
 ) {
     val settingsOptions = listOf(
         SettingItem.Notification,
@@ -40,7 +52,6 @@ fun SettingScreen(
         SettingItem.WipeData,
         SettingItem.AboutThisApp
     )
-    val themeMode by viewModel.themeMode.collectAsState()
 
     LazyColumn(modifier = Modifier.fillMaxSize()) {
         items(settingsOptions) { option ->
@@ -62,7 +73,7 @@ fun SettingScreen(
                                             count = ThemeMode.entries.size
                                         ),
                                         onClick = {
-                                            viewModel.setThemeMode(mode)
+                                            onThemeModeChange(mode)
                                             LogUtils.d("テーマ設定変更: $mode")
                                         },
                                         selected = themeMode == mode,
@@ -113,6 +124,9 @@ fun SettingItem(
 @Composable
 fun SettingScreenPreview() {
     SolveLogJetpackComposeTheme {
-        SettingScreen()
+        SettingScreenContent(
+            themeMode = ThemeMode.SYSTEM,
+            onThemeModeChange = {}
+        )
     }
 }
