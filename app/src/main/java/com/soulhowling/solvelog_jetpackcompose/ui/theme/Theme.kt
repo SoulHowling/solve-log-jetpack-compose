@@ -1,6 +1,5 @@
 package com.soulhowling.solvelog_jetpackcompose.ui.theme
 
-import android.app.Activity
 import android.os.Build
 import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.material3.MaterialTheme
@@ -10,6 +9,23 @@ import androidx.compose.material3.dynamicLightColorScheme
 import androidx.compose.material3.lightColorScheme
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.platform.LocalContext
+
+import androidx.annotation.StringRes
+import androidx.compose.material3.ColorScheme
+import com.soulhowling.solvelog_jetpackcompose.R
+
+enum class ThemeMode(val themeId: Int, @param:StringRes val labelResId: Int) {
+    SYSTEM(0, R.string.theme_system),
+    LIGHT(1, R.string.theme_light),
+    DARK(2, R.string.theme_dark)
+    ;
+    
+    companion object {
+        fun getThemeModeBy(themeId: Int): ThemeMode {
+            return entries.firstOrNull { it.themeId == themeId } ?: SYSTEM
+        }
+    }
+}
 
 private val DarkColorScheme = darkColorScheme(
     primary = Purple80,
@@ -35,19 +51,25 @@ private val LightColorScheme = lightColorScheme(
 
 @Composable
 fun SolveLogJetpackComposeTheme(
-    darkTheme: Boolean = isSystemInDarkTheme(),
+    themeMode: ThemeMode = ThemeMode.SYSTEM,
     // Dynamic color is available on Android 12+
     dynamicColor: Boolean = true,
     content: @Composable () -> Unit
 ) {
-    val colorScheme = when {
-      dynamicColor && Build.VERSION.SDK_INT >= Build.VERSION_CODES.S -> {
-        val context = LocalContext.current
-        if (darkTheme) dynamicDarkColorScheme(context) else dynamicLightColorScheme(context)
-      }
-      darkTheme -> DarkColorScheme
-      else -> LightColorScheme
+    val isDarkTheme: Boolean = when(themeMode) {
+        ThemeMode.SYSTEM -> isSystemInDarkTheme()
+        ThemeMode.LIGHT -> false
+        ThemeMode.DARK -> true
     }
+    val colorScheme: ColorScheme = when {
+        dynamicColor && Build.VERSION.SDK_INT >= Build.VERSION_CODES.S -> {
+            val context = LocalContext.current
+            if (isDarkTheme) dynamicDarkColorScheme(context) else dynamicLightColorScheme(context)
+        }
+        isDarkTheme -> DarkColorScheme
+        else -> LightColorScheme
+    }
+
 
     MaterialTheme(
       colorScheme = colorScheme,
