@@ -56,29 +56,20 @@ fun SolveLogJetpackComposeTheme(
     dynamicColor: Boolean = true,
     content: @Composable () -> Unit
 ) {
-    var colorScheme: ColorScheme
-    if (dynamicColor && Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
-        val context = LocalContext.current
-        colorScheme = when(themeMode) {
-            ThemeMode.LIGHT -> {
-                dynamicLightColorScheme(context)
-            }
-
-            ThemeMode.DARK -> {
-                dynamicDarkColorScheme(context)
-            }
-
-            ThemeMode.SYSTEM -> {
-                if (isSystemInDarkTheme()) dynamicDarkColorScheme(context) else dynamicLightColorScheme(context)
-            }
-        }
-    } else {
-        colorScheme = when(themeMode) {
-            ThemeMode.LIGHT -> LightColorScheme
-            ThemeMode.DARK -> DarkColorScheme
-            ThemeMode.SYSTEM -> if (isSystemInDarkTheme()) DarkColorScheme else LightColorScheme
-        }
+    val isDarkTheme: Boolean = when(themeMode) {
+        ThemeMode.SYSTEM -> isSystemInDarkTheme()
+        ThemeMode.LIGHT -> false
+        ThemeMode.DARK -> true
     }
+    val colorScheme: ColorScheme = when {
+        dynamicColor && Build.VERSION.SDK_INT >= Build.VERSION_CODES.S -> {
+            val context = LocalContext.current
+            if (isDarkTheme) dynamicDarkColorScheme(context) else dynamicLightColorScheme(context)
+        }
+        isDarkTheme -> DarkColorScheme
+        else -> LightColorScheme
+    }
+
 
     MaterialTheme(
       colorScheme = colorScheme,
