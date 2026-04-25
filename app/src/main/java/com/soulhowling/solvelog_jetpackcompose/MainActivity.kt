@@ -18,7 +18,6 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.collectAsState
 import androidx.lifecycle.viewmodel.compose.viewModel
-import com.soulhowling.solvelog_jetpackcompose.feature.settings.compose.SettingViewModel
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
@@ -41,20 +40,21 @@ class MainActivity : ComponentActivity() {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
         setContent {
-            val settingViewModel: SettingViewModel = viewModel()
-            val themeMode by settingViewModel.themeMode.collectAsState()
+            val mainViewModel: MainViewModel = viewModel()
+            mainViewModel.loadThemeMode()
+            val themeMode by mainViewModel.themeMode.collectAsState()
 
             SolveLogJetpackComposeTheme(
                 themeMode = themeMode
             ) {
-                MainScreen(settingViewModel)
+                MainScreen()
             }
         }
     }
 }
 
 @Composable
-fun MainScreen(settingViewModel: SettingViewModel) {
+fun MainScreen() {
     val navController = rememberNavController()
     val items = listOf(
         Screens.SolveLogEditor,
@@ -82,7 +82,7 @@ fun MainScreen(settingViewModel: SettingViewModel) {
             composable(Screens.SolveLogEditor.route) { SolveLogEditorScreen() }
             composable(Screens.LogStatistics.route) { LogStatisticsScreen() }
             composable(Screens.Measurement.route) { MeasurementScreen() }
-            composable(Screens.Setting.route) { SettingScreen(settingViewModel) }
+            composable(Screens.Setting.route) { SettingScreen() }
         }
     }
 }
@@ -133,6 +133,6 @@ fun BottomNavigation(
 @Composable
 fun MainActivityPreview() {
     SolveLogJetpackComposeTheme {
-        MainScreen(viewModel())
+        MainScreen()
     }
 }
