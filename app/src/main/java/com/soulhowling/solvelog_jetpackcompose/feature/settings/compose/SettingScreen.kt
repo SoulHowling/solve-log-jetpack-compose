@@ -20,6 +20,7 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
@@ -46,12 +47,14 @@ fun SettingScreenContent(
     themeMode: ThemeMode,
     onThemeModeChange: (ThemeMode) -> Unit
 ) {
-    val settingsOptions = listOf(
-        SettingItem.Notification,
-        SettingItem.AppTheme,
-        SettingItem.WipeData,
-        SettingItem.AboutThisApp
-    )
+    val settingsOptions = remember {
+        listOf(
+            SettingItem.Notification,
+            SettingItem.AppTheme,
+            SettingItem.WipeData,
+            SettingItem.AboutThisApp
+        )
+    }
 
     LazyColumn(modifier = Modifier.fillMaxSize()) {
         items(settingsOptions) { option ->
