@@ -1,4 +1,4 @@
-package com.soulhowling.solvelog_jetpackcompose
+package com.soulhowling.solvelog_jetpackcompose.core
 
 import android.os.Bundle
 import androidx.activity.ComponentActivity
@@ -29,10 +29,11 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
-import com.soulhowling.solvelog_jetpackcompose.feature.editor.compose.SolveLogEditorScreen
-import com.soulhowling.solvelog_jetpackcompose.feature.measurement.compose.MeasurementScreen
-import com.soulhowling.solvelog_jetpackcompose.feature.settings.compose.SettingScreen
-import com.soulhowling.solvelog_jetpackcompose.feature.statistics.compose.LogStatisticsScreen
+import com.soulhowling.solvelog_jetpackcompose.R
+import com.soulhowling.solvelog_jetpackcompose.feature.solvelog.SolveLogListScreen
+import com.soulhowling.solvelog_jetpackcompose.feature.measurement.MeasurementScreen
+import com.soulhowling.solvelog_jetpackcompose.feature.settings.SettingScreen
+import com.soulhowling.solvelog_jetpackcompose.feature.statistics.LogStatisticsScreen
 import com.soulhowling.solvelog_jetpackcompose.ui.theme.SolveLogJetpackComposeTheme
 
 class MainActivity : ComponentActivity() {
@@ -57,7 +58,7 @@ class MainActivity : ComponentActivity() {
 fun MainScreen() {
     val navController = rememberNavController()
     val items = listOf(
-        Screens.SolveLogEditor,
+        Screens.SolveLog,
         Screens.LogStatistics,
         Screens.Measurement,
         Screens.Setting
@@ -76,10 +77,10 @@ fun MainScreen() {
     ) { innerPadding ->
         NavHost(
             navController = navController,
-            startDestination = Screens.SolveLogEditor.route,
+            startDestination = Screens.SolveLog.route,
             modifier = Modifier.padding(innerPadding)
         ) {
-            composable(Screens.SolveLogEditor.route) { SolveLogEditorScreen() }
+            composable(Screens.SolveLog.route) { SolveLogListScreen() }
             composable(Screens.LogStatistics.route) { LogStatisticsScreen() }
             composable(Screens.Measurement.route) { MeasurementScreen() }
             composable(Screens.Setting.route) { SettingScreen() }

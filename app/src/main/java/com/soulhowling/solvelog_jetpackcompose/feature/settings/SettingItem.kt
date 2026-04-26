@@ -1,4 +1,4 @@
-package com.soulhowling.solvelog_jetpackcompose.feature.settings.compose
+package com.soulhowling.solvelog_jetpackcompose.feature.settings
 
 import androidx.annotation.StringRes
 import com.soulhowling.solvelog_jetpackcompose.R

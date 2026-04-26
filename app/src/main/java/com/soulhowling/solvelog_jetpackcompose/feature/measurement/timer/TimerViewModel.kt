@@ -3,7 +3,7 @@ package com.soulhowling.solvelog_jetpackcompose.feature.measurement.timer
 import android.app.Application
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
-import com.soulhowling.solvelog_jetpackcompose.SolveLogApplication
+import com.soulhowling.solvelog_jetpackcompose.core.SolveLogApplication
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job

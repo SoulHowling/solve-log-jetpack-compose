@@ -1,4 +1,4 @@
-package com.soulhowling.solvelog_jetpackcompose.feature.editor.compose
+package com.soulhowling.solvelog_jetpackcompose.feature.solvelog
 
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -28,7 +28,7 @@ import com.soulhowling.solvelog_jetpackcompose.ui.theme.Dimensions
 import com.soulhowling.solvelog_jetpackcompose.ui.theme.SolveLogJetpackComposeTheme
 
 @Composable
-fun SolveLogEditorScreen() {
+fun SolveLogListScreen() {
     Box(modifier = Modifier.fillMaxSize()) {
         LazyColumn(
             modifier = Modifier
@@ -108,8 +108,8 @@ fun NewLogButton(modifier: Modifier = Modifier, onClick: () -> Unit) {
 
 @Preview(showBackground = true)
 @Composable
-fun SolveLogEditorScreenPreview() {
+fun SolveLogListScreenPreview() {
     SolveLogJetpackComposeTheme {
-        SolveLogEditorScreen()
+        SolveLogListScreen()
     }
 }

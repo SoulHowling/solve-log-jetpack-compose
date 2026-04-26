@@ -1,4 +1,4 @@
-package com.soulhowling.solvelog_jetpackcompose.feature.statistics.compose
+package com.soulhowling.solvelog_jetpackcompose.feature.statistics
 
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column

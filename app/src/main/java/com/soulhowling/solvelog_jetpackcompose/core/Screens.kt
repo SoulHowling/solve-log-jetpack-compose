@@ -1,4 +1,4 @@
-package com.soulhowling.solvelog_jetpackcompose
+package com.soulhowling.solvelog_jetpackcompose.core
 
 import androidx.annotation.StringRes
 import androidx.compose.material.icons.Icons
@@ -7,14 +7,15 @@ import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material.icons.filled.Timer
 import androidx.compose.ui.graphics.vector.ImageVector
+import com.soulhowling.solvelog_jetpackcompose.R
 
 sealed class Screens(
     val route: String,
     @get:StringRes val title: Int,
     val icon: ImageVector
 ) {
-    data object SolveLogEditor: Screens(
-        route = "solve_log_editor",
+    data object SolveLog: Screens(
+        route = "solve_log",
         title = R.string.tab_editor,
         icon = Icons.Default.Edit
         )
