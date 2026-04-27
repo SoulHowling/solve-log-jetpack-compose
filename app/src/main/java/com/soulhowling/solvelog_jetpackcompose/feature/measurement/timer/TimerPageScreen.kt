@@ -1,5 +1,6 @@
 package com.soulhowling.solvelog_jetpackcompose.feature.measurement.timer
 
+import androidx.compose.animation.core.tween
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -93,8 +94,15 @@ fun TimerPageContent(
             ),
             verticalArrangement = Arrangement.spacedBy(Dimensions.SPACING_MEDIUM)
         ) {
-            items(timers) { timer ->
+            items(
+                items = timers,
+                key = { it.id }
+            ) { timer ->
                 TimerItemCard(
+                    modifier = Modifier.animateItem(
+                        fadeOutSpec = tween(durationMillis = 300),
+                        placementSpec = tween(durationMillis = 300)
+                    ),
                     timer = timer,
                     onStart = { onStart(timer.id) },
                     onPause = { onPause(timer.id)},
@@ -128,6 +136,7 @@ fun TimerPageContent(
 
 @Composable
 fun TimerItemCard(
+    modifier: Modifier = Modifier,
     timer: TimerState,
     onStart: () -> Unit,
     onPause: () -> Unit,
@@ -136,7 +145,7 @@ fun TimerItemCard(
     onDelete: () -> Unit
 ) {
     Card(
-        modifier = Modifier.fillMaxWidth(),
+        modifier = modifier.fillMaxWidth(),
         elevation = CardDefaults.cardElevation(defaultElevation = Dimensions.SPACING_SMALL),
         colors = CardDefaults.cardColors(
             containerColor = MaterialTheme.colorScheme.surfaceVariant
@@ -198,7 +207,11 @@ fun TimerItemCard(
                         onDelete()
                     }
                 ) {
-                    Icon(Icons.Default.Delete, contentDescription = "削除")
+                    Icon(
+                        imageVector = Icons.Default.Delete,
+                        contentDescription = "削除",
+                        tint = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
                 }
             }
         }

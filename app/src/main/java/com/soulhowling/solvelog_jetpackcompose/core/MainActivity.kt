@@ -4,9 +4,19 @@ import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
-import androidx.compose.foundation.layout.padding
+import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.expandVertically
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
+import androidx.compose.animation.shrinkVertically
+import androidx.compose.animation.slideInVertically
+import androidx.compose.animation.slideOutVertically
+import androidx.compose.foundation.layout.height
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.NavigationBar
 import androidx.compose.material3.NavigationBarItem
@@ -17,23 +27,26 @@ import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.lifecycle.viewmodel.compose.viewModel
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.input.nestedscroll.NestedScrollConnection
+import androidx.compose.ui.input.nestedscroll.NestedScrollSource
+import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.ui.unit.dp
 import androidx.navigation.NavDestination
 import androidx.navigation.NavDestination.Companion.hierarchy
 import androidx.navigation.NavGraph.Companion.findStartDestination
 import androidx.navigation.NavHostController
-import androidx.navigation.compose.NavHost
-import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import com.soulhowling.solvelog_jetpackcompose.R
-import com.soulhowling.solvelog_jetpackcompose.feature.solvelog.SolveLogListScreen
-import com.soulhowling.solvelog_jetpackcompose.feature.measurement.MeasurementScreen
-import com.soulhowling.solvelog_jetpackcompose.feature.settings.SettingScreen
-import com.soulhowling.solvelog_jetpackcompose.feature.statistics.LogStatisticsScreen
 import com.soulhowling.solvelog_jetpackcompose.ui.theme.SolveLogJetpackComposeTheme
 
 class MainActivity : ComponentActivity() {
@@ -57,7 +70,7 @@ class MainActivity : ComponentActivity() {
 @Composable
 fun MainScreen() {
     val navController = rememberNavController()
-    val items = listOf(
+    val bottomNaviItems = listOf(
         Screens.SolveLog,
         Screens.LogStatistics,
         Screens.Measurement,
@@ -66,39 +79,92 @@ fun MainScreen() {
 
     val navBackStackEntry by navController.currentBackStackEntryAsState()
     val currentDestination = navBackStackEntry?.destination
+    val canNavigateBack = navController.previousBackStackEntry != null &&
+            bottomNaviItems.none { it.route == currentDestination?.route }
+
+    // ボトムナビゲーションの表示状態
+    var isBottomBarVisible by remember { mutableStateOf(true) }
+
+    // スクロール検知用の NestedScrollConnection
+    val nestedScrollConnection = remember {
+        object : NestedScrollConnection {
+            override fun onPostScroll(
+                consumed: Offset,
+                available: Offset,
+                source: NestedScrollSource
+            ): Offset {
+                // consumed.y != 0 の場合のみ、実際にコンテンツがスクロールされたと判断する
+                if (consumed.y < -5) {
+                    isBottomBarVisible = false
+                } else if (consumed.y > 5) {
+                    isBottomBarVisible = true
+                }
+                return Offset.Zero
+            }
+        }
+    }
 
     Scaffold(
+        modifier = Modifier.nestedScroll(nestedScrollConnection),
         topBar = {
-            TopAppBar(currentDestination, items)
+            TopAppBar(
+                currentDestination = currentDestination,
+                canNavigateBack = canNavigateBack,
+                onBackClick = { navController.navigateUp() }
+            )
         },
         bottomBar = {
-            BottomNavigation(navController, currentDestination, items)
+            // AnimatedVisibility に高さのアニメーション（expand/shrink）を追加することで、
+            // Scaffold の innerPadding がリアルタイムに更新され、コンテンツ領域がスムーズに追従します。
+            AnimatedVisibility(
+                visible = isBottomBarVisible,
+                enter = slideInVertically(initialOffsetY = { it }) + expandVertically(expandFrom = Alignment.Bottom) + fadeIn(),
+                exit = slideOutVertically(targetOffsetY = { it }) + shrinkVertically(shrinkTowards = Alignment.Bottom) + fadeOut(),
+            ) {
+                BottomNavigation(navController, currentDestination, bottomNaviItems)
+            }
         }
     ) { innerPadding ->
-        NavHost(
+        AppNavGraph(
             navController = navController,
-            startDestination = Screens.SolveLog.route,
-            modifier = Modifier.padding(innerPadding)
-        ) {
-            composable(Screens.SolveLog.route) { SolveLogListScreen() }
-            composable(Screens.LogStatistics.route) { LogStatisticsScreen() }
-            composable(Screens.Measurement.route) { MeasurementScreen() }
-            composable(Screens.Setting.route) { SettingScreen() }
-        }
+            innerPadding = innerPadding
+        )
     }
 }
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun TopAppBar(currentDestination: NavDestination?, items: List<Screens>) {
-    val currentScreen = items.find { it.route == currentDestination?.route }
+fun TopAppBar(
+    currentDestination: NavDestination?,
+    canNavigateBack: Boolean,
+    onBackClick: () -> Unit
+) {
+    val allScreens = listOf(
+        Screens.SolveLog,
+        Screens.SolveLogEditor,
+        Screens.LogStatistics,
+        Screens.Measurement,
+        Screens.Setting
+    )
+    val currentScreen = allScreens.find { it.route == currentDestination?.route }
     val title = currentScreen?.title ?: R.string.error
 
     TopAppBar(
         title = { Text(stringResource(id = title)) },
+        navigationIcon = {
+            if (canNavigateBack) {
+                IconButton(onClick = onBackClick) {
+                    Icon(
+                        imageVector = Icons.AutoMirrored.Filled.ArrowBack,
+                        contentDescription = "Back",
+                        tint = MaterialTheme.colorScheme.onPrimary
+                    )
+                }
+            }
+        },
         colors = TopAppBarDefaults.topAppBarColors(
-            containerColor = MaterialTheme.colorScheme.primaryContainer,
-            titleContentColor = MaterialTheme.colorScheme.onPrimaryContainer,
+            containerColor = MaterialTheme.colorScheme.primary,
+            titleContentColor = MaterialTheme.colorScheme.onPrimary,
         )
     )
 }

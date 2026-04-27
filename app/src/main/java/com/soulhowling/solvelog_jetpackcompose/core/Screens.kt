@@ -19,6 +19,11 @@ sealed class Screens(
         title = R.string.tab_editor,
         icon = Icons.Default.Edit
         )
+    data object SolveLogEditor: Screens(
+        route = "solve_log_editor",
+        title = R.string.editor_detail,
+        icon = Icons.Default.Edit
+    )
     data object LogStatistics: Screens(
         route = "log_statistics",
         title = R.string.tab_statistics,

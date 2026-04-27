@@ -1,5 +1,6 @@
 package com.soulhowling.solvelog_jetpackcompose.feature.solvelog
 
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -28,7 +29,12 @@ import com.soulhowling.solvelog_jetpackcompose.ui.theme.Dimensions
 import com.soulhowling.solvelog_jetpackcompose.ui.theme.SolveLogJetpackComposeTheme
 
 @Composable
-fun SolveLogListScreen() {
+fun SolveLogListScreen(onNavigateToEditor: () -> Unit) {
+    SolveLogListScreenContent(onNavigateToEditor = onNavigateToEditor)
+}
+
+@Composable
+fun SolveLogListScreenContent(onNavigateToEditor: () -> Unit) {
     Box(modifier = Modifier.fillMaxSize()) {
         LazyColumn(
             modifier = Modifier
@@ -44,7 +50,8 @@ fun SolveLogListScreen() {
             items(10) { index ->
                 SolveLogItemCard(
                     title = "Log #${index + 1}",
-                    description = "Description for Log #${index + 1}"
+                    description = "Description for Log #${index + 1}",
+                    onClick = onNavigateToEditor
                 )
             }
         }
@@ -53,17 +60,19 @@ fun SolveLogListScreen() {
             modifier = Modifier
                 .align(Alignment.BottomEnd)
                 .padding(Dimensions.PADDING_MEDIUM),
-            onClick = { /* TODO */ }
+            onClick = onNavigateToEditor
         )
     }
 }
 
 @Composable
 fun SolveLogItemCard(
-    title: String, description: String
+    title: String, description: String, onClick: () -> Unit
 ) {
     Card(
-        modifier = Modifier.fillMaxWidth(),
+        modifier = Modifier
+            .fillMaxWidth()
+            .clickable { onClick() },
         elevation = CardDefaults.cardElevation(defaultElevation = Dimensions.SPACING_SMALL),
         colors = CardDefaults.cardColors(
             containerColor = MaterialTheme.colorScheme.surfaceVariant
@@ -108,8 +117,8 @@ fun NewLogButton(modifier: Modifier = Modifier, onClick: () -> Unit) {
 
 @Preview(showBackground = true)
 @Composable
-fun SolveLogListScreenPreview() {
+fun SolveLogListScreenContentPreview() {
     SolveLogJetpackComposeTheme {
-        SolveLogListScreen()
+        SolveLogListScreenContent(onNavigateToEditor = {})
     }
 }
