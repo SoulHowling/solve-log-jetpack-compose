@@ -61,9 +61,9 @@ fun SolveLogEditorScreenContent() {
                 source: NestedScrollSource
             ): Offset {
                 if (consumed.y < -5) {
-                    isHeaderVisible = true
-                } else if (consumed.y > 5) {
                     isHeaderVisible = false
+                } else if (consumed.y > 5) {
+                    isHeaderVisible = true
                 }
                 return Offset.Zero
             }
