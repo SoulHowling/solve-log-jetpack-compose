@@ -11,7 +11,6 @@ import androidx.compose.animation.fadeOut
 import androidx.compose.animation.shrinkVertically
 import androidx.compose.animation.slideInVertically
 import androidx.compose.animation.slideOutVertically
-import androidx.compose.foundation.layout.height
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -39,7 +38,6 @@ import androidx.compose.ui.input.nestedscroll.NestedScrollSource
 import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
-import androidx.compose.ui.unit.dp
 import androidx.navigation.NavDestination
 import androidx.navigation.NavDestination.Companion.hierarchy
 import androidx.navigation.NavGraph.Companion.findStartDestination
@@ -61,21 +59,21 @@ class MainActivity : ComponentActivity() {
             SolveLogJetpackComposeTheme(
                 themeMode = themeMode
             ) {
-                MainScreen()
+                MainScreen(
+                    bottomNaviItems = Screens.getBottomNaviScreens(),
+                    allScreens = Screens.getAllScreens()
+                )
             }
         }
     }
 }
 
 @Composable
-fun MainScreen() {
+fun MainScreen(
+    bottomNaviItems: List<Screens>,
+    allScreens: List<Screens>
+) {
     val navController = rememberNavController()
-    val bottomNaviItems = listOf(
-        Screens.SolveLog,
-        Screens.LogStatistics,
-        Screens.Measurement,
-        Screens.Setting
-    )
 
     val navBackStackEntry by navController.currentBackStackEntryAsState()
     val currentDestination = navBackStackEntry?.destination
@@ -110,7 +108,8 @@ fun MainScreen() {
             TopAppBar(
                 currentDestination = currentDestination,
                 canNavigateBack = canNavigateBack,
-                onBackClick = { navController.navigateUp() }
+                onBackClick = { navController.navigateUp() },
+                allScreens = allScreens
             )
         },
         bottomBar = {
@@ -137,15 +136,9 @@ fun MainScreen() {
 fun TopAppBar(
     currentDestination: NavDestination?,
     canNavigateBack: Boolean,
-    onBackClick: () -> Unit
+    onBackClick: () -> Unit,
+    allScreens: List<Screens>
 ) {
-    val allScreens = listOf(
-        Screens.SolveLog,
-        Screens.SolveLogEditor,
-        Screens.LogStatistics,
-        Screens.Measurement,
-        Screens.Setting
-    )
     val currentScreen = allScreens.find { it.route == currentDestination?.route }
     val title = currentScreen?.title ?: R.string.error
 
@@ -200,6 +193,9 @@ fun BottomNavigation(
 @Composable
 fun MainActivityPreview() {
     SolveLogJetpackComposeTheme {
-        MainScreen()
+        MainScreen(
+            allScreens = Screens.getAllScreens(),
+            bottomNaviItems = Screens.getBottomNaviScreens()
+        )
     }
 }

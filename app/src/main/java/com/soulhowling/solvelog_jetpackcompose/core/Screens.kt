@@ -39,4 +39,22 @@ sealed class Screens(
         title = R.string.tab_setting,
         icon = Icons.Default.Settings
     )
+
+    companion object {
+        fun getAllScreens(): List<Screens> = listOf(
+            SolveLog,
+            SolveLogEditor,
+            LogStatistics,
+            Measurement,
+            Setting
+        )
+
+        fun getBottomNaviScreens(): List<Screens> = listOf(
+            SolveLog,
+            LogStatistics,
+            Measurement,
+            Setting
+        )
+    }
+
 }
