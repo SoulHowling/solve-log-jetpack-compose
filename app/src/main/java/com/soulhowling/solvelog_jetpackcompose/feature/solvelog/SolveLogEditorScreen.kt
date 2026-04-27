@@ -203,7 +203,7 @@ fun SolveLogItem(
         enableDismissFromStartToEnd = false,
         backgroundContent = {
             val color = when (dismissState.dismissDirection) {
-                SwipeToDismissBoxValue.EndToStart -> MaterialTheme.colorScheme.errorContainer
+                SwipeToDismissBoxValue.EndToStart -> MaterialTheme.colorScheme.error
                 else -> Color.Transparent
             }
             Box(
@@ -218,14 +218,14 @@ fun SolveLogItem(
                     text = "削除",
                     style = MaterialTheme.typography.labelLarge,
                     modifier = Modifier.padding(end = 48.dp),
-                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    color = MaterialTheme.colorScheme.surface,
                     textAlign = TextAlign.Center
                 )
                 Icon(
                     imageVector = Icons.Default.Delete,
                     contentDescription = "削除",
                     modifier = Modifier.padding(end = 16.dp),
-                    tint = MaterialTheme.colorScheme.onErrorContainer
+                    tint = MaterialTheme.colorScheme.surface
                 )
             }
         },
@@ -395,7 +395,7 @@ fun CorrectIncorrectToggleButton(
                             style = MaterialTheme.typography.titleLarge,
                             fontWeight = if (selectedItem == item) FontWeight.Bold else FontWeight.Normal,
                             color = if (selectedItem == item) {
-                                Color.White
+                                MaterialTheme.colorScheme.surface
                             } else {
                                 MaterialTheme.colorScheme.onSurfaceVariant
                             }
