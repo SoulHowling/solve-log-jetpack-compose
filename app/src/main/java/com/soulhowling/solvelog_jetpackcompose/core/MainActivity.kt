@@ -28,6 +28,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.compose.ui.Alignment
@@ -81,7 +82,7 @@ fun MainScreen(
             bottomNaviItems.none { it.route == currentDestination?.route }
 
     // ボトムナビゲーションの表示状態
-    var isBottomBarVisible by remember { mutableStateOf(true) }
+    var isBottomBarVisible by rememberSaveable { mutableStateOf(true) }
 
     // スクロール検知用の NestedScrollConnection
     val nestedScrollConnection = remember {

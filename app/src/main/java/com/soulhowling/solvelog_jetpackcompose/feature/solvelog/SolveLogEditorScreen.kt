@@ -25,6 +25,7 @@ import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material3.*
 import androidx.compose.material3.rememberSwipeToDismissBoxState
 import androidx.compose.runtime.*
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -185,10 +186,10 @@ fun SolveLogItem(
     modifier: Modifier = Modifier
 ) {
     // TODO: 内部状態（本来はViewModel等で管理するのが望ましい）
-    var expanded by remember { mutableStateOf(false) }
-    var selectedOption by remember { mutableStateOf("A") }
+    var isExpandedDropdown by rememberSaveable { mutableStateOf(false) }
+    var selectedAnswer by remember { mutableStateOf("A") }
     var resultStatus by remember { mutableStateOf<CorrectIncorrectItem?>(null) }
-    var isChecked by remember { mutableStateOf(false) }
+    var isCheckedFlag by remember { mutableStateOf(false) }
 
     val dismissState = rememberSwipeToDismissBoxState()
 
@@ -256,7 +257,7 @@ fun SolveLogItem(
                         contentAlignment = Alignment.Center
                     ) {
                         OutlinedCard(
-                            onClick = { expanded = true },
+                            onClick = { isExpandedDropdown = true },
                             modifier = Modifier
                                 .fillMaxWidth()
                                 .padding(horizontal = 8.dp)
@@ -269,7 +270,7 @@ fun SolveLogItem(
                                     .padding(horizontal = 10.dp, vertical = 10.dp)
                             ) {
                                 Text(
-                                    text = selectedOption,
+                                    text = selectedAnswer,
                                     style = MaterialTheme.typography.titleMedium
                                 )
                                 Icon(
@@ -279,13 +280,13 @@ fun SolveLogItem(
                                 )
                             }
                         }
-                        DropdownMenu(expanded = expanded, onDismissRequest = { expanded = false }) {
+                        DropdownMenu(expanded = isExpandedDropdown, onDismissRequest = { isExpandedDropdown = false }) {
                             listOf("A", "B", "C").forEach { option ->
                                 DropdownMenuItem(
                                     text = { Text(option) },
                                     onClick = {
-                                        selectedOption = option
-                                        expanded = false
+                                        selectedAnswer = option
+                                        isExpandedDropdown = false
                                     }
                                 )
                             }
@@ -311,8 +312,8 @@ fun SolveLogItem(
                     contentAlignment = Alignment.Center
                 ) {
                     Checkbox(
-                        checked = isChecked,
-                        onCheckedChange = { isChecked = it },
+                        checked = isCheckedFlag,
+                        onCheckedChange = { isCheckedFlag = it },
                         modifier = Modifier.size(48.dp)
                     )
                 }
