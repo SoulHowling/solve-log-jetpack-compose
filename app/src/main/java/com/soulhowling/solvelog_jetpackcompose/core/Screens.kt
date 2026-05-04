@@ -4,6 +4,7 @@ import androidx.annotation.StringRes
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.BarChart
 import androidx.compose.material.icons.filled.Edit
+import androidx.compose.material.icons.filled.Preview
 import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material.icons.filled.Timer
 import androidx.compose.ui.graphics.vector.ImageVector
@@ -19,9 +20,14 @@ sealed class Screens(
         title = R.string.tab_editor,
         icon = Icons.Default.Edit
         )
+    data object SolveLogViewer: Screens(
+        route = "solve_log_viewer",
+        title = R.string.log_view,
+        icon = Icons.Default.Preview
+    )
     data object SolveLogEditor: Screens(
         route = "solve_log_editor",
-        title = R.string.editor_detail,
+        title = R.string.log_edit,
         icon = Icons.Default.Edit
     )
     data object LogStatistics: Screens(
@@ -43,6 +49,7 @@ sealed class Screens(
     companion object {
         fun getAllScreens(): List<Screens> = listOf(
             SolveLog,
+            SolveLogViewer,
             SolveLogEditor,
             LogStatistics,
             Measurement,

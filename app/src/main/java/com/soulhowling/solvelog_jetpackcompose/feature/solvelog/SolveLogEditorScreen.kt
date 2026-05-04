@@ -97,7 +97,7 @@ fun SolveLogEditorScreenContent() {
                     { logList = logList.filter { it != id } }
                 }
 
-                SolveLogItem(
+                SolveLogEditorRowItem(
                     number = index + 1,
                     onDelete = onDeleteItem,
                     modifier = Modifier.animateItem()
@@ -180,7 +180,7 @@ fun SolveLogHeader() {
 }
 
 @Composable
-fun SolveLogItem(
+fun SolveLogEditorRowItem(
     number: Int,
     onDelete: () -> Unit,
     modifier: Modifier = Modifier
@@ -426,9 +426,9 @@ fun SolveLogHeaderPreview() {
 
 @Preview(showBackground = true)
 @Composable
-fun SolveLogItemPreview() {
+fun SolveLogEditorRowItemPreview() {
     SolveLogJetpackComposeTheme {
-        SolveLogItem(
+        SolveLogEditorRowItem(
             number = 1,
             onDelete = { /* TODO */ }
         )

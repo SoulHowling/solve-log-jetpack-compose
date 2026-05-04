@@ -11,6 +11,7 @@ import com.soulhowling.solvelog_jetpackcompose.feature.measurement.MeasurementSc
 import com.soulhowling.solvelog_jetpackcompose.feature.settings.SettingScreen
 import com.soulhowling.solvelog_jetpackcompose.feature.solvelog.SolveLogEditorScreen
 import com.soulhowling.solvelog_jetpackcompose.feature.solvelog.SolveLogListScreen
+import com.soulhowling.solvelog_jetpackcompose.feature.solvelog.SolveLogViewerScreen
 import com.soulhowling.solvelog_jetpackcompose.feature.statistics.LogStatisticsScreen
 
 @Composable
@@ -26,6 +27,13 @@ fun AppNavGraph(
     ) {
         composable(Screens.SolveLog.route) {
             SolveLogListScreen(
+                onNavigateToEditor = {
+                    navController.navigate(Screens.SolveLogViewer.route)
+                }
+            )
+        }
+        composable(Screens.SolveLogViewer.route) {
+            SolveLogViewerScreen(
                 onNavigateToEditor = {
                     navController.navigate(Screens.SolveLogEditor.route)
                 }

@@ -14,7 +14,8 @@
     <string name="tab_setting">Settings</string>
 
     <!-- Editor -->
-    <string name="editor_detail">Edit Log</string>
+    <string name="log_view">View Log</string>
+    <string name="log_edit">Edit Log</string>
 
     <!-- Statistics -->
 

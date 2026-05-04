@@ -14,7 +14,8 @@
     <string name="tab_setting">設定</string>
 
     <!-- Editor -->
-    <string name="editor_detail">ログ編集</string>
+    <string name="log_view">ログ閲覧</string>
+    <string name="log_edit">ログ編集</string>
 
     <!-- Statistics -->
 
