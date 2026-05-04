@@ -27,7 +27,7 @@ fun AppNavGraph(
     ) {
         composable(Screens.SolveLog.route) {
             SolveLogListScreen(
-                onNavigateToEditor = {
+                onNavigateToViewer = {
                     navController.navigate(Screens.SolveLogViewer.route)
                 }
             )

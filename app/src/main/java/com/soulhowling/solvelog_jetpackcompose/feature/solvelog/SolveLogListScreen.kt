@@ -29,12 +29,12 @@ import com.soulhowling.solvelog_jetpackcompose.ui.theme.Dimensions
 import com.soulhowling.solvelog_jetpackcompose.ui.theme.SolveLogJetpackComposeTheme
 
 @Composable
-fun SolveLogListScreen(onNavigateToEditor: () -> Unit) {
-    SolveLogListScreenContent(onNavigateToEditor = onNavigateToEditor)
+fun SolveLogListScreen(onNavigateToViewer: () -> Unit) {
+    SolveLogListScreenContent(onNavigateToViewer = onNavigateToViewer)
 }
 
 @Composable
-fun SolveLogListScreenContent(onNavigateToEditor: () -> Unit) {
+fun SolveLogListScreenContent(onNavigateToViewer: () -> Unit) {
     Box(modifier = Modifier.fillMaxSize()) {
         LazyColumn(
             modifier = Modifier
@@ -51,7 +51,7 @@ fun SolveLogListScreenContent(onNavigateToEditor: () -> Unit) {
                 SolveLogItemCard(
                     title = "Log #${index + 1}",
                     description = "Description for Log #${index + 1}",
-                    onClick = onNavigateToEditor
+                    onClick = onNavigateToViewer
                 )
             }
         }
@@ -60,7 +60,7 @@ fun SolveLogListScreenContent(onNavigateToEditor: () -> Unit) {
             modifier = Modifier
                 .align(Alignment.BottomEnd)
                 .padding(Dimensions.PADDING_MEDIUM),
-            onClick = onNavigateToEditor
+            onClick = { /** TODO **/ }
         )
     }
 }
@@ -119,6 +119,6 @@ fun NewLogButton(modifier: Modifier = Modifier, onClick: () -> Unit) {
 @Composable
 fun SolveLogListScreenContentPreview() {
     SolveLogJetpackComposeTheme {
-        SolveLogListScreenContent(onNavigateToEditor = {})
+        SolveLogListScreenContent(onNavigateToViewer = {})
     }
 }
