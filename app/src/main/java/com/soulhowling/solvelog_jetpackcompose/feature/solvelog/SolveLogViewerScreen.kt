@@ -1,23 +1,19 @@
 package com.soulhowling.solvelog_jetpackcompose.feature.solvelog
 
-import androidx.compose.animation.AnimatedVisibility
-import androidx.compose.animation.core.animateDpAsState
-import androidx.compose.animation.fadeIn
-import androidx.compose.animation.fadeOut
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CornerSize
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material.icons.filled.Flag
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -31,7 +27,7 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import com.soulhowling.solvelog_jetpackcompose.ui.theme.SolveLogJetpackComposeTheme
-import com.soulhowling.solvelog_jetpackcompose.core.LocalBottomBarVisibility
+import kotlin.Unit
 
 private val rowHeight = 48.dp
 private val colWidth = 120.dp
@@ -94,7 +90,6 @@ fun SolveLogViewerScreenContent(onNavigateToEditor: () -> Unit) {
                             horizontalArrangement = Arrangement.spacedBy(spacing),
                             verticalAlignment = Alignment.CenterVertically
                         ) {
-                            // 横スクロールに合わせて左端に追従
                             Box(
                                 modifier = Modifier
                                     .size(stickyColWidth, 32.dp)
@@ -107,6 +102,7 @@ fun SolveLogViewerScreenContent(onNavigateToEditor: () -> Unit) {
                                 AttemptHeader(
                                     attemptNumber = index + 1,
                                     shape = headerShape,
+                                    onNavigateToEditor = onNavigateToEditor,
                                     width = colWidth
                                 )
                             }
@@ -133,6 +129,7 @@ fun SolveLogViewerScreenContent(onNavigateToEditor: () -> Unit) {
                                     isCorrect = qIndex % 4 != 0,
                                     isChecked = qIndex % 5 == 0,
                                     isLast = qIndex == questionCount - 1,
+                                    onNavigateToEditor = onNavigateToEditor,
                                     width = colWidth,
                                     height = rowHeight
                                 )
@@ -183,29 +180,25 @@ fun SolveLogViewerScreenContent(onNavigateToEditor: () -> Unit) {
                                     .background(MaterialTheme.colorScheme.surfaceContainerLow)
                             )
                             repeat(attemptCount) {
-                                ScoreFooter(shape = footerShape, width = colWidth)
+                                ScoreFooter(
+                                    shape = footerShape,
+                                    width = colWidth,
+                                    onNavigateToEditor = onNavigateToEditor
+                                )
                             }
                         }
                     }
                 }
             }
         }
-
-        // --- 4. フローティングアクションボタン ---
-        // ここで初めて LocalBottomBarVisibility.current を読み込むことで、
-        // 状態変化による再描画の範囲をこのボタン内だけに限定し、メインの重いリストの再描画を防ぎます。
-        EditLogFloatingActionButton(
-            modifier = Modifier
-                .align(Alignment.BottomEnd)
-                .padding(16.dp),
-            isBottomBarVisible = LocalBottomBarVisibility.current,
-            onNavigateToEditor = onNavigateToEditor
-        )
     }
 }
 
 @Composable
-fun QuestionStickyLabel(number: Int, height: Dp) {
+fun QuestionStickyLabel(
+    number: Int,
+    height: Dp
+) {
     Box(
         modifier = Modifier
             .size(32.dp, height)
@@ -223,11 +216,16 @@ fun QuestionStickyLabel(number: Int, height: Dp) {
 }
 
 @Composable
-fun AttemptHeader(attemptNumber: Int, shape: Shape, width: Dp) {
+fun AttemptHeader(
+    attemptNumber: Int,
+    shape: Shape, width: Dp,
+    onNavigateToEditor: () -> Unit
+) {
     Box(
         modifier = Modifier
             .width(width)
             .background(MaterialTheme.colorScheme.primaryContainer, shape)
+            .clickable(onClick = { onNavigateToEditor() } )
             .padding(8.dp),
         contentAlignment = Alignment.Center
     ) {
@@ -246,6 +244,7 @@ fun SolveLogItemCell(
     isCorrect: Boolean,
     isChecked: Boolean,
     isLast: Boolean,
+    onNavigateToEditor: () -> Unit,
     width: Dp,
     height: Dp
 ) {
@@ -265,7 +264,8 @@ fun SolveLogItemCell(
                         strokeWidth = 1.dp.toPx()
                     )
                 }
-            },
+            }
+            .clickable(onClick = { onNavigateToEditor() }),
         contentAlignment = Alignment.Center
     ) {
         SolveLogRowItem(
@@ -277,12 +277,17 @@ fun SolveLogItemCell(
 }
 
 @Composable
-fun ScoreFooter(shape: Shape, width: Dp) {
+fun ScoreFooter(
+    shape: Shape,
+    width: Dp,
+    onNavigateToEditor: () -> Unit,
+) {
     Box(
         modifier = Modifier
             .width(width)
             .background(color = MaterialTheme.colorScheme.surfaceVariant, shape)
-            .padding(all = 5.dp),
+            .padding(all = 5.dp)
+            .clickable(onClick = { onNavigateToEditor() }),
         contentAlignment = Alignment.Center
     ) {
         Column(horizontalAlignment = Alignment.CenterHorizontally) {
@@ -342,56 +347,9 @@ fun SolveLogRowItem(
             contentDescription = "フラグ",
             modifier = Modifier
                 .weight(1f)
-                .visible(isChecked)
-            ,
+                .visible(isChecked),
             tint = MaterialTheme.colorScheme.secondary
         )
-    }
-}
-
-@Composable
-fun EditLogFloatingActionButton(
-    modifier: Modifier,
-    isBottomBarVisible: Boolean,
-    onNavigateToEditor: () -> Unit
-) {
-    val translationY by animateDpAsState(
-        targetValue = if (isBottomBarVisible) (-80).dp else 0.dp,
-        label = "fabTranslationY"
-    )
-
-    // ExtendedFloatingActionButton の内部アニメーションによる負荷を避けるため、
-    // シンプルな FloatingActionButton と AnimatedVisibility を組み合わせて自作
-    FloatingActionButton(
-        onClick = onNavigateToEditor,
-        modifier = modifier
-            .graphicsLayer {
-                this.translationY = translationY.toPx()
-            },
-        containerColor = MaterialTheme.colorScheme.primaryContainer,
-        contentColor = MaterialTheme.colorScheme.onPrimaryContainer,
-        elevation = FloatingActionButtonDefaults.elevation(0.dp, 0.dp, 0.dp, 0.dp) // アニメーション中の影の計算を抑制
-    ) {
-        Row(
-            modifier = Modifier.padding(horizontal = 16.dp),
-            verticalAlignment = Alignment.CenterVertically
-        ) {
-            Icon(Icons.Default.Edit, contentDescription = "編集")
-            
-            // テキスト部分のみをアニメーションさせることで、ボタン全体の急激なサイズ変更による
-            // レイアウトの再計算負荷を軽減
-            AnimatedVisibility(
-                visible = isBottomBarVisible,
-                enter = fadeIn(),
-                exit = fadeOut()
-            ) {
-                Text(
-                    text = "編集",
-                    modifier = Modifier.padding(start = 8.dp),
-                    style = MaterialTheme.typography.labelMedium
-                )
-            }
-        }
     }
 }
 
@@ -400,56 +358,5 @@ fun EditLogFloatingActionButton(
 fun SolveLogViewerScreenPreview() {
     SolveLogJetpackComposeTheme {
         SolveLogViewerScreenContent(onNavigateToEditor = {})
-    }
-}
-
-@Preview(showBackground = true)
-@Composable
-fun QuestionStickyLabelPreview() {
-    SolveLogJetpackComposeTheme {
-        QuestionStickyLabel(number = 11, height = 48.dp)
-    }
-}
-
-@Preview(showBackground = true)
-@Composable
-fun SolveLogItemCellPreview() {
-    SolveLogJetpackComposeTheme {
-        SolveLogItemCell(
-            selectedAnswer = "A",
-            isCorrect = true,
-            isChecked = true,
-            isLast = false,
-            width = 80.dp,
-            height = 48.dp
-        )
-    }
-}
-
-@Preview(showBackground = true)
-@Composable
-fun ScoreFooterPreview() {
-    SolveLogJetpackComposeTheme {
-        ScoreFooter(shape = MaterialTheme.shapes.large, width = 80.dp)
-    }
-}
-
-@Preview(showBackground = true)
-@Composable
-fun SolveLogRowItemPreview() {
-    SolveLogJetpackComposeTheme {
-        Column {
-            SolveLogRowItem(
-                selectedAnswer = "A",
-                isCorrect = true,
-                isChecked = true
-            )
-            Spacer(modifier = Modifier.height(8.dp))
-            SolveLogRowItem(
-                selectedAnswer = "B",
-                isCorrect = false,
-                isChecked = false
-            )
-        }
     }
 }
