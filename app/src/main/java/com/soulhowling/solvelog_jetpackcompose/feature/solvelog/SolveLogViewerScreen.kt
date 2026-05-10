@@ -1,5 +1,6 @@
 package com.soulhowling.solvelog_jetpackcompose.feature.solvelog
 
+import androidx.compose.animation.core.animateDpAsState
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -11,9 +12,11 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CornerSize
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Flag
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -26,6 +29,8 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
+import com.soulhowling.solvelog_jetpackcompose.core.LocalBottomBarVisibility
+import com.soulhowling.solvelog_jetpackcompose.ui.theme.Dimensions
 import com.soulhowling.solvelog_jetpackcompose.ui.theme.SolveLogJetpackComposeTheme
 import kotlin.Unit
 
@@ -35,7 +40,7 @@ private val stickyColWidth = 44.dp
 private val spacing = 8.dp
 
 private const val attemptCount = 10 // TODO: 仮置き
-private const val questionCount = 20 // TODO: 仮置き
+private const val questionCount = 10 // TODO: 仮置き
 
 @Composable
 fun SolveLogViewerScreen(onNavigateToEditor: () -> Unit) {
@@ -56,6 +61,12 @@ fun SolveLogViewerScreenContent(onNavigateToEditor: () -> Unit) {
         topEnd = CornerSize(0.dp)
     )
     val dividerColor = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.5f)
+
+    val isBottomBarVisible = LocalBottomBarVisibility.current
+    val fabTranslationY by animateDpAsState(
+        targetValue = if (isBottomBarVisible) (-80).dp else 0.dp,
+        label = "fabTranslationY"
+    )
 
     Box(modifier = Modifier.fillMaxSize()) {
         // 全体を横スクロール可能にするコンテナ
@@ -191,6 +202,17 @@ fun SolveLogViewerScreenContent(onNavigateToEditor: () -> Unit) {
                 }
             }
         }
+        FloatingActionButton(
+            modifier = Modifier
+                .align(Alignment.BottomEnd)
+                .graphicsLayer {
+                    this.translationY = fabTranslationY.toPx()
+                }
+                .padding(all = Dimensions.PADDING_MEDIUM),
+            onClick = onNavigateToEditor
+        ) {
+            Icon(Icons.Filled.Add, "Floating Action Button")
+        }
     }
 }
 
@@ -218,14 +240,15 @@ fun QuestionStickyLabel(
 @Composable
 fun AttemptHeader(
     attemptNumber: Int,
-    shape: Shape, width: Dp,
+    shape: Shape,
+    width: Dp,
     onNavigateToEditor: () -> Unit
 ) {
     Box(
         modifier = Modifier
             .width(width)
             .background(MaterialTheme.colorScheme.primaryContainer, shape)
-            .clickable(onClick = { onNavigateToEditor() } )
+            .clickable(onClick = { onNavigateToEditor() })
             .padding(8.dp),
         contentAlignment = Alignment.Center
     ) {
