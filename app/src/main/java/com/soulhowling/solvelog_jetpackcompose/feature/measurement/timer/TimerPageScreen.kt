@@ -1,5 +1,6 @@
 package com.soulhowling.solvelog_jetpackcompose.feature.measurement.timer
 
+import androidx.compose.animation.core.animateDpAsState
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -35,6 +36,7 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.MutableIntState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
@@ -42,6 +44,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
@@ -52,6 +55,7 @@ import com.soulhowling.solvelog_jetpackcompose.R
 import com.soulhowling.solvelog_jetpackcompose.ui.theme.Dimensions
 import com.soulhowling.solvelog_jetpackcompose.ui.theme.SolveLogJetpackComposeTheme
 import com.soulhowling.solvelog_jetpackcompose.utils.LogUtils
+import com.soulhowling.solvelog_jetpackcompose.core.LocalBottomBarVisibility
 import java.util.Locale
 
 @Composable
@@ -82,6 +86,12 @@ fun TimerPageContent(
     onDeleteTimer: (Int) -> Unit
 ) {
     var showDialog by remember { mutableStateOf(false) }
+    val isBottomBarVisible = LocalBottomBarVisibility.current
+
+    val fabTranslationY by animateDpAsState(
+        targetValue = if (isBottomBarVisible) (-80).dp else 0.dp,
+        label = "fabTranslationY"
+    )
 
     Box(modifier = Modifier.fillMaxSize()) {
         LazyColumn(
@@ -113,14 +123,19 @@ fun TimerPageContent(
             }
         }
 
-        NewTimerButton(
+        FloatingActionButton(
             modifier = Modifier
                 .align(Alignment.BottomEnd)
+                .graphicsLayer {
+                    this.translationY = fabTranslationY.toPx()
+                }
                 .padding(Dimensions.PADDING_MEDIUM),
             onClick = {
                 showDialog = true
             }
-        )
+        ) {
+            Icon(Icons.Filled.Add, "Floating Action Button")
+        }
 
         if (showDialog) {
             TimerAddDialog(
@@ -219,16 +234,6 @@ fun TimerItemCard(
 }
 
 @Composable
-fun NewTimerButton(modifier: Modifier = Modifier, onClick: () -> Unit) {
-    FloatingActionButton(
-        onClick = { onClick() },
-        modifier = modifier
-    ) {
-        Icon(Icons.Filled.Add, "Floating Action Button")
-    }
-}
-
-@Composable
 fun ToggleIconButton(
     timer: TimerState,
     onStart: () -> Unit,
@@ -274,50 +279,23 @@ fun TimerAddDialog(
     onDismiss: () -> Unit,
     onConfirm: (minutes: Int, seconds: Int) -> Unit
 ) {
-    var minutes by remember { mutableIntStateOf(0) }
-    var seconds by remember { mutableIntStateOf(0) }
+    val minutes = remember { mutableIntStateOf(0) }
+    val seconds = remember { mutableIntStateOf(0) }
 
     AlertDialog(
         onDismissRequest = onDismiss,
         title = { Text(stringResource(R.string.timer_add_title)) },
         text = {
-            Column(
-                verticalArrangement = Arrangement.spacedBy(Dimensions.SPACING_SMALL_MEDIUM),
-                horizontalAlignment = Alignment.Start
-            ) {
-                Text(
-                    text = stringResource(R.string.timer_add_description),
-                    modifier = Modifier.fillMaxWidth(),
-                    textAlign = TextAlign.Start,
-                )
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.Center,
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
-                    NumberPicker(
-                        value = minutes,
-                        range = 0..99,
-                        onValueChange = { minutes = it },
-                        modifier = Modifier.weight(1f)
-                    )
-                    Text("分", style = MaterialTheme.typography.titleMedium)
-                    Spacer(modifier = Modifier.width(Dimensions.SPACING_MEDIUM))
-                    NumberPicker(
-                        value = seconds,
-                        range = 0..59,
-                        onValueChange = { seconds = it },
-                        modifier = Modifier.weight(1f)
-                    )
-                    Text("秒", style = MaterialTheme.typography.titleMedium)
-                }
-            }
+            TimerAlertDialogContent(
+                minutes = minutes,
+                seconds = seconds
+            )
         },
         confirmButton = {
             TextButton(
-                enabled = (minutes > 0 || seconds > 0),
+                enabled = (minutes.intValue > 0 || seconds.intValue > 0),
                 onClick = {
-                    onConfirm(minutes, seconds)
+                    onConfirm(minutes.intValue, seconds.intValue)
                 }
             ) {
                 Text(stringResource(R.string.timer_add_confirm_button))
@@ -329,6 +307,44 @@ fun TimerAddDialog(
             }
         }
     )
+}
+
+@Composable
+fun TimerAlertDialogContent(
+    minutes: MutableIntState,
+    seconds: MutableIntState
+) {
+    Column(
+        verticalArrangement = Arrangement.spacedBy(Dimensions.SPACING_SMALL_MEDIUM),
+        horizontalAlignment = Alignment.Start
+    ) {
+        Text(
+            text = stringResource(R.string.timer_add_description),
+            modifier = Modifier.fillMaxWidth(),
+            textAlign = TextAlign.Start,
+        )
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.Center,
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            NumberPicker(
+                value = minutes.intValue,
+                range = 0..99,
+                onValueChange = { minutes.intValue = it },
+                modifier = Modifier.weight(1f)
+            )
+            Text("分", style = MaterialTheme.typography.titleMedium)
+            Spacer(modifier = Modifier.width(Dimensions.SPACING_MEDIUM))
+            NumberPicker(
+                value = seconds.intValue,
+                range = 0..59,
+                onValueChange = { seconds.intValue = it },
+                modifier = Modifier.weight(1f)
+            )
+            Text("秒", style = MaterialTheme.typography.titleMedium)
+        }
+    }
 }
 
 @Composable
@@ -395,32 +411,16 @@ fun TimerPageScreenPreview() {
     }
 }
 
-@Preview(showBackground = true)
-@Composable
-fun ToggleIconButtonPreview() {
-    SolveLogJetpackComposeTheme {
-        ToggleIconButton(
-            timer = TimerState(
-                id = 0,
-                initialSeconds = 60,
-                remainingSeconds = 60,
-                isRunning = true
-            ),
-            onStart = {},
-            onPause = {},
-            onStop = {}
-        )
-    }
-}
-
 
 @Preview(showBackground = true)
 @Composable
-fun TimerAddDialogPreview() {
+fun TimerAddDialogContentPreview() {
+    val minutes = remember { mutableIntStateOf(0) }
+    val seconds = remember { mutableIntStateOf(0) }
     SolveLogJetpackComposeTheme {
-        TimerAddDialog(
-            onDismiss = {},
-            onConfirm = { _, _ -> }
+        TimerAlertDialogContent(
+            minutes = minutes,
+            seconds = seconds
         )
     }
 }
