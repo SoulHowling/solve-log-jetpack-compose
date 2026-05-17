@@ -1,4 +1,4 @@
-package com.soulhowling.solvelog_jetpackcompose.feature.solvelog
+package com.soulhowling.solvelog_jetpackcompose.feature.solvelog.compose
 
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.expandVertically
@@ -37,7 +37,9 @@ import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
+import com.soulhowling.solvelog_jetpackcompose.feature.solvelog.Correctness
 import com.soulhowling.solvelog_jetpackcompose.ui.theme.SolveLogJetpackComposeTheme
 
 @Composable
@@ -188,7 +190,7 @@ fun SolveLogEditorRowItem(
     // TODO: 内部状態（本来はViewModel等で管理するのが望ましい）
     var isExpandedDropdown by rememberSaveable { mutableStateOf(false) }
     var selectedAnswer by remember { mutableStateOf("A") }
-    var resultStatus by remember { mutableStateOf<CorrectIncorrectItem?>(null) }
+    var resultStatus by remember { mutableStateOf<Correctness?>(null) }
     var isCheckedFlag by remember { mutableStateOf(false) }
 
     val dismissState = rememberSwipeToDismissBoxState()
@@ -324,17 +326,17 @@ fun SolveLogEditorRowItem(
 
 @Composable
 fun CorrectIncorrectToggleButton(
-    selectedItem: CorrectIncorrectItem?,
-    onItemSelected: (CorrectIncorrectItem) -> Unit,
+    selectedItem: Correctness?,
+    onItemSelected: (Correctness) -> Unit,
     modifier: Modifier = Modifier
 ) {
-    val items = CorrectIncorrectItem.entries
+    val items = Correctness.entries
     val selectedIndex = items.indexOf(selectedItem)
 
     // 選択状態に応じた色設定
     val indicatorColor = when (selectedItem) {
-        CorrectIncorrectItem.CORRECT -> MaterialTheme.colorScheme.primary
-        CorrectIncorrectItem.INCORRECT -> MaterialTheme.colorScheme.error
+        Correctness.CORRECT -> MaterialTheme.colorScheme.primary
+        Correctness.INCORRECT -> MaterialTheme.colorScheme.error
         else -> MaterialTheme.colorScheme.surface
     }
 
@@ -361,7 +363,7 @@ fun CorrectIncorrectToggleButton(
                 Surface(
                     modifier = Modifier
                         .offset {
-                            androidx.compose.ui.unit.IntOffset(
+                            IntOffset(
                                 x = offset.roundToPx(),
                                 y = 0
                             )
@@ -440,7 +442,7 @@ fun SolveLogEditorRowItemPreview() {
 @Composable
 fun CorrectIncorrectToggleButtonPreview() {
     SolveLogJetpackComposeTheme {
-        var selectedItem by remember { mutableStateOf<CorrectIncorrectItem?>(null) }
+        var selectedItem by remember { mutableStateOf<Correctness?>(null) }
         CorrectIncorrectToggleButton(
             selectedItem = selectedItem,
             onItemSelected = { selectedItem = it }

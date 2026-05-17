@@ -4,9 +4,13 @@ import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.slideInVertically
 import androidx.compose.animation.slideOutVertically
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.height
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material3.CenterAlignedTopAppBar
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -15,7 +19,6 @@ import androidx.compose.material3.NavigationBar
 import androidx.compose.material3.NavigationBarItem
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
-import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
@@ -31,7 +34,9 @@ import androidx.compose.ui.input.nestedscroll.NestedScrollConnection
 import androidx.compose.ui.input.nestedscroll.NestedScrollSource
 import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.ui.unit.dp
 import androidx.navigation.NavDestination
 import androidx.navigation.NavDestination.Companion.hierarchy
 import androidx.navigation.NavGraph.Companion.findStartDestination
@@ -122,8 +127,13 @@ fun TopAppBar(
     val currentScreen = allScreens.find { it.route == currentDestination?.route }
     val title = currentScreen?.title ?: R.string.error
 
-    TopAppBar(
-        title = { Text(stringResource(id = title)) },
+    CenterAlignedTopAppBar(
+        title = {
+            Text(
+                text = stringResource(id = title),
+                textAlign = TextAlign.Center
+            )
+        },
         navigationIcon = {
             if (canNavigateBack) {
                 IconButton(onClick = onBackClick) {
@@ -138,6 +148,7 @@ fun TopAppBar(
         colors = TopAppBarDefaults.topAppBarColors(
             containerColor = MaterialTheme.colorScheme.primary,
             titleContentColor = MaterialTheme.colorScheme.onPrimary,
+            navigationIconContentColor = MaterialTheme.colorScheme.onPrimary
         )
     )
 }
@@ -171,11 +182,36 @@ fun BottomNavigation(
 
 @Preview(showBackground = true)
 @Composable
-fun MainScreenPreview() {
+fun TopAppBarPreview() {
     SolveLogJetpackComposeTheme {
-        MainScreen(
-            allScreens = Screens.getAllScreens(),
-            bottomNaviItems = Screens.getBottomNaviScreens()
+        Column {
+            // 戻るボタンなし（メイン画面など）
+            TopAppBar(
+                currentDestination = null,
+                canNavigateBack = false,
+                onBackClick = {},
+                allScreens = Screens.getAllScreens()
+            )
+            Spacer(modifier = Modifier.height(16.dp))
+            // 戻るボタンあり（詳細画面など）
+            TopAppBar(
+                currentDestination = null,
+                canNavigateBack = true,
+                onBackClick = {},
+                allScreens = Screens.getAllScreens()
+            )
+        }
+    }
+}
+
+@Preview(showBackground = true)
+@Composable
+fun BottomNavigationPreview() {
+    SolveLogJetpackComposeTheme {
+        BottomNavigation(
+            navController = rememberNavController(),
+            currentDestination = null,
+            items = Screens.getBottomNaviScreens()
         )
     }
 }

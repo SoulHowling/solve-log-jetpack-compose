@@ -9,9 +9,9 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import com.soulhowling.solvelog_jetpackcompose.feature.measurement.MeasurementScreen
 import com.soulhowling.solvelog_jetpackcompose.feature.settings.SettingScreen
-import com.soulhowling.solvelog_jetpackcompose.feature.solvelog.SolveLogEditorScreen
-import com.soulhowling.solvelog_jetpackcompose.feature.solvelog.SolveLogListScreen
-import com.soulhowling.solvelog_jetpackcompose.feature.solvelog.SolveLogViewerScreen
+import com.soulhowling.solvelog_jetpackcompose.feature.solvelog.compose.SolveLogEditorScreen
+import com.soulhowling.solvelog_jetpackcompose.feature.solvelog.compose.SolveLogListScreen
+import com.soulhowling.solvelog_jetpackcompose.feature.solvelog.compose.SolveLogViewerScreen
 import com.soulhowling.solvelog_jetpackcompose.feature.statistics.LogStatisticsScreen
 
 @Composable

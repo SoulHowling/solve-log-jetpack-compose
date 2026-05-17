@@ -1,4 +1,4 @@
-package com.soulhowling.solvelog_jetpackcompose.feature.solvelog
+package com.soulhowling.solvelog_jetpackcompose.feature.solvelog.compose
 
 import androidx.compose.animation.core.animateDpAsState
 import androidx.compose.foundation.ExperimentalFoundationApi
@@ -30,6 +30,7 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import com.soulhowling.solvelog_jetpackcompose.core.LocalBottomBarVisibility
+import com.soulhowling.solvelog_jetpackcompose.feature.solvelog.Correctness
 import com.soulhowling.solvelog_jetpackcompose.ui.theme.Dimensions
 import com.soulhowling.solvelog_jetpackcompose.ui.theme.SolveLogJetpackComposeTheme
 import kotlin.Unit
@@ -359,7 +360,7 @@ fun SolveLogRowItem(
             if (isCorrect) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.error
         Text(
             modifier = Modifier.weight(1f),
-            text = if (isCorrect) CorrectIncorrectItem.CORRECT.symbol else CorrectIncorrectItem.INCORRECT.symbol,
+            text = if (isCorrect) Correctness.CORRECT.symbol else Correctness.INCORRECT.symbol,
             color = statusColor,
             style = MaterialTheme.typography.titleMedium,
             fontWeight = FontWeight.ExtraBold,

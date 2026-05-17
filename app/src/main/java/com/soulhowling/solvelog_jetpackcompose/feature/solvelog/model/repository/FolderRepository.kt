@@ -8,12 +8,17 @@ class FolderRepository(private val folderDao: FolderDao) {
 
     val allFolders: Flow<List<Folder>> = folderDao.getAllFolders()
 
-    fun createFolder(): Folder {
+    fun createFolder(
+        name: String,
+        parentFolderId: Int?,
+    ): Folder {
         val createdAt = System.currentTimeMillis()
         return Folder(
             id = 0,
+            name = name,
             createdAt = createdAt,
-            updatedAt = createdAt
+            updatedAt = createdAt,
+            parentFolderId = parentFolderId
         )
     }
 

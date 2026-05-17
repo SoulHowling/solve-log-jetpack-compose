@@ -1,6 +1,10 @@
 <resources>
     <string name="app_name">SolveLog-JetpackCompose</string>
 
+    <!-- Common -->
+    <string name="common_dialog_confirm_button">追加</string>
+    <string name="common_dialog_cancel_button">キャンセル</string>
+
     <!--  App bar title -->
     <string name="app_bar_title_editor">ログ一覧</string>
     <string name="app_bar_title_statistics">統計情報</string>
@@ -29,8 +33,6 @@
     <!-- Timer -->
     <string name="timer_add_title">タイマーを追加</string>
     <string name="timer_add_description">セットする時間を入力してください</string>
-    <string name="timer_add_confirm_button">追加</string>
-    <string name="timer_add_cancel_button">キャンセル</string>
 
     <!-- Setting -->
     <string name="setting_notification">通知設定</string>

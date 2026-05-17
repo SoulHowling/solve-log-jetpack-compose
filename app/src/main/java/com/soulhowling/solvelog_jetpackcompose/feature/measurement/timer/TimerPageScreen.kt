@@ -298,12 +298,12 @@ fun TimerAddDialog(
                     onConfirm(minutes.intValue, seconds.intValue)
                 }
             ) {
-                Text(stringResource(R.string.timer_add_confirm_button))
+                Text(stringResource(R.string.common_dialog_confirm_button))
             }
         },
         dismissButton = {
             TextButton(onClick = onDismiss) {
-                Text(stringResource(R.string.timer_add_cancel_button))
+                Text(stringResource(R.string.common_dialog_cancel_button))
             }
         }
     )
