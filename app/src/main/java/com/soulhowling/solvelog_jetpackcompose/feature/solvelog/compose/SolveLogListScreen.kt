@@ -23,6 +23,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardOptions
@@ -193,8 +194,16 @@ private fun SolveLogListScreenContent(
                 ),
                 verticalArrangement = Arrangement.spacedBy(Dimensions.SPACING_MEDIUM)
             ) {
-                items(displayItems.size) { index ->
-                    when (val item = displayItems[index]) {
+                items(
+                    items = displayItems,
+                    key = { item ->
+                        when (item) {
+                            is SolveLogListItem.FolderItem -> "folder_${item.folder.id}"
+                            is SolveLogListItem.LogItem -> "log_${item.log.id}"
+                        }
+                    }
+                ) { item ->
+                    when (item) {
                         is SolveLogListItem.FolderItem -> {
                             FolderItemCard(
                                 title = item.folder.name,
@@ -900,8 +909,10 @@ private fun MoveToFolderContent(
         LazyColumn(
             modifier = Modifier.weight(1f)
         ) {
-            items(foldersToShow.size) { index ->
-                val folder = foldersToShow[index]
+            items(
+                items = foldersToShow,
+                key = { it.id }
+            ) { folder ->
                 MoveToFolderItem(
                     name = folder.name,
                     onClick = { onViewFolder(folder.id) }

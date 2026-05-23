@@ -84,7 +84,7 @@ class SolveLogListViewModel(application: Application) : AndroidViewModel(applica
     fun navigateBack() {
         val currentId = _currentFolderId.value ?: return
         viewModelScope.launch {
-            val currentFolder = allFolders.first().find { it.id == currentId }
+            val currentFolder = folders.first().find { it.id == currentId }
             _currentFolderId.value = currentFolder?.parentFolderId
         }
     }
