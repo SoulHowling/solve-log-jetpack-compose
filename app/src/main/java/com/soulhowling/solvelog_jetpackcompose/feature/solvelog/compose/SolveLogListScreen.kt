@@ -93,6 +93,10 @@ fun SolveLogListScreen(
     val currentFolderPath by viewModel.currentFolderPath.collectAsStateWithLifecycle()
     val context = androidx.compose.ui.platform.LocalContext.current
 
+    val deleteLogSuccessFormat = stringResource(R.string.log_list_delete_log_success)
+    val deleteFolderSuccessFormat = stringResource(R.string.log_list_delete_folder_success)
+    val moveSuccessMessage = stringResource(R.string.log_list_move_success)
+
     SolveLogListScreenContent(
         displayItems = displayItems,
         folders = folders,
@@ -106,19 +110,35 @@ fun SolveLogListScreen(
         onAddFolder = { viewModel.insertFolder(it) },
         onDeleteSolveLog = {
             viewModel.deleteSolveLog(it)
-            Toast.makeText(context, "「${it.name}」ログを削除しました", Toast.LENGTH_SHORT).show()
+            Toast.makeText(
+                context,
+                deleteLogSuccessFormat.format(it.name),
+                Toast.LENGTH_SHORT
+            ).show()
         },
         onDeleteFolder = {
             viewModel.deleteFolder(it)
-            Toast.makeText(context, "「${it.name}」フォルダを削除しました", Toast.LENGTH_SHORT).show()
+            Toast.makeText(
+                context,
+                deleteFolderSuccessFormat.format(it.name),
+                Toast.LENGTH_SHORT
+            ).show()
         },
         onMoveSolveLog = { log, folderId ->
             viewModel.moveSolveLog(log, folderId)
-            Toast.makeText(context, "移動しました", Toast.LENGTH_SHORT).show()
+            Toast.makeText(
+                context,
+                moveSuccessMessage,
+                Toast.LENGTH_SHORT
+            ).show()
         },
         onMoveFolder = { folder, targetFolderId ->
             viewModel.moveFolder(folder, targetFolderId)
-            Toast.makeText(context, "移動しました", Toast.LENGTH_SHORT).show()
+            Toast.makeText(
+                context,
+                moveSuccessMessage,
+                Toast.LENGTH_SHORT
+            ).show()
         }
     )
 }
@@ -138,6 +158,7 @@ private fun SolveLogListScreenContent(
     onMoveSolveLog: (SolveLog, Int?) -> Unit,
     onMoveFolder: (Folder, Int?) -> Unit
 ) {
+    val questionQuantityFormatText = stringResource(R.string.log_list_title_question_quantity)
     var isShownBottomSheet by remember { mutableStateOf(false) }
     var isShownAddFolderDialog by remember { mutableStateOf(false) }
     var isFabExpanded by remember { mutableStateOf(false) }
@@ -185,7 +206,7 @@ private fun SolveLogListScreenContent(
                         is SolveLogListItem.LogItem -> {
                             SolveLogItemCard(
                                 title = item.log.name,
-                                description = "問題数: ${item.log.questionQuantity}",
+                                description = questionQuantityFormatText.format(item.log.questionQuantity),
                                 attemptCount = item.log.attemptCount,
                                 onClick = onNavigateToViewer,
                                 onDelete = { onDeleteSolveLog(item.log) },
@@ -197,7 +218,7 @@ private fun SolveLogListScreenContent(
             }
         }
 
-        // 背景を暗くするオーバーレイ
+        // Overlay
         if (isFabExpanded) {
             Box(
                 modifier = Modifier
@@ -317,6 +338,7 @@ private fun SolveLogItemCard(
     onDelete: () -> Unit,
     onMove: () -> Unit
 ) {
+    val attemptCountFormatText = stringResource(R.string.log_list_title_attempt_count)
     Card(
         modifier = Modifier
             .fillMaxWidth()
@@ -357,7 +379,7 @@ private fun SolveLogItemCard(
                     )
                     Spacer(modifier = Modifier.width(8.dp))
                     Text(
-                        text = "試行回数：$attemptCount",
+                        text = attemptCountFormatText.format(attemptCount),
                         style = MaterialTheme.typography.bodyMedium,
                         modifier = Modifier.padding(top = Dimensions.PADDING_SMALL)
                     )
@@ -398,7 +420,7 @@ private fun OverFlowMenu(
                 },
                 text = {
                     Text(
-                        text = "移動",
+                        text = stringResource(R.string.log_list_dialog_move_button),
                         style = MaterialTheme.typography.titleMedium,
                         modifier = Modifier
                     )
@@ -411,7 +433,7 @@ private fun OverFlowMenu(
                 },
                 text = {
                     Text(
-                        text = "削除",
+                        text = stringResource(R.string.log_list_dialog_delete_button),
                         style = MaterialTheme.typography.titleMedium,
                         modifier = Modifier
                     )
@@ -433,7 +455,7 @@ fun CurrentFolderHeader(
         verticalAlignment = Alignment.CenterVertically
     ) {
         IconButton(onClick = { onNavigateBack() }) {
-            Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "戻る")
+            Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = stringResource(R.string.log_list_cd_back))
         }
         Text(
             text = currentFolderPath,
@@ -475,7 +497,7 @@ private fun NewActionButtons(
                         elevation = CardDefaults.cardElevation(2.dp)
                     ) {
                         Text(
-                            text = "フォルダ",
+                            text = stringResource(R.string.log_list_add_folder_button),
                             modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp),
                             style = MaterialTheme.typography.labelLarge
                         )
@@ -485,7 +507,7 @@ private fun NewActionButtons(
                         containerColor = MaterialTheme.colorScheme.secondaryContainer,
                         contentColor = MaterialTheme.colorScheme.onSecondaryContainer
                     ) {
-                        Icon(Icons.Default.CreateNewFolder, contentDescription = "フォルダを作成")
+                        Icon(Icons.Default.CreateNewFolder, contentDescription = stringResource(R.string.log_list_cd_add_folder))
                     }
                 }
 
@@ -499,7 +521,7 @@ private fun NewActionButtons(
                         elevation = CardDefaults.cardElevation(2.dp)
                     ) {
                         Text(
-                            text = "ログ",
+                            text = stringResource(R.string.log_list_add_log_button),
                             modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp),
                             style = MaterialTheme.typography.labelLarge
                         )
@@ -509,7 +531,7 @@ private fun NewActionButtons(
                         containerColor = MaterialTheme.colorScheme.secondaryContainer,
                         contentColor = MaterialTheme.colorScheme.onSecondaryContainer
                     ) {
-                        Icon(Icons.Default.PostAdd, contentDescription = "ログを作成")
+                        Icon(Icons.Default.PostAdd, contentDescription = stringResource(R.string.log_list_cd_add_log))
                     }
                 }
             }
@@ -522,7 +544,7 @@ private fun NewActionButtons(
             val rotation by animateFloatAsState(if (expanded) 45f else 0f, label = "fabRotation")
             Icon(
                 Icons.Filled.Add,
-                contentDescription = if (expanded) "メニューを閉じる" else "新規作成メニューを開く",
+                contentDescription = if (expanded) stringResource(R.string.log_list_cd_close_menu) else stringResource(R.string.log_list_cd_open_menu),
                 modifier = Modifier.rotate(rotation)
             )
         }
@@ -537,7 +559,7 @@ private fun FolderAddDialog(
     var folderTitle by rememberSaveable { mutableStateOf("") }
     AlertDialog(
         onDismissRequest = onDismiss,
-        title = { Text("新規フォルダーを作成") },
+        title = { Text(stringResource(R.string.log_list_add_new_folder_title)) },
         text = {
             FolderAddContent(
                 folderTitle = folderTitle,
@@ -576,7 +598,7 @@ private fun FolderAddContent(
         horizontalAlignment = Alignment.Start
     ) {
         Text(
-            text = "フォルダ名",
+            text = stringResource(R.string.log_list_label_folder_name),
             modifier = Modifier.fillMaxWidth(),
             textAlign = TextAlign.Start
         )
@@ -585,7 +607,7 @@ private fun FolderAddContent(
             onValueChange = {
                 onValueChanged(it)
             },
-            placeholder = { Text("例: 統計調査士") },
+            placeholder = { Text(stringResource(R.string.log_list_placeholder_folder_name)) },
             modifier = Modifier.fillMaxWidth()
         )
     }
@@ -640,7 +662,7 @@ private fun SolveLogAddContent(
     ) {
         item {
             Text(
-                text = "新しいログを追加",
+                text = stringResource(R.string.log_list_add_new_log_title),
                 style = MaterialTheme.typography.titleLarge,
                 modifier = Modifier
                     .fillMaxWidth()
@@ -654,7 +676,7 @@ private fun SolveLogAddContent(
                 modifier = Modifier.fillMaxWidth(),
             ) {
                 Text(
-                    text = "ログタイトル",
+                    text = stringResource(R.string.log_list_label_log_title),
                     style = MaterialTheme.typography.titleMedium,
                 )
                 TextField(
@@ -662,13 +684,13 @@ private fun SolveLogAddContent(
                     onValueChange = {
                         logTitle = it
                     },
-                    placeholder = { Text("例: 統計調査士 2019年過去問") },
+                    placeholder = { Text(stringResource(R.string.log_list_placeholder_log_title)) },
                     modifier = Modifier.fillMaxWidth()
                 )
                 Spacer(modifier = Modifier.height(sectionSpace))
 
                 Text(
-                    text = "問題数",
+                    text = stringResource(R.string.log_list_label_question_quantity),
                     style = MaterialTheme.typography.titleMedium
                 )
                 TextField(
@@ -676,7 +698,7 @@ private fun SolveLogAddContent(
                     onValueChange = {
                         questionQuantity = it
                     },
-                    placeholder = { Text("例: 100") },
+                    placeholder = { Text(stringResource(R.string.log_list_placeholder_question_quantity)) },
                     modifier = Modifier.fillMaxWidth(),
                     keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
                     singleLine = true
@@ -685,7 +707,7 @@ private fun SolveLogAddContent(
 
 
                 Text(
-                    text = "選択肢の種類",
+                    text = stringResource(R.string.log_list_label_selection_type),
                     style = MaterialTheme.typography.titleMedium
                 )
                 SingleChoiceSegmentedButton(
@@ -699,7 +721,7 @@ private fun SolveLogAddContent(
 
 
                 Text(
-                    text = "選択肢の数",
+                    text = stringResource(R.string.log_list_label_selection_quantity),
                     style = MaterialTheme.typography.titleMedium
                 )
                 SingleChoiceSegmentedButton(
@@ -730,7 +752,7 @@ private fun SolveLogAddContent(
                     questionQuantity = questionQuantity
                 )
             ) {
-                Text("追加")
+                Text(stringResource(R.string.log_list_add_button))
             }
         }
 
@@ -785,7 +807,7 @@ private fun MoveToFolderDialog(
 
     AlertDialog(
         onDismissRequest = onDismiss,
-        title = { Text("移動先を選択") },
+        title = { Text(stringResource(R.string.log_list_dialog_move_to_folder_title)) },
         text = {
             MoveToFolderContent(
                 allFolders = allFolders,
@@ -796,7 +818,7 @@ private fun MoveToFolderDialog(
         },
         confirmButton = {
             TextButton(onClick = { onConfirm(currentViewedFolderId) }) {
-                Text("ここに移動")
+                Text(stringResource(R.string.log_list_dialog_move_here_button))
             }
         },
         dismissButton = {
@@ -836,8 +858,9 @@ private fun MoveToFolderContent(
     val availableFolders = allFolders.filter { it.id !in excludedIds }
     val foldersToShow = availableFolders.filter { it.parentFolderId == currentViewedFolderId }
 
-    val currentViewedFolderPath = remember(currentViewedFolderId, allFolders) {
-        if (currentViewedFolderId == null) return@remember "ルート"
+    val rootFolderName = stringResource(R.string.log_list_root_folder)
+    val currentViewedFolderPath = remember(currentViewedFolderId, allFolders, rootFolderName) {
+        if (currentViewedFolderId == null) return@remember rootFolderName
         val path = mutableListOf<String>()
         var current: Folder? = allFolders.find { it.id == currentViewedFolderId }
         while (current != null) {
@@ -864,7 +887,7 @@ private fun MoveToFolderContent(
                     val parentId = allFolders.find { it.id == currentViewedFolderId }?.parentFolderId
                     onViewFolder(parentId)
                 }) {
-                    Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "上に戻る")
+                    Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = stringResource(R.string.log_list_cd_go_up))
                 }
             }
             Text(
@@ -888,7 +911,7 @@ private fun MoveToFolderContent(
             if (foldersToShow.isEmpty()) {
                 item {
                     Text(
-                        text = "サブフォルダはありません",
+                        text = stringResource(R.string.log_list_no_subfolders),
                         modifier = Modifier.padding(16.dp),
                         style = MaterialTheme.typography.bodyMedium,
                         color = MaterialTheme.colorScheme.onSurfaceVariant

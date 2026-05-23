@@ -84,7 +84,6 @@ class SolveLogListViewModel(application: Application) : AndroidViewModel(applica
     fun navigateBack() {
         val currentId = _currentFolderId.value ?: return
         viewModelScope.launch {
-            // 現在のフォルダの親IDを取得して移動する
             val currentFolder = allFolders.first().find { it.id == currentId }
             _currentFolderId.value = currentFolder?.parentFolderId
         }
@@ -142,15 +141,13 @@ class SolveLogListViewModel(application: Application) : AndroidViewModel(applica
 
     fun moveFolder(folder: Folder, targetFolderId: Int?) {
         viewModelScope.launch {
-            // 自分自身への移動は無視
             if (folder.id == targetFolderId) return@launch
 
-            // 循環参照チェック (簡易版: ターゲットフォルダが自分の子孫でないか確認)
             if (targetFolderId != null) {
                 var currentParentId: Int? = targetFolderId
                 val folders = allFolders.first()
                 while (currentParentId != null) {
-                    if (currentParentId == folder.id) return@launch // 自分の子孫には移動できない
+                    if (currentParentId == folder.id) return@launch
                     currentParentId = folders.find { it.id == currentParentId }?.parentFolderId
                 }
             }
