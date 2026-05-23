@@ -89,12 +89,14 @@ fun SolveLogListScreen(
     viewModel: SolveLogListViewModel = viewModel()
 ) {
     val displayItems by viewModel.displayItems.collectAsStateWithLifecycle()
-    val currentFolderName by viewModel.currentFolderName.collectAsStateWithLifecycle()
+    val folders by viewModel.folders.collectAsStateWithLifecycle()
+    val currentFolderPath by viewModel.currentFolderPath.collectAsStateWithLifecycle()
     val context = androidx.compose.ui.platform.LocalContext.current
 
     SolveLogListScreenContent(
         displayItems = displayItems,
-        currentFolderName = currentFolderName,
+        folders = folders,
+        currentFolderPath = currentFolderPath,
         onNavigateToViewer = onNavigateToViewer,
         onSelectFolder = { viewModel.selectFolder(it) },
         onNavigateBack = { viewModel.navigateBack() },
@@ -109,6 +111,14 @@ fun SolveLogListScreen(
         onDeleteFolder = {
             viewModel.deleteFolder(it)
             Toast.makeText(context, "「${it.name}」フォルダを削除しました", Toast.LENGTH_SHORT).show()
+        },
+        onMoveSolveLog = { log, folderId ->
+            viewModel.moveSolveLog(log, folderId)
+            Toast.makeText(context, "移動しました", Toast.LENGTH_SHORT).show()
+        },
+        onMoveFolder = { folder, targetFolderId ->
+            viewModel.moveFolder(folder, targetFolderId)
+            Toast.makeText(context, "移動しました", Toast.LENGTH_SHORT).show()
         }
     )
 }
@@ -116,18 +126,24 @@ fun SolveLogListScreen(
 @Composable
 private fun SolveLogListScreenContent(
     displayItems: List<SolveLogListItem>,
-    currentFolderName: String?,
+    folders: List<Folder>,
+    currentFolderPath: String?,
     onNavigateToViewer: () -> Unit,
     onSelectFolder: (Int?) -> Unit,
     onNavigateBack: () -> Unit,
     onAddSolveLog: (String, Int, SelectionType, SelectionQuantity) -> Unit,
     onAddFolder: (String) -> Unit,
     onDeleteSolveLog: (SolveLog) -> Unit,
-    onDeleteFolder: (Folder) -> Unit
+    onDeleteFolder: (Folder) -> Unit,
+    onMoveSolveLog: (SolveLog, Int?) -> Unit,
+    onMoveFolder: (Folder, Int?) -> Unit
 ) {
     var isShownBottomSheet by remember { mutableStateOf(false) }
     var isShownAddFolderDialog by remember { mutableStateOf(false) }
     var isFabExpanded by remember { mutableStateOf(false) }
+    
+    var movingLog by remember { mutableStateOf<SolveLog?>(null) }
+    var movingFolder by remember { mutableStateOf<Folder?>(null) }
 
     val isBottomBarVisible = LocalBottomBarVisibility.current
 
@@ -139,22 +155,11 @@ private fun SolveLogListScreenContent(
     Box(modifier = Modifier.fillMaxSize()) {
         Column(modifier = Modifier.fillMaxSize()) {
             // フォルダ内にいる場合、戻るボタンとフォルダ名を表示
-            if (currentFolderName != null) {
-                Row(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(Dimensions.PADDING_MEDIUM),
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
-                    IconButton(onClick = { onNavigateBack() }) {
-                        Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "戻る")
-                    }
-                    Text(
-                        text = currentFolderName,
-                        style = MaterialTheme.typography.headlineSmall,
-                        modifier = Modifier.padding(start = Dimensions.PADDING_SMALL)
-                    )
-                }
+            if (currentFolderPath != null) {
+                CurrentFolderHeader(
+                    currentFolderPath = currentFolderPath,
+                    onNavigateBack = onNavigateBack
+                )
             }
 
             LazyColumn(
@@ -173,7 +178,8 @@ private fun SolveLogListScreenContent(
                             FolderItemCard(
                                 title = item.folder.name,
                                 onClick = { onSelectFolder(item.folder.id) },
-                                onDelete = { onDeleteFolder(item.folder) }
+                                onDelete = { onDeleteFolder(item.folder) },
+                                onMove = { movingFolder = item.folder }
                             )
                         }
                         is SolveLogListItem.LogItem -> {
@@ -182,7 +188,8 @@ private fun SolveLogListScreenContent(
                                 description = "問題数: ${item.log.questionQuantity}",
                                 attemptCount = item.log.attemptCount,
                                 onClick = onNavigateToViewer,
-                                onDelete = { onDeleteSolveLog(item.log) }
+                                onDelete = { onDeleteSolveLog(item.log) },
+                                onMove = { movingLog = item.log }
                             )
                         }
                     }
@@ -235,6 +242,29 @@ private fun SolveLogListScreenContent(
                 onAddSolveLog = onAddSolveLog
             )
         }
+
+        movingLog?.let { log ->
+            MoveToFolderDialog(
+                allFolders = folders,
+                onDismiss = { movingLog = null },
+                onConfirm = { targetFolderId ->
+                    onMoveSolveLog(log, targetFolderId)
+                    movingLog = null
+                }
+            )
+        }
+
+        movingFolder?.let { folder ->
+            MoveToFolderDialog(
+                allFolders = folders,
+                excludeFolderId = folder.id,
+                onDismiss = { movingFolder = null },
+                onConfirm = { targetFolderId ->
+                    onMoveFolder(folder, targetFolderId)
+                    movingFolder = null
+                }
+            )
+        }
     }
 }
 
@@ -242,7 +272,8 @@ private fun SolveLogListScreenContent(
 private fun FolderItemCard(
     title: String,
     onClick: () -> Unit,
-    onDelete: () -> Unit
+    onDelete: () -> Unit,
+    onMove: () -> Unit
 ) {
     Card(
         modifier = Modifier
@@ -272,7 +303,7 @@ private fun FolderItemCard(
                 style = MaterialTheme.typography.titleLarge,
                 modifier = Modifier.weight(1f)
             )
-            OverFlowMenu(onDelete = onDelete)
+            OverFlowMenu(onDelete = onDelete, onMove = onMove)
         }
     }
 }
@@ -283,7 +314,8 @@ private fun SolveLogItemCard(
     description: String,
     attemptCount: Int,
     onClick: () -> Unit,
-    onDelete: () -> Unit
+    onDelete: () -> Unit,
+    onMove: () -> Unit
 ) {
     Card(
         modifier = Modifier
@@ -332,14 +364,15 @@ private fun SolveLogItemCard(
                 }
 
             }
-            OverFlowMenu(onDelete = onDelete)
+            OverFlowMenu(onDelete = onDelete, onMove = onMove)
         }
     }
 }
 
 @Composable
 private fun OverFlowMenu(
-    onDelete: () -> Unit
+    onDelete: () -> Unit,
+    onMove: () -> Unit
 ) {
     var isExpanded by remember { mutableStateOf(false) }
     Box {
@@ -360,6 +393,7 @@ private fun OverFlowMenu(
         ) {
             DropdownMenuItem(
                 onClick = {
+                    onMove()
                     isExpanded = false
                 },
                 text = {
@@ -384,6 +418,28 @@ private fun OverFlowMenu(
                 }
             )
         }
+    }
+}
+
+@Composable
+fun CurrentFolderHeader(
+    currentFolderPath: String,
+    onNavigateBack: () -> Unit,
+) {
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(horizontal = Dimensions.PADDING_MEDIUM, vertical = Dimensions.PADDING_SMALL),
+        verticalAlignment = Alignment.CenterVertically
+    ) {
+        IconButton(onClick = { onNavigateBack() }) {
+            Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "戻る")
+        }
+        Text(
+            text = currentFolderPath,
+            style = MaterialTheme.typography.titleMedium,
+            modifier = Modifier.padding(start = Dimensions.PADDING_SMALL)
+        )
     }
 }
 
@@ -662,7 +718,7 @@ private fun SolveLogAddContent(
                 onClick = {
                     onAddSolveLog(
                         logTitle,
-                        questionQuantity.toInt(),
+                        questionQuantity.toIntOrZero(),
                         selectedKind,
                         if (isTrueFalseSelected) SelectionQuantity.TWO else selectedQuantity
                     )
@@ -685,10 +741,10 @@ private fun SolveLogAddContent(
 }
 
 private fun isAddButtonEnabled(logTitle: String, questionQuantity: String): Boolean {
-    return logTitle.isNotBlank() && questionQuantity.isNotBlank() && questionQuantity.toInt() > 0
+    return logTitle.isNotBlank() && questionQuantity.isNotBlank() && questionQuantity.toIntOrZero() > 0
 }
 
-private fun String.toInt(): Int {
+private fun String.toIntOrZero(): Int {
     return toIntOrNull() ?: 0
 }
 
@@ -718,6 +774,149 @@ private fun SingleChoiceSegmentedButton(
     }
 }
 
+@Composable
+private fun MoveToFolderDialog(
+    allFolders: List<Folder>,
+    excludeFolderId: Int? = null,
+    onDismiss: () -> Unit,
+    onConfirm: (Int?) -> Unit
+) {
+    var currentViewedFolderId by remember { mutableStateOf<Int?>(null) }
+
+    AlertDialog(
+        onDismissRequest = onDismiss,
+        title = { Text("移動先を選択") },
+        text = {
+            MoveToFolderContent(
+                allFolders = allFolders,
+                excludeFolderId = excludeFolderId,
+                currentViewedFolderId = currentViewedFolderId,
+                onViewFolder = { currentViewedFolderId = it }
+            )
+        },
+        confirmButton = {
+            TextButton(onClick = { onConfirm(currentViewedFolderId) }) {
+                Text("ここに移動")
+            }
+        },
+        dismissButton = {
+            TextButton(onClick = onDismiss) {
+                Text(stringResource(R.string.common_dialog_cancel_button))
+            }
+        }
+    )
+}
+
+@Composable
+private fun MoveToFolderContent(
+    allFolders: List<Folder>,
+    excludeFolderId: Int?,
+    currentViewedFolderId: Int?,
+    onViewFolder: (Int?) -> Unit
+) {
+    // 循環参照を避けるためのフィルタリング
+    val excludedIds = remember(allFolders, excludeFolderId) {
+        val ids = mutableSetOf<Int>()
+        if (excludeFolderId != null) {
+            ids.add(excludeFolderId)
+            var changed = true
+            while (changed) {
+                val count = ids.size
+                allFolders.forEach {
+                    if (it.parentFolderId in ids) {
+                        ids.add(it.id)
+                    }
+                }
+                changed = ids.size > count
+            }
+        }
+        ids
+    }
+
+    val availableFolders = allFolders.filter { it.id !in excludedIds }
+    val foldersToShow = availableFolders.filter { it.parentFolderId == currentViewedFolderId }
+
+    val currentViewedFolderPath = remember(currentViewedFolderId, allFolders) {
+        if (currentViewedFolderId == null) return@remember "ルート"
+        val path = mutableListOf<String>()
+        var current: Folder? = allFolders.find { it.id == currentViewedFolderId }
+        while (current != null) {
+            path.add(0, current.name)
+            current = allFolders.find { it.id == current.parentFolderId }
+        }
+        path.joinToString(" / ")
+    }
+
+    Column(
+        modifier = Modifier
+            .fillMaxWidth()
+            .height(300.dp)
+    ) {
+        // 現在のパス表示と戻るボタン
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(vertical = 8.dp),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            if (currentViewedFolderId != null) {
+                IconButton(onClick = {
+                    val parentId = allFolders.find { it.id == currentViewedFolderId }?.parentFolderId
+                    onViewFolder(parentId)
+                }) {
+                    Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "上に戻る")
+                }
+            }
+            Text(
+                text = currentViewedFolderPath,
+                style = MaterialTheme.typography.titleMedium,
+                modifier = Modifier.padding(start = 8.dp)
+            )
+        }
+
+        LazyColumn(
+            modifier = Modifier.weight(1f)
+        ) {
+            items(foldersToShow.size) { index ->
+                val folder = foldersToShow[index]
+                MoveToFolderItem(
+                    name = folder.name,
+                    onClick = { onViewFolder(folder.id) }
+                )
+            }
+            
+            if (foldersToShow.isEmpty()) {
+                item {
+                    Text(
+                        text = "サブフォルダはありません",
+                        modifier = Modifier.padding(16.dp),
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
+                }
+            }
+        }
+    }
+}
+
+@Composable
+private fun MoveToFolderItem(
+    name: String,
+    onClick: () -> Unit
+) {
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .clickable { onClick() }
+            .padding(vertical = 12.dp, horizontal = 8.dp),
+        verticalAlignment = Alignment.CenterVertically
+    ) {
+        Icon(Icons.Default.Folder, contentDescription = null, tint = MaterialTheme.colorScheme.secondary)
+        Spacer(modifier = Modifier.width(12.dp))
+        Text(text = name, style = MaterialTheme.typography.bodyLarge)
+    }
+}
+
 @Preview(showBackground = true)
 @Composable
 private fun SolveLogListScreenContentPreview() {
@@ -738,14 +937,17 @@ private fun SolveLogListScreenContentPreview() {
     SolveLogJetpackComposeTheme {
         SolveLogListScreenContent(
             displayItems = displayItems,
-            currentFolderName = null,
+            folders = emptyList(),
+            currentFolderPath = "テスト / サブフォルダ",
             onNavigateToViewer = {},
             onSelectFolder = {},
             onNavigateBack = {},
             onAddSolveLog = { _, _, _, _ -> },
             onAddFolder = {},
             onDeleteSolveLog = {},
-            onDeleteFolder = {}
+            onDeleteFolder = {},
+            onMoveSolveLog = { _, _ -> },
+            onMoveFolder = { _, _ -> }
         )
     }
 }
@@ -768,6 +970,27 @@ private fun FolderAddContentPreview() {
         FolderAddContent(
             folderTitle = "",
             onValueChanged = {}
+        )
+    }
+}
+
+@Preview(showBackground = true)
+@Composable
+fun MoveToFolderContentPreview() {
+    val createdAt = System.currentTimeMillis()
+    val folders = listOf(
+        Folder(id = 1, name = "フォルダA", createdAt = createdAt, updatedAt = createdAt, parentFolderId = null),
+        Folder(id = 2, name = "フォルダB", createdAt = createdAt, updatedAt = createdAt, parentFolderId = null),
+        Folder(id = 3, name = "サブフォルダA-1", createdAt = createdAt, updatedAt = createdAt, parentFolderId = 1),
+        Folder(id = 4, name = "サブフォルダA-2", createdAt = createdAt, updatedAt = createdAt, parentFolderId = 1),
+        Folder(id = 5, name = "サブフォルダB-1", createdAt = createdAt, updatedAt = createdAt, parentFolderId = 2)
+    )
+    SolveLogJetpackComposeTheme {
+        MoveToFolderContent(
+            allFolders = folders,
+            excludeFolderId = null,
+            currentViewedFolderId = 3,
+            onViewFolder = {}
         )
     }
 }

@@ -13,6 +13,7 @@ import com.soulhowling.solvelog_jetpackcompose.feature.solvelog.model.repository
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 
@@ -37,6 +38,12 @@ class SolveLogListViewModel(application: Application) : AndroidViewModel(applica
     private val allFolders = folderRepository.allFolders
     private val allSolveLogs = solveLogRepository.allSolveLogs
 
+    val folders: StateFlow<List<Folder>> = allFolders.stateIn(
+        scope = viewModelScope,
+        started = kotlinx.coroutines.flow.SharingStarted.WhileSubscribed(5000),
+        initialValue = emptyList()
+    )
+
     val displayItems: StateFlow<List<SolveLogListItem>> = combine(
         allFolders,
         allSolveLogs,
@@ -55,11 +62,19 @@ class SolveLogListViewModel(application: Application) : AndroidViewModel(applica
         initialValue = emptyList()
     )
 
-    val currentFolderName: StateFlow<String?> = combine(
+    val currentFolderPath: StateFlow<String?> = combine(
         allFolders,
         _currentFolderId
     ) { folders, currentId ->
-        folders.find { it.id == currentId }?.name
+        if (currentId == null) return@combine null
+
+        val path = mutableListOf<String>()
+        var folder = folders.find { it.id == currentId }
+        while (folder != null) {
+            path.add(0, folder.name)
+            folder = folders.find { it.id == folder.parentFolderId }
+        }
+        path.joinToString(" / ")
     }.stateIn(viewModelScope, kotlinx.coroutines.flow.SharingStarted.WhileSubscribed(5000), null)
 
     fun selectFolder(folderId: Int?) {
@@ -70,7 +85,7 @@ class SolveLogListViewModel(application: Application) : AndroidViewModel(applica
         val currentId = _currentFolderId.value ?: return
         viewModelScope.launch {
             // 現在のフォルダの親IDを取得して移動する
-            val currentFolder = allFolders.stateIn(viewModelScope).value.find { it.id == currentId }
+            val currentFolder = allFolders.first().find { it.id == currentId }
             _currentFolderId.value = currentFolder?.parentFolderId
         }
     }
@@ -112,6 +127,39 @@ class SolveLogListViewModel(application: Application) : AndroidViewModel(applica
     fun deleteFolder(folder: Folder) {
         viewModelScope.launch {
             folderRepository.deleteFolder(folder)
+        }
+    }
+
+    fun moveSolveLog(solveLog: SolveLog, targetFolderId: Int?) {
+        viewModelScope.launch {
+            val updatedLog = solveLog.copy(
+                folderId = targetFolderId,
+                updatedAt = System.currentTimeMillis()
+            )
+            solveLogRepository.upsertSolveLog(updatedLog)
+        }
+    }
+
+    fun moveFolder(folder: Folder, targetFolderId: Int?) {
+        viewModelScope.launch {
+            // 自分自身への移動は無視
+            if (folder.id == targetFolderId) return@launch
+
+            // 循環参照チェック (簡易版: ターゲットフォルダが自分の子孫でないか確認)
+            if (targetFolderId != null) {
+                var currentParentId: Int? = targetFolderId
+                val folders = allFolders.first()
+                while (currentParentId != null) {
+                    if (currentParentId == folder.id) return@launch // 自分の子孫には移動できない
+                    currentParentId = folders.find { it.id == currentParentId }?.parentFolderId
+                }
+            }
+
+            val updatedFolder = folder.copy(
+                parentFolderId = targetFolderId,
+                updatedAt = System.currentTimeMillis()
+            )
+            folderRepository.upsertFolder(updatedFolder)
         }
     }
 }
