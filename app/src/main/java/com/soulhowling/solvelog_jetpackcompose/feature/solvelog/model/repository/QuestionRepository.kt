@@ -11,6 +11,7 @@ class QuestionRepository(private val questionDao: QuestionDao) {
     fun createQuestion(
         attempt: Int,
         selectedAnswer: Int,
+        questionIndex: Int,
         isCorrect: Boolean,
         isFlag: Boolean,
         solveLogId: Int
@@ -18,7 +19,7 @@ class QuestionRepository(private val questionDao: QuestionDao) {
         return Question(
             id = 0,
             attempt = attempt,
-            questionIndex = 0,
+            questionIndex = questionIndex,
             selectedAnswer = selectedAnswer,
             isCorrect = isCorrect,
             isFlag = isFlag,
