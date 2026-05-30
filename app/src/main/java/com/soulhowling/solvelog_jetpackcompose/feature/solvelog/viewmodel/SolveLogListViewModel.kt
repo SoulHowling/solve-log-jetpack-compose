@@ -70,8 +70,9 @@ class SolveLogListViewModel(application: Application) : AndroidViewModel(applica
         if (currentId == null) return@combine null
 
         val path = mutableListOf<String>()
+        val visited = mutableSetOf<Int>()
         var folder = folders.find { it.id == currentId }
-        while (folder != null) {
+        while (folder != null && visited.add(folder.id)) {
             path.add(0, folder.name)
             folder = folders.find { it.id == folder.parentFolderId }
         }
@@ -147,7 +148,8 @@ class SolveLogListViewModel(application: Application) : AndroidViewModel(applica
             if (targetFolderId != null) {
                 var currentParentId: Int? = targetFolderId
                 val folders = allFolders.first()
-                while (currentParentId != null) {
+                val visited = mutableSetOf<Int>()
+                while (currentParentId != null && visited.add(currentParentId)) {
                     if (currentParentId == folder.id) return@launch
                     currentParentId = folders.find { it.id == currentParentId }?.parentFolderId
                 }

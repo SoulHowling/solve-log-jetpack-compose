@@ -520,7 +520,7 @@ private fun NewActionButtons(
                     }
                 }
 
-                // ログ作成ボタン
+                // Create log button
                 Row(
                     verticalAlignment = Alignment.CenterVertically,
                     horizontalArrangement = Arrangement.spacedBy(8.dp)
@@ -845,7 +845,6 @@ private fun MoveToFolderContent(
     currentViewedFolderId: Int?,
     onViewFolder: (Int?) -> Unit
 ) {
-    // 循環参照を避けるためのフィルタリング
     val excludedIds = remember(allFolders, excludeFolderId) {
         val ids = mutableSetOf<Int>()
         if (excludeFolderId != null) {
@@ -871,8 +870,9 @@ private fun MoveToFolderContent(
     val currentViewedFolderPath = remember(currentViewedFolderId, allFolders, rootFolderName) {
         if (currentViewedFolderId == null) return@remember rootFolderName
         val path = mutableListOf<String>()
+        val visited = mutableSetOf<Int>()
         var current: Folder? = allFolders.find { it.id == currentViewedFolderId }
-        while (current != null) {
+        while (current != null && visited.add(current.id)) {
             path.add(0, current.name)
             current = allFolders.find { it.id == current.parentFolderId }
         }
