@@ -5,8 +5,10 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.navigation.NavHostController
+import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
+import androidx.navigation.navArgument
 import com.soulhowling.solvelog_jetpackcompose.feature.measurement.MeasurementScreen
 import com.soulhowling.solvelog_jetpackcompose.feature.settings.SettingScreen
 import com.soulhowling.solvelog_jetpackcompose.feature.solvelog.compose.SolveLogEditorScreen
@@ -27,12 +29,15 @@ fun AppNavGraph(
     ) {
         composable(Screens.SolveLog.route) {
             SolveLogListScreen(
-                onNavigateToViewer = {
-                    navController.navigate(Screens.SolveLogViewer.route)
+                onNavigateToViewer = { id ->
+                    navController.navigate(Screens.SolveLogViewer.createRoute(id))
                 }
             )
         }
-        composable(Screens.SolveLogViewer.route) {
+        composable(
+            route = Screens.SolveLogViewer.route,
+            arguments = listOf(navArgument(Screens.ARG_SOLVE_LOG_ID) { type = NavType.IntType })
+        ) {
             SolveLogViewerScreen(
                 onNavigateToEditor = {
                     navController.navigate(Screens.SolveLogEditor.route)

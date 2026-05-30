@@ -29,8 +29,15 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import androidx.lifecycle.viewmodel.compose.viewModel
 import com.soulhowling.solvelog_jetpackcompose.core.LocalBottomBarVisibility
 import com.soulhowling.solvelog_jetpackcompose.feature.solvelog.Correctness
+import com.soulhowling.solvelog_jetpackcompose.feature.solvelog.SelectionType
+import com.soulhowling.solvelog_jetpackcompose.feature.solvelog.model.entity.Question
+import com.soulhowling.solvelog_jetpackcompose.feature.solvelog.model.entity.SolveLog
+import com.soulhowling.solvelog_jetpackcompose.feature.solvelog.viewmodel.SolveLogViewerUiState
+import com.soulhowling.solvelog_jetpackcompose.feature.solvelog.viewmodel.SolveLogViewerViewModel
 import com.soulhowling.solvelog_jetpackcompose.ui.theme.Dimensions
 import com.soulhowling.solvelog_jetpackcompose.ui.theme.SolveLogJetpackComposeTheme
 import kotlin.Unit
@@ -40,17 +47,50 @@ private val colWidth = 120.dp
 private val stickyColWidth = 44.dp
 private val spacing = 8.dp
 
-private const val attemptCount = 10 // TODO: 仮置き
-private const val questionCount = 10 // TODO: 仮置き
-
 @Composable
-fun SolveLogViewerScreen(onNavigateToEditor: () -> Unit) {
-    SolveLogViewerScreenContent(onNavigateToEditor = onNavigateToEditor)
+fun SolveLogViewerScreen(
+    onNavigateToEditor: () -> Unit,
+    viewModel: SolveLogViewerViewModel = viewModel()
+) {
+    val uiState by viewModel.uiState.collectAsStateWithLifecycle()
+    when (val state = uiState) {
+        is SolveLogViewerUiState.Loading -> {
+            Box(
+                modifier = Modifier.fillMaxSize(),
+                contentAlignment = Alignment.Center
+            ) {
+                CircularProgressIndicator()
+            }
+        }
+        is SolveLogViewerUiState.Success -> {
+            SolveLogViewerScreenContent(
+                solveLog = state.solveLog,
+                questions = state.questions,
+                onNavigateToEditor = onNavigateToEditor
+            )
+        }
+        is SolveLogViewerUiState.Error -> {
+            Box(
+                modifier = Modifier.fillMaxSize(),
+                contentAlignment = Alignment.Center
+            ) {
+                Text(
+                    text = "ログが見つかりませんでした",
+                    style = MaterialTheme.typography.titleMedium,
+                    color = MaterialTheme.colorScheme.error
+                )
+            }
+        }
+    }
 }
 
 @OptIn(ExperimentalFoundationApi::class)
 @Composable
-fun SolveLogViewerScreenContent(onNavigateToEditor: () -> Unit) {
+fun SolveLogViewerScreenContent(
+    solveLog: SolveLog,
+    questions: Map<Int, List<Question>>,
+    onNavigateToEditor: () -> Unit,
+) {
     val horizontalScrollState = rememberScrollState()
 
     val headerShape = MaterialTheme.shapes.medium.copy(
@@ -70,7 +110,6 @@ fun SolveLogViewerScreenContent(onNavigateToEditor: () -> Unit) {
     )
 
     Box(modifier = Modifier.fillMaxSize()) {
-        // 全体を横スクロール可能にするコンテナ
         Box(
             modifier = Modifier
                 .fillMaxSize()
@@ -81,14 +120,13 @@ fun SolveLogViewerScreenContent(onNavigateToEditor: () -> Unit) {
                 modifier = Modifier.fillMaxHeight(),
                 contentPadding = PaddingValues(bottom = 80.dp)
             ) {
-                // --- 1. 固定ヘッダー（第n回） ---
+                // Sticky header
                 stickyHeader {
                     Box(
                         modifier = Modifier
                             .background(MaterialTheme.colorScheme.surfaceContainerLow)
                             .padding(start = 0.dp, end = 8.dp)
                             .drawBehind {
-                                // 固定列の右端に細い境界線を描画
                                 drawLine(
                                     color = dividerColor,
                                     start = Offset(0f, size.height),
@@ -108,9 +146,9 @@ fun SolveLogViewerScreenContent(onNavigateToEditor: () -> Unit) {
                                     .graphicsLayer {
                                         translationX = horizontalScrollState.value.toFloat()
                                     }
-                                    .background(MaterialTheme.colorScheme.surfaceContainerLow) // 不透明背景で重なりを防止
+                                    .background(MaterialTheme.colorScheme.surfaceContainerLow)
                             )
-                            repeat(attemptCount) { index ->
+                            repeat(solveLog.attemptCount) { index ->
                                 AttemptHeader(
                                     attemptNumber = index + 1,
                                     shape = headerShape,
@@ -122,8 +160,11 @@ fun SolveLogViewerScreenContent(onNavigateToEditor: () -> Unit) {
                     }
                 }
 
-                // --- 2. スクロールボディ（問題番号 + 解答データ） ---
-                items(questionCount) { qIndex ->
+                // Scroll body
+                items(solveLog.questionQuantity) { qIndex ->
+                    val questionsForThisNumber = questions[qIndex] ?: emptyList()
+                    val selectionType = SelectionType.entries[solveLog.selectionType]
+
                     Box(
                         modifier = Modifier.padding(start = 0.dp, end = 8.dp)
                     ) {
@@ -131,16 +172,17 @@ fun SolveLogViewerScreenContent(onNavigateToEditor: () -> Unit) {
                             horizontalArrangement = Arrangement.spacedBy(spacing),
                             verticalAlignment = Alignment.CenterVertically
                         ) {
-                            // スペーサーで解答データの位置を確保
                             Box(modifier = Modifier.width(stickyColWidth))
 
-                            repeat(attemptCount) {
-                                // TODO: ここは実際のデータに基づいて表示内容を変える必要がある
+                            repeat(solveLog.attemptCount) { aIndex ->
+                                val attemptNumber = aIndex + 1
+                                val question = questionsForThisNumber.find { it.attempt == attemptNumber }
+
                                 SolveLogItemCell(
-                                    selectedAnswer = if (qIndex % 3 == 0) "B" else "A",
-                                    isCorrect = qIndex % 4 != 0,
-                                    isChecked = qIndex % 5 == 0,
-                                    isLast = qIndex == questionCount - 1,
+                                    selectedAnswer = question?.let { selectionType.getAnswerString(it.selectedAnswer) } ?: "-",
+                                    isCorrect = question?.isCorrect ?: true,
+                                    isChecked = question?.isFlag ?: false,
+                                    isLast = qIndex == solveLog.questionQuantity - 1,
                                     onNavigateToEditor = onNavigateToEditor,
                                     width = colWidth,
                                     height = rowHeight
@@ -148,16 +190,15 @@ fun SolveLogViewerScreenContent(onNavigateToEditor: () -> Unit) {
                             }
                         }
 
-                        // 問題番号ラベル：graphicsLayer で左端に固定
+                        // Question number label(Sticky left)
                         Box(
                             modifier = Modifier
                                 .size(stickyColWidth, rowHeight)
                                 .graphicsLayer {
                                     translationX = horizontalScrollState.value.toFloat()
                                 }
-                                .background(MaterialTheme.colorScheme.surfaceContainerLow) // 不透明背景で下の文字を隠す
+                                .background(MaterialTheme.colorScheme.surfaceContainerLow)
                                 .drawBehind {
-                                    // 固定列の右端に細い境界線を描画
                                     drawLine(
                                         color = dividerColor,
                                         start = Offset(size.width, 0f),
@@ -172,8 +213,9 @@ fun SolveLogViewerScreenContent(onNavigateToEditor: () -> Unit) {
                     }
                 }
 
-                // --- 3. 固定フッター（Score） ---
+                // --- 3. Sticky footer（Score） ---
                 item {
+                    val questionsByAttempt = questions.values.flatten().groupBy { it.attempt }
                     Box(
                         modifier = Modifier
                             .background(MaterialTheme.colorScheme.surfaceContainerLow)
@@ -191,8 +233,14 @@ fun SolveLogViewerScreenContent(onNavigateToEditor: () -> Unit) {
                                     }
                                     .background(MaterialTheme.colorScheme.surfaceContainerLow)
                             )
-                            repeat(attemptCount) {
+                            repeat(solveLog.attemptCount) { aIndex ->
+                                val attemptNumber = aIndex + 1
+                                val questionsForAttempt = questionsByAttempt[attemptNumber] ?: emptyList()
+                                val correctCount = questionsForAttempt.count { it.isCorrect }
+
                                 ScoreFooter(
+                                    score = correctCount,
+                                    total = solveLog.questionQuantity,
                                     shape = footerShape,
                                     width = colWidth,
                                     onNavigateToEditor = onNavigateToEditor
@@ -302,6 +350,8 @@ fun SolveLogItemCell(
 
 @Composable
 fun ScoreFooter(
+    score: Int,
+    total: Int,
     shape: Shape,
     width: Dp,
     onNavigateToEditor: () -> Unit,
@@ -321,7 +371,7 @@ fun ScoreFooter(
                 color = MaterialTheme.colorScheme.onSurfaceVariant
             )
             Text(
-                text = "100/100",
+                text = "$score/$total",
                 style = MaterialTheme.typography.labelLarge,
                 fontWeight = FontWeight.ExtraBold,
                 color = MaterialTheme.colorScheme.primary
@@ -380,7 +430,50 @@ fun SolveLogRowItem(
 @Preview(showBackground = true)
 @Composable
 fun SolveLogViewerScreenPreview() {
+    val solveLog = SolveLog(
+        id = 1,
+        name = "模試第1回",
+        createdAt = System.currentTimeMillis(),
+        updatedAt = System.currentTimeMillis(),
+        questionQuantity = 10,
+        selectionType = 0,
+        selectionQuantity = 0,
+        attemptCount = 3,
+        folderId = null
+    )
+    val questions = listOf(
+        Question(
+            id = 1,
+            attempt = 1,
+            questionIndex = 0,
+            selectedAnswer = 1,
+            isCorrect = true,
+            isFlag = true,
+            solveLogId = solveLog.id
+        ),
+        Question(
+            id = 2,
+            attempt = 1,
+            questionIndex = 1,
+            selectedAnswer = 1,
+            isCorrect = true,
+            isFlag = true,
+            solveLogId = solveLog.id
+        ),Question(
+            id = 3,
+            attempt = 2,
+            questionIndex = 0,
+            selectedAnswer = 2,
+            isCorrect = false,
+            isFlag = false,
+            solveLogId = solveLog.id
+        ),
+    ).groupBy { it.questionIndex }
     SolveLogJetpackComposeTheme {
-        SolveLogViewerScreenContent(onNavigateToEditor = {})
+        SolveLogViewerScreenContent(
+            solveLog = solveLog,
+            questions = questions,
+            onNavigateToEditor = {}
+        )
     }
 }

@@ -18,11 +18,16 @@ class QuestionRepository(private val questionDao: QuestionDao) {
         return Question(
             id = 0,
             attempt = attempt,
+            questionIndex = 0,
             selectedAnswer = selectedAnswer,
             isCorrect = isCorrect,
             isFlag = isFlag,
             solveLogId = solveLogId
         )
+    }
+
+    fun getQuestionBy(solveLogId: Int): Flow<List<Question>> {
+        return questionDao.getQuestionBy(solveLogId)
     }
 
     suspend fun insertQuestion(question: Question) {

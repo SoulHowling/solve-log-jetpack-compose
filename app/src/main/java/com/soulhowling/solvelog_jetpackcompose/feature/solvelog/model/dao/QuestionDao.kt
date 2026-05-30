@@ -13,4 +13,7 @@ interface QuestionDao: BaseDao<Question> {
 
     @Query("SELECT * FROM question")
     fun getAllQuestions(): Flow<List<Question>>
+
+    @Query("SELECT * FROM question WHERE solveLogId = :solveLogId")
+    fun getQuestionBy(solveLogId: Int): Flow<List<Question>>
 }

@@ -19,6 +19,7 @@ data class Question(
     @PrimaryKey(autoGenerate = true)
     val id: Int = 0,
     val attempt: Int,
+    val questionIndex: Int,
     val selectedAnswer: Int,
     val isCorrect: Boolean,
     val isFlag: Boolean,

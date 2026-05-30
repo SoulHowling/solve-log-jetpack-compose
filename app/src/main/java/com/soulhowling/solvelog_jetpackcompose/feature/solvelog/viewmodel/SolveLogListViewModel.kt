@@ -11,6 +11,7 @@ import com.soulhowling.solvelog_jetpackcompose.feature.solvelog.model.entity.Sol
 import com.soulhowling.solvelog_jetpackcompose.feature.solvelog.model.repository.FolderRepository
 import com.soulhowling.solvelog_jetpackcompose.feature.solvelog.model.repository.SolveLogRepository
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.SharingStarted.Companion.WhileSubscribed
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.first
@@ -40,7 +41,7 @@ class SolveLogListViewModel(application: Application) : AndroidViewModel(applica
 
     val folders: StateFlow<List<Folder>> = allFolders.stateIn(
         scope = viewModelScope,
-        started = kotlinx.coroutines.flow.SharingStarted.WhileSubscribed(5000),
+        started = WhileSubscribed(5000),
         initialValue = emptyList()
     )
 
@@ -58,7 +59,7 @@ class SolveLogListViewModel(application: Application) : AndroidViewModel(applica
         folderItems + logItems
     }.stateIn(
         scope = viewModelScope,
-        started = kotlinx.coroutines.flow.SharingStarted.WhileSubscribed(5000),
+        started = WhileSubscribed(5000),
         initialValue = emptyList()
     )
 

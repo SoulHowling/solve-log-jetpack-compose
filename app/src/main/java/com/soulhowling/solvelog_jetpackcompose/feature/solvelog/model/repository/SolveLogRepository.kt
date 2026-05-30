@@ -31,6 +31,10 @@ class SolveLogRepository(private val solveLogDao: SolveLogDao) {
         )
     }
 
+    fun getSolveLog(id: Int): Flow<SolveLog?> {
+        return solveLogDao.getSolveLog(id)
+    }
+
     suspend fun insertSolveLog(solveLog: SolveLog) {
         solveLogDao.insert(solveLog)
     }

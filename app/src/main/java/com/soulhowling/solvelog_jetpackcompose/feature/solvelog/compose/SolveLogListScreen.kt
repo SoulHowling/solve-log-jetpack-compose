@@ -86,7 +86,7 @@ import com.soulhowling.solvelog_jetpackcompose.ui.theme.SolveLogJetpackComposeTh
 
 @Composable
 fun SolveLogListScreen(
-    onNavigateToViewer: () -> Unit,
+    onNavigateToViewer: (Int) -> Unit,
     viewModel: SolveLogListViewModel = viewModel()
 ) {
     val displayItems by viewModel.displayItems.collectAsStateWithLifecycle()
@@ -149,7 +149,7 @@ private fun SolveLogListScreenContent(
     displayItems: List<SolveLogListItem>,
     folders: List<Folder>,
     currentFolderPath: String?,
-    onNavigateToViewer: () -> Unit,
+    onNavigateToViewer: (Int) -> Unit,
     onSelectFolder: (Int?) -> Unit,
     onNavigateBack: () -> Unit,
     onAddSolveLog: (String, Int, SelectionType, SelectionQuantity) -> Unit,
@@ -217,7 +217,7 @@ private fun SolveLogListScreenContent(
                                 title = item.log.name,
                                 description = questionQuantityFormatText.format(item.log.questionQuantity),
                                 attemptCount = item.log.attemptCount,
-                                onClick = onNavigateToViewer,
+                                onClick = { onNavigateToViewer(item.log.id) },
                                 onDelete = { onDeleteSolveLog(item.log) },
                                 onMove = { movingLog = item.log }
                             )
