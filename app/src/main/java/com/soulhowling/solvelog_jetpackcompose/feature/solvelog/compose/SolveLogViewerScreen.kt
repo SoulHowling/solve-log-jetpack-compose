@@ -163,7 +163,7 @@ fun SolveLogViewerScreenContent(
                 // Scroll body
                 items(solveLog.questionQuantity) { qIndex ->
                     val questionsForThisNumber = questions[qIndex] ?: emptyList()
-                    val selectionType = SelectionType.entries[solveLog.selectionType]
+                    val selectionType = SelectionType.entries.getOrElse(solveLog.selectionType) { SelectionType.ALPHABET }
 
                     Box(
                         modifier = Modifier.padding(start = 0.dp, end = 8.dp)
