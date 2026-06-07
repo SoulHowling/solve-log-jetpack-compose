@@ -92,6 +92,7 @@ fun SolveLogEditorScreenContent(
     onAdd: () -> Unit
 ) {
     var isHeaderVisible by remember { mutableStateOf(true) }
+    val questionsMap = remember(questions) { questions.associateBy { it.questionIndex } }
 
     val nestedScrollConnection = remember {
         object : NestedScrollConnection {
@@ -130,10 +131,10 @@ fun SolveLogEditorScreenContent(
             items(
                 count = solveLog.questionQuantity,
                 key = { index ->
-                    questions.find { it.questionIndex == index }?.id ?: "empty_$index"
+                    questionsMap[index]?.id ?: "empty_$index"
                 },
             ) { index ->
-                val question = questions.find { it.questionIndex == index }
+                val question = questionsMap[index]
                 val selectionType = SelectionType.entries.getOrElse(solveLog.selectionType) { SelectionType.ALPHABET }
 
                 SolveLogEditorRowItem(

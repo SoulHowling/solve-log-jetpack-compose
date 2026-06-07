@@ -17,6 +17,7 @@ import androidx.compose.material.icons.filled.Flag
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -92,6 +93,9 @@ fun SolveLogViewerScreenContent(
     onNavigateToEditor: (Int) -> Unit,
 ) {
     val horizontalScrollState = rememberScrollState()
+    val questionsByAttempt = remember(questions) {
+        questions.values.flatten().groupBy { it.attempt }
+    }
 
     val headerShape = MaterialTheme.shapes.medium.copy(
         bottomStart = CornerSize(0.dp),
@@ -216,7 +220,6 @@ fun SolveLogViewerScreenContent(
 
                 // --- 3. Sticky footer（Score） ---
                 item {
-                    val questionsByAttempt = questions.values.flatten().groupBy { it.attempt }
                     Box(
                         modifier = Modifier
                             .background(MaterialTheme.colorScheme.surfaceContainerLow)

@@ -4,6 +4,7 @@ import android.app.Application
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.viewModelScope
+import androidx.room.withTransaction
 import com.soulhowling.solvelog_jetpackcompose.core.Screens
 import com.soulhowling.solvelog_jetpackcompose.core.SolveLogApplication
 import com.soulhowling.solvelog_jetpackcompose.feature.solvelog.Correctness
@@ -36,17 +37,12 @@ class SolveLogEditorViewModel(
     application: Application,
     savedStateHandle: SavedStateHandle
 ) : AndroidViewModel(application) {
-    private val solveLogRepository: SolveLogRepository
-    private val questionRepository: QuestionRepository
+    private val database = (application as SolveLogApplication).database
+    private val solveLogRepository: SolveLogRepository = SolveLogRepository(database.solveLogDao())
+    private val questionRepository: QuestionRepository = QuestionRepository(database.questionDao())
 
     private val solveLogId: Int = checkNotNull(savedStateHandle[Screens.ARG_SOLVE_LOG_ID])
     private val attempt: Int = checkNotNull(savedStateHandle[Screens.ARG_ATTEMPT])
-
-    init {
-        val database = (application as SolveLogApplication).database
-        solveLogRepository = SolveLogRepository(database.solveLogDao())
-        questionRepository = QuestionRepository(database.questionDao())
-    }
 
     val uiState: StateFlow<SolveLogEditorUiState> = combine(
         solveLogRepository.getSolveLog(solveLogId),
@@ -77,21 +73,23 @@ class SolveLogEditorViewModel(
             val successState = uiState.value as? SolveLogEditorUiState.Success ?: return@launch
             val currentLog = successState.solveLog
 
-            questionRepository.deleteQuestion(question)
+            database.withTransaction {
+                questionRepository.deleteQuestion(question)
 
-            successState.questions
-                .filter { it.questionIndex > question.questionIndex }
-                .forEach { otherQuestion ->
-                    questionRepository.upsertQuestion(
-                        otherQuestion.copy(questionIndex = otherQuestion.questionIndex - 1)
-                    )
-                }
+                successState.questions
+                    .filter { it.questionIndex > question.questionIndex }
+                    .forEach { otherQuestion ->
+                        questionRepository.upsertQuestion(
+                            otherQuestion.copy(questionIndex = otherQuestion.questionIndex - 1)
+                        )
+                    }
 
-            val updatedLog = currentLog.copy(
-                questionQuantity = (currentLog.questionQuantity - 1).coerceAtLeast(0),
-                updatedAt = System.currentTimeMillis()
-            )
-            solveLogRepository.upsertSolveLog(updatedLog)
+                val updatedLog = currentLog.copy(
+                    questionQuantity = (currentLog.questionQuantity - 1).coerceAtLeast(0),
+                    updatedAt = System.currentTimeMillis()
+                )
+                solveLogRepository.upsertSolveLog(updatedLog)
+            }
         }
     }
 
@@ -117,13 +115,15 @@ class SolveLogEditorViewModel(
             val currentLog = successState.solveLog
             val nextIndex = currentLog.questionQuantity
 
-            upsertQuestion(questionIndex = nextIndex, correctness = Correctness.NONE)
+            database.withTransaction {
+                upsertQuestion(questionIndex = nextIndex, correctness = Correctness.NONE)
 
-            val updatedLog = currentLog.copy(
-                questionQuantity = nextIndex + 1,
-                updatedAt = System.currentTimeMillis()
-            )
-            solveLogRepository.upsertSolveLog(updatedLog)
+                val updatedLog = currentLog.copy(
+                    questionQuantity = nextIndex + 1,
+                    updatedAt = System.currentTimeMillis()
+                )
+                solveLogRepository.upsertSolveLog(updatedLog)
+            }
         }
     }
 
