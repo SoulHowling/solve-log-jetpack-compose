@@ -1,5 +1,6 @@
 package com.soulhowling.solvelog_jetpackcompose.feature.solvelog.compose
 
+import androidx.activity.compose.LocalActivity
 import androidx.compose.animation.core.animateDpAsState
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.background
@@ -13,11 +14,12 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CornerSize
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
+import androidx.compose.material.icons.filled.Cancel
+import androidx.compose.material.icons.filled.Delete
+import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material.icons.filled.Flag
 import androidx.compose.material3.*
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.remember
+import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -33,6 +35,7 @@ import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.soulhowling.solvelog_jetpackcompose.core.LocalBottomBarVisibility
+import com.soulhowling.solvelog_jetpackcompose.core.MainViewModel
 import com.soulhowling.solvelog_jetpackcompose.feature.solvelog.Correctness
 import com.soulhowling.solvelog_jetpackcompose.feature.solvelog.SelectionType
 import com.soulhowling.solvelog_jetpackcompose.feature.solvelog.model.entity.Question
@@ -45,42 +48,111 @@ import kotlin.Unit
 
 private val rowHeight = 48.dp
 private val colWidth = 120.dp
-private val stickyColWidth = 44.dp
+private val stickyColWidth = 56.dp
+private val expandedStickyColWidth = 86.dp
 private val spacing = 8.dp
 
 @Composable
 fun SolveLogViewerScreen(
     onNavigateToEditor: (Int) -> Unit,
-    viewModel: SolveLogViewerViewModel = viewModel()
+    viewModel: SolveLogViewerViewModel = viewModel(),
 ) {
+    val activity = LocalActivity.current as androidx.activity.ComponentActivity
+    val mainViewModel: MainViewModel = viewModel(activity)
+
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
-    when (val state = uiState) {
-        is SolveLogViewerUiState.Loading -> {
-            Box(
-                modifier = Modifier.fillMaxSize(),
-                contentAlignment = Alignment.Center
-            ) {
-                CircularProgressIndicator()
-            }
-        }
-        is SolveLogViewerUiState.Success -> {
-            SolveLogViewerScreenContent(
-                solveLog = state.solveLog,
-                questions = state.questions,
-                onNavigateToEditor = onNavigateToEditor,
-                onStartNewAttempt = { viewModel.startNewAttempt(it) }
+    val isEditMode by viewModel.isEditMode.collectAsStateWithLifecycle()
+    val selectedIndices by viewModel.selectedQuestionIndices.collectAsStateWithLifecycle()
+
+    var showDeleteConfirm by remember { mutableStateOf(false) }
+
+    LaunchedEffect(uiState, isEditMode, selectedIndices) {
+        val solveLog = (uiState as? SolveLogViewerUiState.Success)?.solveLog
+        if (solveLog != null) {
+            mainViewModel.setCustomAppBar(
+                title = solveLog.name,
+                actions = {
+                    if (isEditMode) {
+                        if (selectedIndices.isNotEmpty()) {
+                            IconButton(onClick = { showDeleteConfirm = true }) {
+                                Icon(Icons.Default.Delete, contentDescription = "削除", tint = MaterialTheme.colorScheme.onPrimary)
+                            }
+                        }
+                        IconButton(onClick = { viewModel.toggleEditMode() }) {
+                            Icon(Icons.Default.Cancel, contentDescription = "キャンセル", tint = MaterialTheme.colorScheme.onPrimary)
+                        }
+                    } else {
+                        IconButton(onClick = { viewModel.toggleEditMode() }) {
+                            Icon(Icons.Default.Edit, contentDescription = "編集", tint = MaterialTheme.colorScheme.onPrimary)
+                        }
+                    }
+                }
             )
         }
-        is SolveLogViewerUiState.Error -> {
-            Box(
-                modifier = Modifier.fillMaxSize(),
-                contentAlignment = Alignment.Center
-            ) {
-                Text(
-                    text = "ログが見つかりませんでした",
-                    style = MaterialTheme.typography.titleMedium,
-                    color = MaterialTheme.colorScheme.error
+    }
+
+    DisposableEffect(Unit) {
+        onDispose {
+            mainViewModel.setCustomAppBar(null, null)
+        }
+    }
+
+    if (showDeleteConfirm) {
+        AlertDialog(
+            onDismissRequest = { showDeleteConfirm = false },
+            title = { Text("問題を削除") },
+            text = { Text("${selectedIndices.size}件の問題を削除しますか？\nこの操作はすべての回数に適用されます。") },
+            confirmButton = {
+                TextButton(
+                    onClick = {
+                        viewModel.deleteSelectedQuestions()
+                        showDeleteConfirm = false
+                    }
+                ) {
+                    Text("削除", color = MaterialTheme.colorScheme.error)
+                }
+            },
+            dismissButton = {
+                TextButton(onClick = { showDeleteConfirm = false }) {
+                    Text("キャンセル")
+                }
+            }
+        )
+    }
+
+    Box(modifier = Modifier.fillMaxSize()) {
+        when (val state = uiState) {
+            is SolveLogViewerUiState.Loading -> {
+                Box(
+                    modifier = Modifier.fillMaxSize(),
+                    contentAlignment = Alignment.Center
+                ) {
+                    CircularProgressIndicator()
+                }
+            }
+            is SolveLogViewerUiState.Success -> {
+                SolveLogViewerScreenContent(
+                    solveLog = state.solveLog,
+                    questions = state.questions,
+                    isEditMode = isEditMode,
+                    selectedIndices = selectedIndices,
+                    onNavigateToEditor = onNavigateToEditor,
+                    onStartNewAttempt = { viewModel.startNewAttempt(it) },
+                    onAddQuestion = { viewModel.addQuestion() },
+                    onToggleSelection = { viewModel.toggleQuestionSelection(it) }
                 )
+            }
+            is SolveLogViewerUiState.Error -> {
+                Box(
+                    modifier = Modifier.fillMaxSize(),
+                    contentAlignment = Alignment.Center
+                ) {
+                    Text(
+                        text = "ログが見つかりませんでした",
+                        style = MaterialTheme.typography.titleMedium,
+                        color = MaterialTheme.colorScheme.error
+                    )
+                }
             }
         }
     }
@@ -91,13 +163,19 @@ fun SolveLogViewerScreen(
 fun SolveLogViewerScreenContent(
     solveLog: SolveLog,
     questions: Map<Int, List<Question>>,
+    isEditMode: Boolean,
+    selectedIndices: Set<Int>,
     onNavigateToEditor: (Int) -> Unit,
-    onStartNewAttempt: ((Int) -> Unit) -> Unit
+    onStartNewAttempt: ((Int) -> Unit) -> Unit,
+    onAddQuestion: () -> Unit,
+    onToggleSelection: (Int) -> Unit
 ) {
     val horizontalScrollState = rememberScrollState()
     val questionsByAttempt = remember(questions) {
         questions.values.flatten().groupBy { it.attempt }
     }
+
+    val dynamicStickyWidth = if (isEditMode) expandedStickyColWidth else stickyColWidth
 
     val headerShape = MaterialTheme.shapes.medium.copy(
         bottomStart = CornerSize(0.dp),
@@ -148,7 +226,7 @@ fun SolveLogViewerScreenContent(
                         ) {
                             Box(
                                 modifier = Modifier
-                                    .size(stickyColWidth, 32.dp)
+                                    .size(dynamicStickyWidth, 32.dp)
                                     .graphicsLayer {
                                         translationX = horizontalScrollState.value.toFloat()
                                     }
@@ -179,7 +257,7 @@ fun SolveLogViewerScreenContent(
                             horizontalArrangement = Arrangement.spacedBy(spacing),
                             verticalAlignment = Alignment.CenterVertically
                         ) {
-                            Box(modifier = Modifier.width(stickyColWidth))
+                            Box(modifier = Modifier.width(dynamicStickyWidth))
 
                             repeat(solveLog.attemptCount) { aIndex ->
                                 val attemptNumber = aIndex + 1
@@ -189,8 +267,8 @@ fun SolveLogViewerScreenContent(
                                     selectedAnswer = question?.let { selectionType.getAnswerString(it.selectedAnswer) } ?: "-",
                                     correctness = question?.correctness ?: Correctness.NONE.index,
                                     isChecked = question?.isFlag ?: false,
-                                    isLast = qIndex == solveLog.questionQuantity - 1,
-                                    onNavigateToEditor = { onNavigateToEditor(attemptNumber) },
+                                    isLast = false, // Always show divider for cells now
+                                    onNavigateToEditor = { if (!isEditMode) onNavigateToEditor(attemptNumber) },
                                     width = colWidth,
                                     height = rowHeight
                                 )
@@ -200,7 +278,7 @@ fun SolveLogViewerScreenContent(
                         // Question number label(Sticky left)
                         Box(
                             modifier = Modifier
-                                .size(stickyColWidth, rowHeight)
+                                .size(dynamicStickyWidth, rowHeight)
                                 .graphicsLayer {
                                     translationX = horizontalScrollState.value.toFloat()
                                 }
@@ -215,8 +293,68 @@ fun SolveLogViewerScreenContent(
                                 },
                             contentAlignment = Alignment.Center
                         ) {
-                            QuestionStickyLabel(number = qIndex + 1, height = 32.dp)
+                            QuestionStickyLabel(
+                                number = qIndex + 1,
+                                isEditMode = isEditMode,
+                                isSelected = selectedIndices.contains(qIndex),
+                                onToggleSelection = { onToggleSelection(qIndex) }
+                            )
                         }
+                    }
+                }
+
+                // --- Add Question Row ---
+                item {
+                    Box(
+                        modifier = Modifier.padding(start = 0.dp, end = 8.dp)
+                    ) {
+                        Row(
+                            horizontalArrangement = Arrangement.spacedBy(spacing),
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            Box(modifier = Modifier.width(dynamicStickyWidth))
+
+                            Box(
+                                modifier = Modifier
+                                    .width(colWidth * solveLog.attemptCount + spacing * (solveLog.attemptCount - 1))
+                                    .height(rowHeight)
+                                    .clickable { onAddQuestion() },
+                                contentAlignment = Alignment.Center
+                            ) {
+                                Row(verticalAlignment = Alignment.CenterVertically) {
+                                    Icon(
+                                        imageVector = Icons.Default.Add,
+                                        contentDescription = null,
+                                        tint = MaterialTheme.colorScheme.primary,
+                                        modifier = Modifier.size(18.dp)
+                                    )
+                                    Spacer(Modifier.width(4.dp))
+                                    Text(
+                                        text = "問題を追加",
+                                        style = MaterialTheme.typography.labelLarge,
+                                        color = MaterialTheme.colorScheme.primary
+                                    )
+                                }
+                            }
+                        }
+                        
+                        // Sticky left placeholder for Add row
+                        Box(
+                            modifier = Modifier
+                                .size(dynamicStickyWidth, rowHeight)
+                                .graphicsLayer {
+                                    translationX = horizontalScrollState.value.toFloat()
+                                }
+                                .background(MaterialTheme.colorScheme.surfaceContainerLow)
+                                .drawBehind {
+                                    drawLine(
+                                        color = dividerColor,
+                                        start = Offset(size.width, 0f),
+                                        end = Offset(size.width, size.height),
+                                        strokeWidth = 1.dp.toPx()
+                                    )
+                                }
+                        )
                     }
                 }
 
@@ -233,7 +371,7 @@ fun SolveLogViewerScreenContent(
                         ) {
                             Box(
                                 modifier = Modifier
-                                    .size(stickyColWidth, 48.dp)
+                                    .size(dynamicStickyWidth, 48.dp)
                                     .graphicsLayer {
                                         translationX = horizontalScrollState.value.toFloat()
                                     }
@@ -257,20 +395,23 @@ fun SolveLogViewerScreenContent(
                 }
             }
         }
-        FloatingActionButton(
-            modifier = Modifier
-                .align(Alignment.BottomEnd)
-                .graphicsLayer {
-                    this.translationY = fabTranslationY.toPx()
+        
+        if (!isEditMode) {
+            FloatingActionButton(
+                modifier = Modifier
+                    .align(Alignment.BottomEnd)
+                    .graphicsLayer {
+                        this.translationY = fabTranslationY.toPx()
+                    }
+                    .padding(all = Dimensions.PADDING_MEDIUM),
+                onClick = {
+                    onStartNewAttempt { nextAttempt ->
+                        onNavigateToEditor(nextAttempt)
+                    }
                 }
-                .padding(all = Dimensions.PADDING_MEDIUM),
-            onClick = {
-                onStartNewAttempt { nextAttempt ->
-                    onNavigateToEditor(nextAttempt)
-                }
+            ) {
+                Icon(Icons.Filled.Add, "Floating Action Button")
             }
-        ) {
-            Icon(Icons.Filled.Add, "Floating Action Button")
         }
     }
 }
@@ -278,21 +419,46 @@ fun SolveLogViewerScreenContent(
 @Composable
 fun QuestionStickyLabel(
     number: Int,
-    height: Dp
+    isEditMode: Boolean,
+    isSelected: Boolean,
+    onToggleSelection: () -> Unit
 ) {
-    Box(
+    Row(
         modifier = Modifier
-            .size(32.dp, height)
-            .background(MaterialTheme.colorScheme.surfaceVariant, MaterialTheme.shapes.small),
-        contentAlignment = Alignment.Center
+            .fillMaxHeight()
+            .then(if (isEditMode) Modifier.clickable { onToggleSelection() } else Modifier),
+        verticalAlignment = Alignment.CenterVertically,
+        horizontalArrangement = Arrangement.Center
     ) {
-        Text(
-            text = "$number",
-            style = MaterialTheme.typography.labelLarge,
-            fontWeight = FontWeight.Bold,
-            color = MaterialTheme.colorScheme.onSurfaceVariant,
-            textAlign = TextAlign.Center
-        )
+        if (isEditMode) {
+            Box(
+                modifier = Modifier
+                    .size(32.dp, 32.dp),
+                contentAlignment = Alignment.Center
+            ) {
+                Checkbox(
+                    checked = isSelected,
+                    onCheckedChange = { onToggleSelection() },
+                )
+            }
+            Spacer(Modifier.width(4.dp))
+        }
+        
+        Box(
+            modifier = Modifier
+                .size(32.dp, 32.dp)
+                .clip(MaterialTheme.shapes.small)
+                .background(MaterialTheme.colorScheme.surfaceVariant),
+            contentAlignment = Alignment.Center
+        ) {
+            Text(
+                text = "$number",
+                style = MaterialTheme.typography.labelLarge,
+                fontWeight = FontWeight.Bold,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                textAlign = TextAlign.Center
+            )
+        }
     }
 }
 
@@ -490,8 +656,12 @@ fun SolveLogViewerScreenPreview() {
         SolveLogViewerScreenContent(
             solveLog = solveLog,
             questions = questions,
+            isEditMode = true,
+            selectedIndices = emptySet(),
             onNavigateToEditor = {},
-            onStartNewAttempt = {}
+            onStartNewAttempt = {},
+            onAddQuestion = {},
+            onToggleSelection = {}
         )
     }
 }

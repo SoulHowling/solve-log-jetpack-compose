@@ -1,5 +1,6 @@
 package com.soulhowling.solvelog_jetpackcompose.core
 
+import androidx.activity.compose.LocalActivity
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.slideInVertically
 import androidx.compose.animation.slideOutVertically
@@ -37,6 +38,8 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavDestination
 import androidx.navigation.NavDestination.Companion.hierarchy
 import androidx.navigation.NavGraph.Companion.findStartDestination
@@ -51,10 +54,16 @@ fun MainScreen(
     bottomNaviItems: List<Screens>,
     allScreens: List<Screens>
 ) {
+    val activity = LocalActivity.current as androidx.activity.ComponentActivity
+    val viewModel: MainViewModel = viewModel(activity)
     val navController = rememberNavController()
 
     val navBackStackEntry by navController.currentBackStackEntryAsState()
     val currentDestination = navBackStackEntry?.destination
+
+    val customTitle by viewModel.customTitle.collectAsStateWithLifecycle()
+    val appBarActions by viewModel.appBarActions.collectAsStateWithLifecycle()
+
     val canNavigateBack = navController.previousBackStackEntry != null &&
             bottomNaviItems.none { it.route == currentDestination?.route }
 
@@ -86,7 +95,9 @@ fun MainScreen(
                 currentDestination = currentDestination,
                 canNavigateBack = canNavigateBack,
                 onBackClick = { navController.navigateUp() },
-                allScreens = allScreens
+                allScreens = allScreens,
+                customTitle = customTitle,
+                actions = appBarActions
             )
         }
         // bottomBar スロットを空にすることで、コンテンツ領域のサイズを固定します。
@@ -122,17 +133,23 @@ fun TopAppBar(
     currentDestination: NavDestination?,
     canNavigateBack: Boolean,
     onBackClick: () -> Unit,
-    allScreens: List<Screens>
+    allScreens: List<Screens>,
+    customTitle: String? = null,
+    actions: (@Composable () -> Unit)? = null
 ) {
     val currentScreen = allScreens.find { it.route == currentDestination?.route }
-    val title = currentScreen?.title ?: R.string.error
-
+    
     CenterAlignedTopAppBar(
         title = {
-            Text(
-                text = stringResource(id = title),
-                textAlign = TextAlign.Center
-            )
+            if (customTitle != null) {
+                Text(text = customTitle, textAlign = TextAlign.Center)
+            } else {
+                val title = currentScreen?.title ?: R.string.error
+                Text(
+                    text = stringResource(id = title),
+                    textAlign = TextAlign.Center
+                )
+            }
         },
         navigationIcon = {
             if (canNavigateBack) {
@@ -143,6 +160,11 @@ fun TopAppBar(
                         tint = MaterialTheme.colorScheme.onPrimary
                     )
                 }
+            }
+        },
+        actions = {
+            if (actions != null) {
+                actions()
             }
         },
         colors = TopAppBarDefaults.topAppBarColors(

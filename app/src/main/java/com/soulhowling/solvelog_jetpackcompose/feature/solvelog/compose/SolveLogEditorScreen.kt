@@ -10,7 +10,6 @@ import androidx.compose.animation.slideOutVertically
 import androidx.compose.animation.core.Spring
 import androidx.compose.animation.core.animateDpAsState
 import androidx.compose.animation.core.spring
-import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.*
@@ -18,18 +17,14 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.ArrowDropDown
-import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material3.*
-import androidx.compose.material3.rememberSwipeToDismissBoxState
 import androidx.compose.runtime.*
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.geometry.Offset
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.input.nestedscroll.NestedScrollConnection
 import androidx.compose.ui.input.nestedscroll.NestedScrollSource
 import androidx.compose.ui.input.nestedscroll.nestedScroll
@@ -47,8 +42,6 @@ import com.soulhowling.solvelog_jetpackcompose.feature.solvelog.model.entity.Sol
 import com.soulhowling.solvelog_jetpackcompose.feature.solvelog.viewmodel.SolveLogEditorUiState
 import com.soulhowling.solvelog_jetpackcompose.feature.solvelog.viewmodel.SolveLogEditorViewModel
 import com.soulhowling.solvelog_jetpackcompose.ui.theme.SolveLogJetpackComposeTheme
-import kotlinx.coroutines.delay
-import kotlin.time.Duration.Companion.milliseconds
 
 @Composable
 fun SolveLogEditorScreen(
@@ -69,9 +62,7 @@ fun SolveLogEditorScreen(
                 selectionTypeStringList = state.selectionTypeStringList,
                 onUpdate = { selectedAnswer, questionIndex, correctness, isFlag ->
                     viewModel.updateQuestion(selectedAnswer, questionIndex, correctness, isFlag)
-                },
-                onDelete = { viewModel.deleteQuestion(it) },
-                onAdd = { viewModel.addQuestion() }
+                }
             )
         }
         is SolveLogEditorUiState.Error -> {
@@ -87,9 +78,7 @@ fun SolveLogEditorScreenContent(
     solveLog: SolveLog,
     questions: List<Question>,
     selectionTypeStringList: List<String>,
-    onUpdate: (Int, Int, Correctness, Boolean) -> Unit,
-    onDelete: (Question) -> Unit,
-    onAdd: () -> Unit
+    onUpdate: (Int, Int, Correctness, Boolean) -> Unit
 ) {
     var isHeaderVisible by remember { mutableStateOf(true) }
     val questionsMap = remember(questions) { questions.associateBy { it.questionIndex } }
@@ -145,30 +134,9 @@ fun SolveLogEditorScreenContent(
                     onUpdate = { selectedAnswer, correctness, isFlag ->
                         onUpdate(selectedAnswer, index, correctness, isFlag)
                     },
-                    onDelete = { question?.let { onDelete(it) } },
                     modifier = Modifier.animateItem(),
                     selectionTypeStringList = selectionTypeStringList
                 )
-            }
-
-            item {
-                Box(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(vertical = 8.dp),
-                    contentAlignment = Alignment.Center
-                ) {
-                    OutlinedButton(
-                        onClick = onAdd,
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .padding(horizontal = 8.dp)
-                    ) {
-                        Icon(Icons.Default.Add, contentDescription = null)
-                        Spacer(Modifier.width(8.dp))
-                        Text("問題を追加")
-                    }
-                }
             }
         }
     }
@@ -234,7 +202,6 @@ fun SolveLogEditorRowItem(
     initialCorrectness: Correctness?,
     initialIsFlagged: Boolean,
     onUpdate: (Int, Correctness, Boolean) -> Unit,
-    onDelete: () -> Unit,
     modifier: Modifier = Modifier,
     selectionTypeStringList: List<String>
 ) {
@@ -243,147 +210,104 @@ fun SolveLogEditorRowItem(
     var resultStatus by remember(initialCorrectness) { mutableStateOf(initialCorrectness) }
     var isCheckedFlag by remember(initialIsFlagged) { mutableStateOf(initialIsFlagged) }
 
-    val dismissState = rememberSwipeToDismissBoxState()
-
-    LaunchedEffect(dismissState.currentValue) {
-        if (dismissState.currentValue == SwipeToDismissBoxValue.EndToStart) {
-            delay(200.milliseconds)
-            onDelete()
-        }
-    }
-
-    SwipeToDismissBox(
-        state = dismissState,
-        enableDismissFromStartToEnd = false,
-        backgroundContent = {
-            val color = when (dismissState.dismissDirection) {
-                SwipeToDismissBoxValue.EndToStart -> MaterialTheme.colorScheme.error
-                else -> Color.Transparent
-            }
-            Box(
-                modifier = Modifier
-                    .fillMaxSize()
-                    .padding(horizontal = 8.dp, vertical = 4.dp)
-                    .clip(MaterialTheme.shapes.medium)
-                    .background(color),
-                contentAlignment = Alignment.CenterEnd
-            ) {
-                Text(
-                    text = "削除",
-                    style = MaterialTheme.typography.labelLarge,
-                    modifier = Modifier.padding(end = 48.dp),
-                    color = MaterialTheme.colorScheme.surface,
-                    textAlign = TextAlign.Center
-                )
-                Icon(
-                    imageVector = Icons.Default.Delete,
-                    contentDescription = "削除",
-                    modifier = Modifier.padding(end = 16.dp),
-                    tint = MaterialTheme.colorScheme.surface
-                )
-            }
-        },
+    ListItem(
         modifier = modifier
-    ) {
-        ListItem(
-            modifier = Modifier
-                .padding(horizontal = 8.dp, vertical = 4.dp)
-                .clip(MaterialTheme.shapes.medium),
-            tonalElevation = 1.dp,
-            leadingContent = {
-                Text(
-                    text = "$number.",
-                    style = MaterialTheme.typography.bodyMedium,
-                    modifier = Modifier.width(32.dp),
-                    color = MaterialTheme.colorScheme.primary,
-                    textAlign = TextAlign.Center
-                )
-            },
-            headlineContent = {
-                Row(
-                    verticalAlignment = Alignment.CenterVertically,
-                    modifier = Modifier.fillMaxWidth()
-                ) {
-                    // 2. Selected answer
-                    Box(
-                        modifier = Modifier.weight(1.0f),
-                        contentAlignment = Alignment.Center
-                    ) {
-                        OutlinedCard(
-                            onClick = { isExpandedDropdown = true },
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .padding(horizontal = 8.dp)
-                        ) {
-                            Row(
-                                verticalAlignment = Alignment.CenterVertically,
-                                horizontalArrangement = Arrangement.Center,
-                                modifier = Modifier
-                                    .fillMaxSize()
-                                    .padding(horizontal = 10.dp, vertical = 10.dp)
-                            ) {
-                                Text(
-                                    text = selectedAnswer,
-                                    style = MaterialTheme.typography.titleMedium
-                                )
-                                Icon(
-                                    Icons.Default.ArrowDropDown,
-                                    contentDescription = null,
-                                    modifier = Modifier.size(18.dp)
-                                )
-                            }
-                        }
-                        DropdownMenu(expanded = isExpandedDropdown, onDismissRequest = { isExpandedDropdown = false }) {
-
-                            selectionTypeStringList.forEach { option ->
-                                DropdownMenuItem(
-                                    text = { Text(option) },
-                                    onClick = {
-                                        selectedAnswer = option
-                                        isExpandedDropdown = false
-                                        val answerIndex = selectionTypeStringList.indexOf(option)
-                                        onUpdate(answerIndex, resultStatus ?: Correctness.NONE, isCheckedFlag)
-                                    }
-                                )
-                            }
-                        }
-                    }
-
-                    // 3. Correctness
-                    Box(
-                        modifier = Modifier.weight(1.2f),
-                        contentAlignment = Alignment.Center
-                    ) {
-                        CorrectIncorrectToggleButton(
-                            selectedItem = resultStatus,
-                            onItemSelected = {
-                                resultStatus = it
-                                val answerIndex = selectionTypeStringList.indexOf(selectedAnswer)
-                                onUpdate(answerIndex, it, isCheckedFlag)
-                            }
-                        )
-                    }
-                }
-            },
-            trailingContent = {
-                // 4. Flag
+            .padding(horizontal = 8.dp, vertical = 4.dp)
+            .clip(MaterialTheme.shapes.medium),
+        tonalElevation = 1.dp,
+        leadingContent = {
+            Text(
+                text = "$number.",
+                style = MaterialTheme.typography.bodyMedium,
+                modifier = Modifier.width(32.dp),
+                color = MaterialTheme.colorScheme.primary,
+                textAlign = TextAlign.Center
+            )
+        },
+        headlineContent = {
+            Row(
+                verticalAlignment = Alignment.CenterVertically,
+                modifier = Modifier.fillMaxWidth()
+            ) {
+                // 2. Selected answer
                 Box(
-                    modifier = Modifier.width(48.dp),
+                    modifier = Modifier.weight(1.0f),
                     contentAlignment = Alignment.Center
                 ) {
-                    Checkbox(
-                        checked = isCheckedFlag,
-                        onCheckedChange = {
-                            isCheckedFlag = it
+                    OutlinedCard(
+                        onClick = { isExpandedDropdown = true },
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(horizontal = 8.dp)
+                    ) {
+                        Row(
+                            verticalAlignment = Alignment.CenterVertically,
+                            horizontalArrangement = Arrangement.Center,
+                            modifier = Modifier
+                                    .fillMaxSize()
+                                    .padding(horizontal = 10.dp, vertical = 10.dp)
+                        ) {
+                            Text(
+                                text = selectedAnswer,
+                                style = MaterialTheme.typography.titleMedium
+                            )
+                            Icon(
+                                Icons.Default.ArrowDropDown,
+                                contentDescription = null,
+                                modifier = Modifier.size(18.dp)
+                            )
+                        }
+                    }
+                    DropdownMenu(expanded = isExpandedDropdown, onDismissRequest = { isExpandedDropdown = false }) {
+
+                        selectionTypeStringList.forEach { option ->
+                            DropdownMenuItem(
+                                text = { Text(option) },
+                                onClick = {
+                                    selectedAnswer = option
+                                    isExpandedDropdown = false
+                                    val answerIndex = selectionTypeStringList.indexOf(option)
+                                    onUpdate(answerIndex, resultStatus ?: Correctness.NONE, isCheckedFlag)
+                                }
+                            )
+                        }
+                    }
+                }
+
+                // 3. Correctness
+                Box(
+                    modifier = Modifier.weight(1.2f),
+                    contentAlignment = Alignment.Center
+                ) {
+                    CorrectIncorrectToggleButton(
+                        selectedItem = resultStatus,
+                        onItemSelected = {
+                            resultStatus = it
                             val answerIndex = selectionTypeStringList.indexOf(selectedAnswer)
-                            onUpdate(answerIndex, resultStatus ?: Correctness.NONE, it)
-                        },
-                        modifier = Modifier.size(48.dp)
+                            onUpdate(answerIndex, it, isCheckedFlag)
+                        }
                     )
                 }
             }
-        )
-    }
+        },
+        trailingContent = {
+            // 4. Flag
+            Box(
+                modifier = Modifier.width(48.dp),
+                contentAlignment = Alignment.Center
+            ) {
+                Checkbox(
+                    checked = isCheckedFlag,
+                    onCheckedChange = {
+                        isCheckedFlag = it
+                        val answerIndex = selectionTypeStringList.indexOf(selectedAnswer)
+                        onUpdate(answerIndex, resultStatus ?: Correctness.NONE, it)
+                    },
+                    modifier = Modifier.size(48.dp)
+                )
+            }
+        }
+    )
 }
 
 @Composable
@@ -487,9 +411,7 @@ fun SolveLogEditorScreenContentPreview() {
             solveLog = solveLog,
             questions = emptyList(),
             selectionTypeStringList = listOf("1", "2", "3", "4"),
-            onUpdate = { _, _, _, _ -> },
-            onDelete = {},
-            onAdd = {}
+            onUpdate = { _, _, _, _ -> }
         )
     }
 }
@@ -515,7 +437,6 @@ fun SolveLogEditorRowItemPreview() {
             initialCorrectness = Correctness.CORRECT,
             initialIsFlagged = false,
             onUpdate = { _, _, _ -> },
-            onDelete = {},
             selectionTypeStringList = listOf("A", "B", "C", "D")
         )
     }

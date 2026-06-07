@@ -35,6 +35,10 @@ class QuestionRepository(private val questionDao: QuestionDao) {
         return questionDao.getQuestionBy(solveLogId, attempt)
     }
 
+    suspend fun getQuestionListBy(solveLogId: Int): List<Question> {
+        return questionDao.getQuestionListBy(solveLogId)
+    }
+
     suspend fun insertQuestion(question: Question) {
         questionDao.insert(question)
     }
@@ -50,4 +54,13 @@ class QuestionRepository(private val questionDao: QuestionDao) {
     suspend fun deleteQuestion(question: Question) {
         questionDao.delete(question)
     }
+
+    suspend fun deleteQuestionByIndex(solveLogId: Int, questionIndex: Int) {
+        questionDao.deleteQuestionByIndex(solveLogId, questionIndex)
+    }
+
+    suspend fun decrementQuestionIndices(solveLogId: Int, questionIndex: Int) {
+        questionDao.decrementQuestionIndices(solveLogId, questionIndex)
+    }
+
 }

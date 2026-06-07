@@ -12,8 +12,10 @@ import com.soulhowling.solvelog_jetpackcompose.feature.solvelog.model.entity.Que
 import com.soulhowling.solvelog_jetpackcompose.feature.solvelog.model.entity.SolveLog
 import com.soulhowling.solvelog_jetpackcompose.feature.solvelog.model.repository.QuestionRepository
 import com.soulhowling.solvelog_jetpackcompose.feature.solvelog.model.repository.SolveLogRepository
+import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
@@ -36,6 +38,12 @@ class SolveLogViewerViewModel(
     private val solveLogRepository: SolveLogRepository = SolveLogRepository(database.solveLogDao())
     private val questionRepository: QuestionRepository = QuestionRepository(database.questionDao())
     private val solveLogId: Int = checkNotNull(savedStateHandle[Screens.ARG_SOLVE_LOG_ID])
+
+    private val _isEditMode = MutableStateFlow(false)
+    val isEditMode: StateFlow<Boolean> = _isEditMode.asStateFlow()
+
+    private val _selectedQuestionIndices = MutableStateFlow<Set<Int>>(emptySet())
+    val selectedQuestionIndices: StateFlow<Set<Int>> = _selectedQuestionIndices.asStateFlow()
 
     val uiState: StateFlow<SolveLogViewerUiState> = combine(
         solveLogRepository.getSolveLog(solveLogId),
@@ -83,6 +91,90 @@ class SolveLogViewerViewModel(
                 questionRepository.insertQuestions(questions)
             }
             onComplete(nextAttempt)
+        }
+    }
+
+    fun addQuestion() {
+        viewModelScope.launch {
+            val successState = uiState.value as? SolveLogViewerUiState.Success ?: return@launch
+            val solveLog = successState.solveLog
+            val nextIndex = solveLog.questionQuantity
+
+            database.withTransaction {
+                val questions = (1..solveLog.attemptCount).map { attempt ->
+                    questionRepository.createQuestion(
+                        attempt = attempt,
+                        selectedAnswer = -1,
+                        questionIndex = nextIndex,
+                        correctness = Correctness.NONE.index,
+                        isFlag = false,
+                        solveLogId = solveLog.id
+                    )
+                }
+                questionRepository.insertQuestions(questions)
+
+                solveLogRepository.upsertSolveLog(
+                    solveLog.copy(
+                        questionQuantity = nextIndex + 1,
+                        updatedAt = System.currentTimeMillis()
+                    )
+                )
+            }
+        }
+    }
+
+    fun toggleEditMode() {
+        _isEditMode.value = !_isEditMode.value
+        if (!_isEditMode.value) {
+            _selectedQuestionIndices.value = emptySet()
+        }
+    }
+
+    fun toggleQuestionSelection(index: Int) {
+        val current = _selectedQuestionIndices.value
+        _selectedQuestionIndices.value = if (current.contains(index)) {
+            current - index
+        } else {
+            current + index
+        }
+    }
+
+    fun deleteSelectedQuestions() {
+        viewModelScope.launch {
+            val successState = uiState.value as? SolveLogViewerUiState.Success ?: return@launch
+            val solveLog = successState.solveLog
+            val indicesToDelete = _selectedQuestionIndices.value
+            if (indicesToDelete.isEmpty()) return@launch
+
+            database.withTransaction {
+                indicesToDelete.forEach { index ->
+                    questionRepository.deleteQuestionByIndex(solveLog.id, index)
+                }
+
+                val remainingIndices = (0 until solveLog.questionQuantity)
+                    .filter { it !in indicesToDelete }
+                
+                val allQuestions = questionRepository.getQuestionListBy(solveLog.id)
+                val updatedQuestions = allQuestions
+                    .filter { it.questionIndex !in indicesToDelete }
+                    .map { question ->
+                        val newIndex = remainingIndices.indexOf(question.questionIndex)
+                        question.copy(questionIndex = newIndex)
+                    }
+                
+                updatedQuestions.forEach { 
+                    questionRepository.upsertQuestion(it)
+                }
+
+                solveLogRepository.upsertSolveLog(
+                    solveLog.copy(
+                        questionQuantity = remainingIndices.size,
+                        updatedAt = System.currentTimeMillis()
+                    )
+                )
+            }
+
+            toggleEditMode()
         }
     }
 
