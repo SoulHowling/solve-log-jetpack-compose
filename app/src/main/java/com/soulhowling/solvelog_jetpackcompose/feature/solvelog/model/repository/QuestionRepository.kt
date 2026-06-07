@@ -12,7 +12,7 @@ class QuestionRepository(private val questionDao: QuestionDao) {
         attempt: Int,
         selectedAnswer: Int,
         questionIndex: Int,
-        isCorrect: Boolean,
+        correctness: Int,
         isFlag: Boolean,
         solveLogId: Int
     ): Question {
@@ -21,7 +21,7 @@ class QuestionRepository(private val questionDao: QuestionDao) {
             attempt = attempt,
             questionIndex = questionIndex,
             selectedAnswer = selectedAnswer,
-            isCorrect = isCorrect,
+            correctness = correctness,
             isFlag = isFlag,
             solveLogId = solveLogId
         )
@@ -31,8 +31,16 @@ class QuestionRepository(private val questionDao: QuestionDao) {
         return questionDao.getQuestionBy(solveLogId)
     }
 
+    fun getQuestionBy(solveLogId: Int, attempt: Int): Flow<List<Question>> {
+        return questionDao.getQuestionBy(solveLogId, attempt)
+    }
+
     suspend fun insertQuestion(question: Question) {
         questionDao.insert(question)
+    }
+
+    suspend fun insertQuestions(questions: List<Question>) {
+        questionDao.insertAll(questions)
     }
 
     suspend fun upsertQuestion(question: Question) {

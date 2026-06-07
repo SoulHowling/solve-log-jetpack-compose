@@ -49,7 +49,7 @@ private val spacing = 8.dp
 
 @Composable
 fun SolveLogViewerScreen(
-    onNavigateToEditor: () -> Unit,
+    onNavigateToEditor: (Int) -> Unit,
     viewModel: SolveLogViewerViewModel = viewModel()
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
@@ -89,7 +89,7 @@ fun SolveLogViewerScreen(
 fun SolveLogViewerScreenContent(
     solveLog: SolveLog,
     questions: Map<Int, List<Question>>,
-    onNavigateToEditor: () -> Unit,
+    onNavigateToEditor: (Int) -> Unit,
 ) {
     val horizontalScrollState = rememberScrollState()
 
@@ -149,10 +149,11 @@ fun SolveLogViewerScreenContent(
                                     .background(MaterialTheme.colorScheme.surfaceContainerLow)
                             )
                             repeat(solveLog.attemptCount) { index ->
+                                val attemptNumber = index + 1
                                 AttemptHeader(
-                                    attemptNumber = index + 1,
+                                    attemptNumber = attemptNumber,
                                     shape = headerShape,
-                                    onNavigateToEditor = onNavigateToEditor,
+                                    onNavigateToEditor = { onNavigateToEditor(attemptNumber) },
                                     width = colWidth
                                 )
                             }
@@ -180,10 +181,10 @@ fun SolveLogViewerScreenContent(
 
                                 SolveLogItemCell(
                                     selectedAnswer = question?.let { selectionType.getAnswerString(it.selectedAnswer) } ?: "-",
-                                    isCorrect = question?.isCorrect ?: true,
+                                    correctness = question?.correctness ?: Correctness.NONE.index,
                                     isChecked = question?.isFlag ?: false,
                                     isLast = qIndex == solveLog.questionQuantity - 1,
-                                    onNavigateToEditor = onNavigateToEditor,
+                                    onNavigateToEditor = { onNavigateToEditor(attemptNumber) },
                                     width = colWidth,
                                     height = rowHeight
                                 )
@@ -236,14 +237,14 @@ fun SolveLogViewerScreenContent(
                             repeat(solveLog.attemptCount) { aIndex ->
                                 val attemptNumber = aIndex + 1
                                 val questionsForAttempt = questionsByAttempt[attemptNumber] ?: emptyList()
-                                val correctCount = questionsForAttempt.count { it.isCorrect }
+                                val correctCount = questionsForAttempt.count { it.correctness == Correctness.CORRECT.index }
 
                                 ScoreFooter(
                                     score = correctCount,
                                     total = solveLog.questionQuantity,
                                     shape = footerShape,
                                     width = colWidth,
-                                    onNavigateToEditor = onNavigateToEditor
+                                    onNavigateToEditor = { onNavigateToEditor(attemptNumber) }
                                 )
                             }
                         }
@@ -258,7 +259,7 @@ fun SolveLogViewerScreenContent(
                     this.translationY = fabTranslationY.toPx()
                 }
                 .padding(all = Dimensions.PADDING_MEDIUM),
-            onClick = onNavigateToEditor
+            onClick = { onNavigateToEditor(solveLog.attemptCount + 1) }
         ) {
             Icon(Icons.Filled.Add, "Floating Action Button")
         }
@@ -313,7 +314,7 @@ fun AttemptHeader(
 @Composable
 fun SolveLogItemCell(
     selectedAnswer: String,
-    isCorrect: Boolean,
+    correctness: Int,
     isChecked: Boolean,
     isLast: Boolean,
     onNavigateToEditor: () -> Unit,
@@ -342,7 +343,7 @@ fun SolveLogItemCell(
     ) {
         SolveLogRowItem(
             selectedAnswer = selectedAnswer,
-            isCorrect = isCorrect,
+            correctness = correctness,
             isChecked = isChecked
         )
     }
@@ -383,34 +384,41 @@ fun ScoreFooter(
 @Composable
 fun SolveLogRowItem(
     selectedAnswer: String,
-    isCorrect: Boolean,
+    correctness: Int,
     isChecked: Boolean
 ) {
+    val correctnessType = Correctness.entries.getOrNull(correctness) ?: Correctness.NONE
+    val isError = correctnessType == Correctness.INCORRECT
+    
     Row(
         modifier = Modifier
             .fillMaxWidth(fraction = 0.9f)
             .height(32.dp)
             .clip(shape = MaterialTheme.shapes.small)
             .background(
-                if (isCorrect) MaterialTheme.colorScheme.surfaceContainer
-                else MaterialTheme.colorScheme.errorContainer.copy(alpha = 0.3f)
+                if (isError) MaterialTheme.colorScheme.errorContainer.copy(alpha = 0.3f)
+                else MaterialTheme.colorScheme.surfaceContainer
             ),
         verticalAlignment = Alignment.CenterVertically
     ) {
         Text(
-            text = selectedAnswer,
+            text = selectedAnswer.ifEmpty { "-" },
             modifier = Modifier.weight(1f),
             style = MaterialTheme.typography.titleMedium,
             fontWeight = FontWeight.ExtraBold,
-            color = if (isCorrect) MaterialTheme.colorScheme.onSurface else MaterialTheme.colorScheme.error,
+            color = if (isError) MaterialTheme.colorScheme.error else MaterialTheme.colorScheme.onSurface,
             textAlign = TextAlign.Center
         )
 
-        val statusColor =
-            if (isCorrect) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.error
+        val statusColor = when (correctnessType) {
+            Correctness.CORRECT -> MaterialTheme.colorScheme.primary
+            Correctness.INCORRECT -> MaterialTheme.colorScheme.error
+            Correctness.NONE -> MaterialTheme.colorScheme.onSurfaceVariant
+        }
+        
         Text(
             modifier = Modifier.weight(1f),
-            text = if (isCorrect) Correctness.CORRECT.symbol else Correctness.INCORRECT.symbol,
+            text = correctnessType.symbol,
             color = statusColor,
             style = MaterialTheme.typography.titleMedium,
             fontWeight = FontWeight.ExtraBold,
@@ -447,7 +455,7 @@ fun SolveLogViewerScreenPreview() {
             attempt = 1,
             questionIndex = 0,
             selectedAnswer = 1,
-            isCorrect = true,
+            correctness = Correctness.CORRECT.index,
             isFlag = true,
             solveLogId = solveLog.id
         ),
@@ -456,7 +464,7 @@ fun SolveLogViewerScreenPreview() {
             attempt = 1,
             questionIndex = 1,
             selectedAnswer = 1,
-            isCorrect = true,
+            correctness = Correctness.CORRECT.index,
             isFlag = true,
             solveLogId = solveLog.id
         ),Question(
@@ -464,7 +472,7 @@ fun SolveLogViewerScreenPreview() {
             attempt = 2,
             questionIndex = 0,
             selectedAnswer = 2,
-            isCorrect = false,
+            correctness = Correctness.INCORRECT.index,
             isFlag = false,
             solveLogId = solveLog.id
         ),

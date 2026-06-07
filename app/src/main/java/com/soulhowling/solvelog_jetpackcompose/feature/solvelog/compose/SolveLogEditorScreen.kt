@@ -16,7 +16,6 @@ import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
@@ -39,23 +38,61 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import androidx.lifecycle.viewmodel.compose.viewModel
 import com.soulhowling.solvelog_jetpackcompose.feature.solvelog.Correctness
+import com.soulhowling.solvelog_jetpackcompose.feature.solvelog.SelectionType
+import com.soulhowling.solvelog_jetpackcompose.feature.solvelog.model.entity.Question
+import com.soulhowling.solvelog_jetpackcompose.feature.solvelog.model.entity.SolveLog
+import com.soulhowling.solvelog_jetpackcompose.feature.solvelog.viewmodel.SolveLogEditorUiState
+import com.soulhowling.solvelog_jetpackcompose.feature.solvelog.viewmodel.SolveLogEditorViewModel
 import com.soulhowling.solvelog_jetpackcompose.ui.theme.SolveLogJetpackComposeTheme
+import kotlinx.coroutines.delay
+import kotlin.time.Duration.Companion.milliseconds
 
 @Composable
-fun SolveLogEditorScreen() {
-    SolveLogEditorScreenContent()
+fun SolveLogEditorScreen(
+    viewModel: SolveLogEditorViewModel = viewModel()
+) {
+    val uiState by viewModel.uiState.collectAsStateWithLifecycle()
+
+    when (val state = uiState) {
+        is SolveLogEditorUiState.Loading -> {
+            Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+                CircularProgressIndicator()
+            }
+        }
+        is SolveLogEditorUiState.Success -> {
+            SolveLogEditorScreenContent(
+                solveLog = state.solveLog,
+                questions = state.questions,
+                selectionTypeStringList = state.selectionTypeStringList,
+                onUpdate = { selectedAnswer, questionIndex, correctness, isFlag ->
+                    viewModel.updateQuestion(selectedAnswer, questionIndex, correctness, isFlag)
+                },
+                onDelete = { viewModel.deleteQuestion(it) },
+                onAdd = { viewModel.addQuestion() }
+            )
+        }
+        is SolveLogEditorUiState.Error -> {
+            Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+                Text("データの読み込みに失敗しました")
+            }
+        }
+    }
 }
 
 @Composable
-fun SolveLogEditorScreenContent() {
-    // 状態管理（デモ用）
-    var logList by remember { mutableStateOf((1..20).toList()) } // TODO
-
-    // ヘッダーの表示状態
+fun SolveLogEditorScreenContent(
+    solveLog: SolveLog,
+    questions: List<Question>,
+    selectionTypeStringList: List<String>,
+    onUpdate: (Int, Int, Correctness, Boolean) -> Unit,
+    onDelete: (Question) -> Unit,
+    onAdd: () -> Unit
+) {
     var isHeaderVisible by remember { mutableStateOf(true) }
 
-    // スクロール検知用の NestedScrollConnection
     val nestedScrollConnection = remember {
         object : NestedScrollConnection {
             override fun onPostScroll(
@@ -78,7 +115,6 @@ fun SolveLogEditorScreenContent() {
             .fillMaxSize()
             .nestedScroll(nestedScrollConnection)
     ) {
-        // ヘッダーを AnimatedVisibility で囲む
         AnimatedVisibility(
             visible = isHeaderVisible,
             enter = slideInVertically(initialOffsetY = { -it }) + expandVertically() + fadeIn(),
@@ -91,34 +127,46 @@ fun SolveLogEditorScreenContent() {
             modifier = Modifier.weight(1f),
             contentPadding = PaddingValues(bottom = 16.dp)
         ) {
-            itemsIndexed(
-                items = logList,
-                key = { _, id -> id }
-            ) { index, id ->
-                val onDeleteItem = remember(id) {
-                    { logList = logList.filter { it != id } }
-                }
+            items(
+                count = solveLog.questionQuantity,
+                key = { index ->
+                    questions.find { it.questionIndex == index }?.id ?: "empty_$index"
+                },
+            ) { index ->
+                val question = questions.find { it.questionIndex == index }
+                val selectionType = SelectionType.entries.getOrElse(solveLog.selectionType) { SelectionType.ALPHABET }
 
                 SolveLogEditorRowItem(
                     number = index + 1,
-                    onDelete = onDeleteItem,
-                    modifier = Modifier.animateItem()
+                    initialAnswer = question?.let { selectionType.getAnswerString(it.selectedAnswer) } ?: "",
+                    initialCorrectness = question?.let { Correctness.entries.getOrNull(it.correctness) } ?: Correctness.NONE,
+                    initialIsFlagged = question?.isFlag ?: false,
+                    onUpdate = { selectedAnswer, correctness, isFlag ->
+                        onUpdate(selectedAnswer, index, correctness, isFlag)
+                    },
+                    onDelete = { question?.let { onDelete(it) } },
+                    modifier = Modifier.animateItem(),
+                    selectionTypeStringList = selectionTypeStringList
                 )
             }
 
             item {
-                TextButton(
-                    onClick = {
-                        val nextId = (logList.maxOrNull() ?: 0) + 1
-                        logList = logList + nextId
-                    },
+                Box(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .padding(16.dp)
+                        .padding(vertical = 8.dp),
+                    contentAlignment = Alignment.Center
                 ) {
-                    Icon(Icons.Default.Add, contentDescription = null)
-                    Spacer(Modifier.width(8.dp))
-                    Text("新しいアイテムを追加")
+                    OutlinedButton(
+                        onClick = onAdd,
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(horizontal = 8.dp)
+                    ) {
+                        Icon(Icons.Default.Add, contentDescription = null)
+                        Spacer(Modifier.width(8.dp))
+                        Text("問題を追加")
+                    }
                 }
             }
         }
@@ -149,7 +197,6 @@ fun SolveLogHeader() {
                 verticalAlignment = Alignment.CenterVertically,
                 modifier = Modifier.fillMaxWidth()
             ) {
-                // 解答
                 Text(
                     text = "解答",
                     style = MaterialTheme.typography.labelLarge,
@@ -158,7 +205,6 @@ fun SolveLogHeader() {
                     textAlign = TextAlign.Center
                 )
 
-                // 正誤
                 Text(
                     text = "正誤",
                     style = MaterialTheme.typography.labelLarge,
@@ -169,7 +215,6 @@ fun SolveLogHeader() {
             }
         },
         trailingContent = {
-            // 復習
             Text(
                 text = "フラグ",
                 style = MaterialTheme.typography.labelLarge,
@@ -184,19 +229,24 @@ fun SolveLogHeader() {
 @Composable
 fun SolveLogEditorRowItem(
     number: Int,
+    initialAnswer: String,
+    initialCorrectness: Correctness?,
+    initialIsFlagged: Boolean,
+    onUpdate: (Int, Correctness, Boolean) -> Unit,
     onDelete: () -> Unit,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
+    selectionTypeStringList: List<String>
 ) {
-    // TODO: 内部状態（本来はViewModel等で管理するのが望ましい）
     var isExpandedDropdown by rememberSaveable { mutableStateOf(false) }
-    var selectedAnswer by remember { mutableStateOf("A") }
-    var resultStatus by remember { mutableStateOf<Correctness?>(null) }
-    var isCheckedFlag by remember { mutableStateOf(false) }
+    var selectedAnswer by remember(initialAnswer) { mutableStateOf(initialAnswer) }
+    var resultStatus by remember(initialCorrectness) { mutableStateOf(initialCorrectness) }
+    var isCheckedFlag by remember(initialIsFlagged) { mutableStateOf(initialIsFlagged) }
 
     val dismissState = rememberSwipeToDismissBoxState()
 
     LaunchedEffect(dismissState.currentValue) {
         if (dismissState.currentValue == SwipeToDismissBoxValue.EndToStart) {
+            delay(200.milliseconds)
             onDelete()
         }
     }
@@ -253,7 +303,7 @@ fun SolveLogEditorRowItem(
                     verticalAlignment = Alignment.CenterVertically,
                     modifier = Modifier.fillMaxWidth()
                 ) {
-                    // 2. 解答
+                    // 2. Selected answer
                     Box(
                         modifier = Modifier.weight(1.0f),
                         contentAlignment = Alignment.Center
@@ -283,39 +333,50 @@ fun SolveLogEditorRowItem(
                             }
                         }
                         DropdownMenu(expanded = isExpandedDropdown, onDismissRequest = { isExpandedDropdown = false }) {
-                            listOf("A", "B", "C").forEach { option ->
+
+                            selectionTypeStringList.forEach { option ->
                                 DropdownMenuItem(
                                     text = { Text(option) },
                                     onClick = {
                                         selectedAnswer = option
                                         isExpandedDropdown = false
+                                        val answerIndex = selectionTypeStringList.indexOf(option)
+                                        onUpdate(answerIndex, resultStatus ?: Correctness.NONE, isCheckedFlag)
                                     }
                                 )
                             }
                         }
                     }
 
-                    // 3. 正誤
+                    // 3. Correctness
                     Box(
                         modifier = Modifier.weight(1.2f),
                         contentAlignment = Alignment.Center
                     ) {
                         CorrectIncorrectToggleButton(
                             selectedItem = resultStatus,
-                            onItemSelected = { resultStatus = it }
+                            onItemSelected = {
+                                resultStatus = it
+                                val answerIndex = selectionTypeStringList.indexOf(selectedAnswer)
+                                onUpdate(answerIndex, it, isCheckedFlag)
+                            }
                         )
                     }
                 }
             },
             trailingContent = {
-                // 4. 復習
+                // 4. Flag
                 Box(
-                    modifier = Modifier.weight(0.5f),
+                    modifier = Modifier.width(48.dp),
                     contentAlignment = Alignment.Center
                 ) {
                     Checkbox(
                         checked = isCheckedFlag,
-                        onCheckedChange = { isCheckedFlag = it },
+                        onCheckedChange = {
+                            isCheckedFlag = it
+                            val answerIndex = selectionTypeStringList.indexOf(selectedAnswer)
+                            onUpdate(answerIndex, resultStatus ?: Correctness.NONE, it)
+                        },
                         modifier = Modifier.size(48.dp)
                     )
                 }
@@ -330,17 +391,15 @@ fun CorrectIncorrectToggleButton(
     onItemSelected: (Correctness) -> Unit,
     modifier: Modifier = Modifier
 ) {
-    val items = Correctness.entries
+    val items = remember { Correctness.entries.filter { it != Correctness.NONE } }
     val selectedIndex = items.indexOf(selectedItem)
 
-    // 選択状態に応じた色設定
     val indicatorColor = when (selectedItem) {
         Correctness.CORRECT -> MaterialTheme.colorScheme.primary
         Correctness.INCORRECT -> MaterialTheme.colorScheme.error
         else -> MaterialTheme.colorScheme.surface
     }
 
-    // 外側のコンテナ（カプセル形状）
     Surface(
         shape = CircleShape,
         color = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f),
@@ -353,7 +412,6 @@ fun CorrectIncorrectToggleButton(
         ) {
             val itemWidth = maxWidth / items.size
 
-            // 選択中のインジケーター（スライドする背景）
             if (selectedIndex != -1) {
                 val offset by animateDpAsState(
                     targetValue = itemWidth * selectedIndex,
@@ -376,7 +434,6 @@ fun CorrectIncorrectToggleButton(
                 ) {}
             }
 
-            // 各アイテムのテキストとクリック領域
             Row(
                 modifier = Modifier.fillMaxWidth()
             ) {
@@ -413,8 +470,26 @@ fun CorrectIncorrectToggleButton(
 @Preview(showBackground = true)
 @Composable
 fun SolveLogEditorScreenContentPreview() {
+    val solveLog = SolveLog(
+        id = 1,
+        name = "テストログ",
+        questionQuantity = 10,
+        selectionType = SelectionType.ALPHABET.index,
+        selectionQuantity = 4,
+        attemptCount = 1,
+        createdAt = 0L,
+        updatedAt = 0L,
+        folderId = null
+    )
     SolveLogJetpackComposeTheme {
-        SolveLogEditorScreenContent()
+        SolveLogEditorScreenContent(
+            solveLog = solveLog,
+            questions = emptyList(),
+            selectionTypeStringList = listOf("1", "2", "3", "4"),
+            onUpdate = { _, _, _, _ -> },
+            onDelete = {},
+            onAdd = {}
+        )
     }
 }
 
@@ -426,13 +501,21 @@ fun SolveLogHeaderPreview() {
     }
 }
 
-@Preview(showBackground = true)
+@Preview(
+    showBackground = true,
+    heightDp = 80
+)
 @Composable
 fun SolveLogEditorRowItemPreview() {
     SolveLogJetpackComposeTheme {
         SolveLogEditorRowItem(
             number = 1,
-            onDelete = { /* TODO */ }
+            initialAnswer = "A",
+            initialCorrectness = Correctness.CORRECT,
+            initialIsFlagged = false,
+            onUpdate = { _, _, _ -> },
+            onDelete = {},
+            selectionTypeStringList = listOf("A", "B", "C", "D")
         )
     }
 }

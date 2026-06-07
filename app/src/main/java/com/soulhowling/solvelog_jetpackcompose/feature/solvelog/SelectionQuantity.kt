@@ -6,4 +6,14 @@ enum class SelectionQuantity(val index: Int, val displayString: String) {
     FOUR(2, "4"),
     FIVE(3, "5"),
     ;
+
+    fun toInt(): Int {
+        return displayString.toInt()
+    }
+
+    companion object {
+        fun from(index: Int): SelectionQuantity {
+            return entries.firstOrNull { it.index == index } ?: TWO
+        }
+    }
 }

@@ -36,10 +36,13 @@ sealed class Screens(
         fun createRoute(solveLogId: Int) = SOLVE_LOG_VIEWER_ROUTE + SLASH + "$solveLogId"
     }
     data object SolveLogEditor: Screens(
-        route = SOLVE_LOG_EDITOR_ROUTE,
+        route = SOLVE_LOG_EDITOR_ROUTE + SLASH + "{$ARG_SOLVE_LOG_ID}" + SLASH + "{$ARG_ATTEMPT}",
         title = R.string.log_edit,
         icon = Icons.Default.Edit
-    )
+    ) {
+        fun createRoute(solveLogId: Int, attempt: Int) =
+            SOLVE_LOG_EDITOR_ROUTE + SLASH + "$solveLogId" + SLASH + "$attempt"
+    }
     data object LogStatistics: Screens(
         route = LOG_STATISTICS_ROUTE,
         title = R.string.tab_statistics,
@@ -58,6 +61,7 @@ sealed class Screens(
 
     companion object {
         const val ARG_SOLVE_LOG_ID = "solveLogId"
+        const val ARG_ATTEMPT = "attempt"
 
         fun getAllScreens(): List<Screens> = listOf(
             SolveLog,

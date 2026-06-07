@@ -39,6 +39,10 @@ class SolveLogRepository(private val solveLogDao: SolveLogDao) {
         solveLogDao.insert(solveLog)
     }
 
+    suspend fun insertAndReturnId(solveLog: SolveLog): Int {
+        return solveLogDao.insertAndReturnId(solveLog).toInt()
+    }
+
     suspend fun upsertSolveLog(solveLog: SolveLog) {
         solveLogDao.upsert(solveLog)
     }

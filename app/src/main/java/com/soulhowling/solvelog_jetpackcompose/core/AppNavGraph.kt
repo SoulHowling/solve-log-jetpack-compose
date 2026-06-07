@@ -37,14 +37,21 @@ fun AppNavGraph(
         composable(
             route = Screens.SolveLogViewer.route,
             arguments = listOf(navArgument(Screens.ARG_SOLVE_LOG_ID) { type = NavType.IntType })
-        ) {
+        ) { backStackEntry ->
+            val solveLogId = backStackEntry.arguments?.getInt(Screens.ARG_SOLVE_LOG_ID) ?: -1
             SolveLogViewerScreen(
-                onNavigateToEditor = {
-                    navController.navigate(Screens.SolveLogEditor.route)
+                onNavigateToEditor = { attempt ->
+                    navController.navigate(Screens.SolveLogEditor.createRoute(solveLogId, attempt))
                 }
             )
         }
-        composable(Screens.SolveLogEditor.route) {
+        composable(
+            route = Screens.SolveLogEditor.route,
+            arguments = listOf(
+                navArgument(Screens.ARG_SOLVE_LOG_ID) { type = NavType.IntType },
+                navArgument(Screens.ARG_ATTEMPT) { type = NavType.IntType }
+            )
+        ) {
             SolveLogEditorScreen()
         }
         composable(Screens.LogStatistics.route) {

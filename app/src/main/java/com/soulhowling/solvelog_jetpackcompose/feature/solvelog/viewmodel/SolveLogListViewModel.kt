@@ -3,12 +3,15 @@ package com.soulhowling.solvelog_jetpackcompose.feature.solvelog.viewmodel
 import android.app.Application
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
+import androidx.room.withTransaction
 import com.soulhowling.solvelog_jetpackcompose.core.SolveLogApplication
+import com.soulhowling.solvelog_jetpackcompose.feature.solvelog.Correctness
 import com.soulhowling.solvelog_jetpackcompose.feature.solvelog.SelectionQuantity
 import com.soulhowling.solvelog_jetpackcompose.feature.solvelog.SelectionType
 import com.soulhowling.solvelog_jetpackcompose.feature.solvelog.model.entity.Folder
 import com.soulhowling.solvelog_jetpackcompose.feature.solvelog.model.entity.SolveLog
 import com.soulhowling.solvelog_jetpackcompose.feature.solvelog.model.repository.FolderRepository
+import com.soulhowling.solvelog_jetpackcompose.feature.solvelog.model.repository.QuestionRepository
 import com.soulhowling.solvelog_jetpackcompose.feature.solvelog.model.repository.SolveLogRepository
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted.Companion.WhileSubscribed
@@ -25,16 +28,12 @@ sealed class SolveLogListItem {
 
 class SolveLogListViewModel(application: Application) : AndroidViewModel(application) {
 
-    private val folderRepository: FolderRepository
-    private val solveLogRepository: SolveLogRepository
+    private val database = (application as SolveLogApplication).database
+    private val folderRepository: FolderRepository = FolderRepository(database.folderDao())
+    private val solveLogRepository: SolveLogRepository = SolveLogRepository(database.solveLogDao())
+    private val questionRepository: QuestionRepository = QuestionRepository(database.questionDao())
 
     private val _currentFolderId = MutableStateFlow<Int?>(null)
-
-    init {
-        val database = (application as SolveLogApplication).database
-        folderRepository = FolderRepository(database.folderDao())
-        solveLogRepository = SolveLogRepository(database.solveLogDao())
-    }
 
     private val allFolders = folderRepository.allFolders
     private val allSolveLogs = solveLogRepository.allSolveLogs
@@ -77,7 +76,7 @@ class SolveLogListViewModel(application: Application) : AndroidViewModel(applica
             folder = folders.find { it.id == folder.parentFolderId }
         }
         path.joinToString(" / ")
-    }.stateIn(viewModelScope, kotlinx.coroutines.flow.SharingStarted.WhileSubscribed(5000), null)
+    }.stateIn(viewModelScope, WhileSubscribed(5000), null)
 
     fun selectFolder(folderId: Int?) {
         _currentFolderId.value = folderId
@@ -98,14 +97,28 @@ class SolveLogListViewModel(application: Application) : AndroidViewModel(applica
         selectionQuantity: SelectionQuantity
     ) {
         viewModelScope.launch {
-            val solveLog = solveLogRepository.createSolveLog(
-                name = name,
-                questionQuantity = questionQuantity,
-                selectionType = selectionType,
-                selectionQuantity = selectionQuantity,
-                folderId = _currentFolderId.value
-            )
-            solveLogRepository.insertSolveLog(solveLog)
+            database.withTransaction {
+                val solveLog = solveLogRepository.createSolveLog(
+                    name = name,
+                    questionQuantity = questionQuantity,
+                    selectionType = selectionType,
+                    selectionQuantity = selectionQuantity,
+                    folderId = _currentFolderId.value
+                )
+                val solveLogId = solveLogRepository.insertAndReturnId(solveLog)
+
+                val questions = (0 until questionQuantity).map { index ->
+                    questionRepository.createQuestion(
+                        attempt = 1,
+                        selectedAnswer = -1,
+                        questionIndex = index,
+                        correctness = Correctness.NONE.index,
+                        isFlag = false,
+                        solveLogId = solveLogId
+                    )
+                }
+                questionRepository.insertQuestions(questions)
+            }
         }
     }
 
