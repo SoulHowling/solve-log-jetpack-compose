@@ -67,7 +67,8 @@ fun SolveLogViewerScreen(
             SolveLogViewerScreenContent(
                 solveLog = state.solveLog,
                 questions = state.questions,
-                onNavigateToEditor = onNavigateToEditor
+                onNavigateToEditor = onNavigateToEditor,
+                onStartNewAttempt = { viewModel.startNewAttempt(it) }
             )
         }
         is SolveLogViewerUiState.Error -> {
@@ -91,6 +92,7 @@ fun SolveLogViewerScreenContent(
     solveLog: SolveLog,
     questions: Map<Int, List<Question>>,
     onNavigateToEditor: (Int) -> Unit,
+    onStartNewAttempt: ((Int) -> Unit) -> Unit
 ) {
     val horizontalScrollState = rememberScrollState()
     val questionsByAttempt = remember(questions) {
@@ -262,7 +264,11 @@ fun SolveLogViewerScreenContent(
                     this.translationY = fabTranslationY.toPx()
                 }
                 .padding(all = Dimensions.PADDING_MEDIUM),
-            onClick = { onNavigateToEditor(solveLog.attemptCount + 1) }
+            onClick = {
+                onStartNewAttempt { nextAttempt ->
+                    onNavigateToEditor(nextAttempt)
+                }
+            }
         ) {
             Icon(Icons.Filled.Add, "Floating Action Button")
         }
@@ -484,7 +490,8 @@ fun SolveLogViewerScreenPreview() {
         SolveLogViewerScreenContent(
             solveLog = solveLog,
             questions = questions,
-            onNavigateToEditor = {}
+            onNavigateToEditor = {},
+            onStartNewAttempt = {}
         )
     }
 }
