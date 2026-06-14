@@ -1,4 +1,4 @@
-package com.soulhowling.solvelog_jetpackcompose.feature.measurement.compose
+package com.soulhowling.solvelog_jetpackcompose.feature.measurement
 
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize

@@ -1,7 +1,6 @@
-package com.soulhowling.solvelog_jetpackcompose
+package com.soulhowling.solvelog_jetpackcompose.core
 
 import android.app.Application
-import androidx.room.Room
 import com.soulhowling.solvelog_jetpackcompose.core.database.SolveLogDatabase
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers

@@ -1,6 +1,10 @@
 <resources>
     <string name="app_name">SolveLog-JetpackCompose</string>
 
+    <!-- Common -->
+    <string name="common_dialog_confirm_button">追加</string>
+    <string name="common_dialog_cancel_button">キャンセル</string>
+
     <!--  App bar title -->
     <string name="app_bar_title_editor">ログ一覧</string>
     <string name="app_bar_title_statistics">統計情報</string>
@@ -13,7 +17,43 @@
     <string name="tab_measurement">計測</string>
     <string name="tab_setting">設定</string>
 
-    <!-- Editor -->
+    <!-- Log list -->
+    <string name="log_list_delete_log_success">「%1$s」ログを削除しました</string>
+    <string name="log_list_delete_folder_success">「%1$s」フォルダを削除しました</string>
+    <string name="log_list_move_success">移動しました</string>
+    <string name="log_list_title_question_quantity">問題数: %1$d</string>
+    <string name="log_list_title_attempt_count">試行回数: %1$d</string>
+    <string name="log_list_dialog_move_button">移動</string>
+    <string name="log_list_dialog_delete_button">削除</string>
+    <string name="log_list_add_folder_button">フォルダ</string>
+    <string name="log_list_add_log_button">ログ</string>
+    <string name="log_list_add_new_folder_title">新規フォルダーを作成</string>
+    <string name="log_list_label_folder_name">フォルダ名</string>
+    <string name="log_list_placeholder_folder_name">例: 統計調査士</string>
+    <string name="log_list_add_new_log_title">新しいログを追加</string>
+    <string name="log_list_label_log_title">ログタイトル</string>
+    <string name="log_list_placeholder_log_title">例: 統計調査士 2019年過去問</string>
+    <string name="log_list_label_question_quantity">問題数</string>
+    <string name="log_list_placeholder_question_quantity">1~1000</string>
+    <string name="log_list_label_selection_type">選択肢の種類</string>
+    <string name="log_list_label_selection_quantity">選択肢の数</string>
+    <string name="log_list_add_button">追加</string>
+    <string name="log_list_dialog_move_to_folder_title">移動先を選択</string>
+    <string name="log_list_dialog_move_here_button">ここに移動</string>
+    <string name="log_list_root_folder">ルート</string>
+    <string name="log_list_no_subfolders">サブフォルダはありません</string>
+    <string name="log_list_cd_back">戻る</string>
+    <string name="log_list_cd_add_folder">フォルダを作成</string>
+    <string name="log_list_cd_add_log">ログを作成</string>
+    <string name="log_list_cd_close_menu">メニューを閉じる</string>
+    <string name="log_list_cd_open_menu">新規作成メニューを開く</string>
+    <string name="log_list_cd_go_up">上に戻る</string>
+
+    <!-- Log viewer -->
+    <string name="log_view">ログ閲覧</string>
+
+    <!-- Log editor -->
+    <string name="log_edit">ログ編集</string>
 
     <!-- Statistics -->
 
@@ -27,8 +67,6 @@
     <!-- Timer -->
     <string name="timer_add_title">タイマーを追加</string>
     <string name="timer_add_description">セットする時間を入力してください</string>
-    <string name="timer_add_confirm_button">追加</string>
-    <string name="timer_add_cancel_button">キャンセル</string>
 
     <!-- Setting -->
     <string name="setting_notification">通知設定</string>
