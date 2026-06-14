@@ -4,6 +4,7 @@ import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.compositionLocalOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.collectAsState
@@ -18,7 +19,9 @@ class MainActivity : ComponentActivity() {
         enableEdgeToEdge()
         setContent {
             val mainViewModel: MainViewModel = viewModel()
-            mainViewModel.loadThemeMode()
+            LaunchedEffect(Unit) {
+                mainViewModel.loadThemeMode()
+            }
             val themeMode by mainViewModel.themeMode.collectAsState()
 
             SolveLogJetpackComposeTheme(
