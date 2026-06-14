@@ -772,7 +772,7 @@ private fun SolveLogAddContent(
 }
 
 private fun isAddButtonEnabled(logTitle: String, questionQuantity: String): Boolean {
-    return logTitle.isNotBlank() && questionQuantity.isNotBlank() && questionQuantity.toIntOrZero() > 0
+    return logTitle.isNotBlank() && questionQuantity.isNotBlank() && questionQuantity.toIntOrZero() in 1..1000
 }
 
 private fun String.toIntOrZero(): Int {

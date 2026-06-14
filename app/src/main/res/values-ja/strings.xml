@@ -34,7 +34,7 @@
     <string name="log_list_label_log_title">ログタイトル</string>
     <string name="log_list_placeholder_log_title">例: 統計調査士 2019年過去問</string>
     <string name="log_list_label_question_quantity">問題数</string>
-    <string name="log_list_placeholder_question_quantity">例: 100</string>
+    <string name="log_list_placeholder_question_quantity">1~1000</string>
     <string name="log_list_label_selection_type">選択肢の種類</string>
     <string name="log_list_label_selection_quantity">選択肢の数</string>
     <string name="log_list_add_button">追加</string>
