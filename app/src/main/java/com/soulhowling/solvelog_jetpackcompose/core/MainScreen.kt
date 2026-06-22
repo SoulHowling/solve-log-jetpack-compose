@@ -1,5 +1,6 @@
 package com.soulhowling.solvelog_jetpackcompose.core
 
+import androidx.activity.ComponentActivity
 import androidx.activity.compose.LocalActivity
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.slideInVertically
@@ -23,6 +24,7 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -54,12 +56,20 @@ fun MainScreen(
     bottomNaviItems: List<Screens>,
     allScreens: List<Screens>
 ) {
-    val activity = LocalActivity.current as androidx.activity.ComponentActivity
+    val activity = LocalActivity.current as ComponentActivity
     val viewModel: MainViewModel = viewModel(activity)
     val navController = rememberNavController()
 
     val navBackStackEntry by navController.currentBackStackEntryAsState()
     val currentDestination = navBackStackEntry?.destination
+
+    LaunchedEffect(currentDestination) {
+        viewModel.setActions(null)
+
+        if (bottomNaviItems.any { it.route == currentDestination?.route }) {
+            viewModel.setTitle(null)
+        }
+    }
 
     val customTitle by viewModel.customTitle.collectAsStateWithLifecycle()
     val appBarActions by viewModel.appBarActions.collectAsStateWithLifecycle()
@@ -69,7 +79,6 @@ fun MainScreen(
 
     var isBottomBarVisible by rememberSaveable { mutableStateOf(true) }
 
-    // スクロール検知用の NestedScrollConnection
     val nestedScrollConnection = remember {
         object : NestedScrollConnection {
             override fun onPostScroll(
@@ -77,7 +86,6 @@ fun MainScreen(
                 available: Offset,
                 source: NestedScrollSource
             ): Offset {
-                // consumed.y != 0 の場合のみ、実際にコンテンツがスクロールされたと判断する
                 if (consumed.y < -5) {
                     isBottomBarVisible = false
                 } else if (consumed.y > 5) {
@@ -100,17 +108,17 @@ fun MainScreen(
                 actions = appBarActions
             )
         }
-        // bottomBar スロットを空にすることで、コンテンツ領域のサイズを固定します。
     ) { innerPadding ->
-        CompositionLocalProvider(LocalBottomBarVisibility provides isBottomBarVisible) {
+        CompositionLocalProvider(
+            LocalBottomBarVisibility provides isBottomBarVisible,
+            LocalAppBarController provides viewModel
+        ) {
             Box(modifier = Modifier.fillMaxSize()) {
-                // メインコンテンツ（常に画面下部まで描画される）
                 AppNavGraph(
                     navController = navController,
                     innerPadding = innerPadding
                 )
 
-                // ボトムナビゲーションをオーバーレイとして配置
                 Box(
                     modifier = Modifier.align(Alignment.BottomCenter)
                 ) {
@@ -202,12 +210,23 @@ fun BottomNavigation(
     }
 }
 
+@Composable
+fun CustomAppBarEffect(
+    title: String?,
+    actions: (@Composable () -> Unit)? = null
+) {
+    val controller = LocalAppBarController.current
+    LaunchedEffect(title, actions) {
+        controller.setTitle(title)
+        controller.setActions(actions)
+    }
+}
+
 @Preview(showBackground = true)
 @Composable
 fun TopAppBarPreview() {
     SolveLogJetpackComposeTheme {
         Column {
-            // 戻るボタンなし（メイン画面など）
             TopAppBar(
                 currentDestination = null,
                 canNavigateBack = false,
@@ -215,7 +234,6 @@ fun TopAppBarPreview() {
                 allScreens = Screens.getAllScreens()
             )
             Spacer(modifier = Modifier.height(16.dp))
-            // 戻るボタンあり（詳細画面など）
             TopAppBar(
                 currentDestination = null,
                 canNavigateBack = true,

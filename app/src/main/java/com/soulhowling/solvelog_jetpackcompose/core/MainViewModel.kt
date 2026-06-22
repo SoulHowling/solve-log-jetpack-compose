@@ -10,7 +10,7 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 
-class MainViewModel(application: Application): AndroidViewModel(application) {
+class MainViewModel(application: Application): AndroidViewModel(application), AppBarController {
     val themeMode: StateFlow<ThemeMode> = PreferenceRepository.themeMode
 
     private val _customTitle = MutableStateFlow<String?>(null)
@@ -18,6 +18,14 @@ class MainViewModel(application: Application): AndroidViewModel(application) {
 
     private val _appBarActions = MutableStateFlow<(@Composable () -> Unit)?>(null)
     val appBarActions: StateFlow<(@Composable () -> Unit)?> = _appBarActions.asStateFlow()
+
+    override fun setTitle(title: String?) {
+        _customTitle.value = title
+    }
+
+    override fun setActions(actions: @Composable (() -> Unit)?) {
+        _appBarActions.value = actions
+    }
 
     fun setCustomAppBar(title: String?, actions: (@Composable () -> Unit)? = null) {
         _customTitle.value = title

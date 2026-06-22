@@ -5,4 +5,10 @@ enum class Correctness(val index: Int, val symbol: String) {
     CORRECT(1, "◯"),
     INCORRECT(2, "×"),
     ;
+
+    companion object {
+        fun from(index: Int): Correctness {
+            return entries.first { it.index == index }
+        }
+    }
 }

@@ -7,13 +7,11 @@
 
     <!--  App bar title -->
     <string name="app_bar_title_editor">ログ一覧</string>
-    <string name="app_bar_title_statistics">統計情報</string>
     <string name="app_bar_title_measurement">計測</string>
     <string name="app_bar_title_setting">設定</string>
 
     <!--  Tab title  -->
     <string name="tab_editor">ログ一覧</string>
-    <string name="tab_statistics">統計情報</string>
     <string name="tab_measurement">計測</string>
     <string name="tab_setting">設定</string>
 
@@ -54,8 +52,6 @@
 
     <!-- Log editor -->
     <string name="log_edit">ログ編集</string>
-
-    <!-- Statistics -->
 
     <!-- Measurement -->
     <string name="measurement_stopwatch_title">ストップウォッチ</string>

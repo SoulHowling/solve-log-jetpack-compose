@@ -7,13 +7,11 @@
 
     <!--  App bar title -->
     <string name="app_bar_title_editor">Log List</string>
-    <string name="app_bar_title_statistics">Statistics</string>
     <string name="app_bar_title_measurement">Measurement</string>
     <string name="app_bar_title_setting">Settings</string>
 
     <!--  Tab title  -->
     <string name="tab_editor">Logs</string>
-    <string name="tab_statistics">Stats</string>
     <string name="tab_measurement">Measure</string>
     <string name="tab_setting">Settings</string>
 
@@ -54,8 +52,6 @@
 
     <!-- Log editor -->
     <string name="log_edit">Edit Log</string>
-
-    <!-- Statistics -->
 
     <!-- Measurement -->
     <string name="measurement_stopwatch_title">Stopwatch</string>

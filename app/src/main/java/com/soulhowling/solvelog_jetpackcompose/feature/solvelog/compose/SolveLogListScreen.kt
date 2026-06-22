@@ -176,7 +176,6 @@ private fun SolveLogListScreenContent(
 
     Box(modifier = Modifier.fillMaxSize()) {
         Column(modifier = Modifier.fillMaxSize()) {
-            // フォルダ内にいる場合、戻るボタンとフォルダ名を表示
             if (currentFolderPath != null) {
                 CurrentFolderHeader(
                     currentFolderPath = currentFolderPath,

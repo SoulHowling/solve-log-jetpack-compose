@@ -26,7 +26,9 @@ sealed interface SolveLogEditorUiState {
         val solveLog: SolveLog,
         val attempt: Int,
         val questions: List<Question>,
-        val selectionTypeStringList: List<String>
+        val selectionTypeStringList: List<String>,
+        val correctnessArchives: Map<Int, List<Int>>,
+        val hasCheckedFlagMap: Map<Int, Boolean>,
     ) : SolveLogEditorUiState
 
     object Error : SolveLogEditorUiState
@@ -50,18 +52,31 @@ class SolveLogEditorViewModel(
 
     val uiState: StateFlow<SolveLogEditorUiState> = combine(
         solveLogRepository.getSolveLog(solveLogId),
-        questionRepository.getQuestionBy(solveLogId, attempt)
-    ) { solveLog, questions ->
+        questionRepository.getQuestionBy(solveLogId, attempt),
+        questionRepository.getQuestionBy(solveLogId)
+    ) { solveLog, currentQuestions, allQuestions ->
         if (solveLog != null) {
             val selectionQuantity = SelectionQuantity.from(solveLog.selectionQuantity)
             val choices =
                 SelectionType.getSelectionTypeStringList(solveLog.selectionType, selectionQuantity)
+            
+            val correctnessArchives = allQuestions
+                .filter { it.attempt < attempt }
+                .groupBy { it.questionIndex }
+                .mapValues { entry -> entry.value.map { it.correctness } }
+
+            val hasCheckedFlagMap = allQuestions
+                .filter { it.attempt < attempt }
+                .groupBy { it.questionIndex }
+                .mapValues { entry -> entry.value.any { it.isFlag } }
 
             SolveLogEditorUiState.Success(
                 solveLog = solveLog,
                 attempt = attempt,
-                questions = questions,
-                selectionTypeStringList = choices
+                questions = currentQuestions,
+                selectionTypeStringList = choices,
+                correctnessArchives = correctnessArchives,
+                hasCheckedFlagMap = hasCheckedFlagMap
             )
         } else {
             SolveLogEditorUiState.Error
