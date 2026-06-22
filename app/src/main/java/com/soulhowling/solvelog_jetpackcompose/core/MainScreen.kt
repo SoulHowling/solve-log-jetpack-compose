@@ -28,6 +28,7 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
@@ -216,9 +217,13 @@ fun CustomAppBarEffect(
     actions: (@Composable () -> Unit)? = null
 ) {
     val controller = LocalAppBarController.current
-    LaunchedEffect(title, actions) {
+    val currentAction by rememberUpdatedState(actions)
+    LaunchedEffect(title, actions == null) {
         controller.setTitle(title)
-        controller.setActions(actions)
+        if (actions == null) {
+            controller.setActions(null)
+        }
+        controller.setActions { currentAction?.invoke() }
     }
 }
 

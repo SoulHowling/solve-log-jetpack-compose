@@ -8,7 +8,7 @@ enum class Correctness(val index: Int, val symbol: String) {
 
     companion object {
         fun from(index: Int): Correctness {
-            return entries.first { it.index == index }
+            return entries.firstOrNull { it.index == index } ?: NONE
         }
     }
 }

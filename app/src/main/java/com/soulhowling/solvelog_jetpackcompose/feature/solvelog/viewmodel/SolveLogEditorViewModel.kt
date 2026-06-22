@@ -59,16 +59,18 @@ class SolveLogEditorViewModel(
             val selectionQuantity = SelectionQuantity.from(solveLog.selectionQuantity)
             val choices =
                 SelectionType.getSelectionTypeStringList(solveLog.selectionType, selectionQuantity)
-            
-            val correctnessArchives = allQuestions
-                .filter { it.attempt < attempt }
-                .groupBy { it.questionIndex }
-                .mapValues { entry -> entry.value.map { it.correctness } }
 
-            val hasCheckedFlagMap = allQuestions
+            val pastQuestionsByIndex = allQuestions
                 .filter { it.attempt < attempt }
                 .groupBy { it.questionIndex }
-                .mapValues { entry -> entry.value.any { it.isFlag } }
+
+            val correctnessArchives = pastQuestionsByIndex.mapValues { (_, questions) ->
+                questions.map { it.correctness }
+            }
+
+            val hasCheckedFlagMap = pastQuestionsByIndex.mapValues { (_, questions) ->
+                questions.any { it.isFlag }
+            }
 
             SolveLogEditorUiState.Success(
                 solveLog = solveLog,
