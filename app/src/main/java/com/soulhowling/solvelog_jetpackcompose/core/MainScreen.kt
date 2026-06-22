@@ -49,7 +49,6 @@ import androidx.navigation.NavGraph.Companion.findStartDestination
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
-import com.soulhowling.solvelog_jetpackcompose.R
 import com.soulhowling.solvelog_jetpackcompose.ui.theme.SolveLogJetpackComposeTheme
 
 @Composable
@@ -65,14 +64,17 @@ fun MainScreen(
     val currentDestination = navBackStackEntry?.destination
 
     LaunchedEffect(currentDestination) {
+        val currentScreen = allScreens.find { it.route == currentDestination?.route }
+        
+        // Actions should be cleared as they are strictly screen-specific
         viewModel.setActions(null)
 
-        if (bottomNaviItems.any { it.route == currentDestination?.route }) {
-            viewModel.setTitle(null)
-        }
+        // Set the default title for the new screen. 
+        // We don't clear the custom title here; each screen will manage it via CustomAppBarEffect.
+        viewModel.setDefaultTitle(currentScreen?.title)
     }
 
-    val customTitle by viewModel.customTitle.collectAsStateWithLifecycle()
+    val appBarTitle by viewModel.title.collectAsStateWithLifecycle()
     val appBarActions by viewModel.appBarActions.collectAsStateWithLifecycle()
 
     val canNavigateBack = navController.previousBackStackEntry != null &&
@@ -101,11 +103,9 @@ fun MainScreen(
         modifier = Modifier.nestedScroll(nestedScrollConnection),
         topBar = {
             TopAppBar(
-                currentDestination = currentDestination,
                 canNavigateBack = canNavigateBack,
                 onBackClick = { navController.navigateUp() },
-                allScreens = allScreens,
-                customTitle = customTitle,
+                title = appBarTitle,
                 actions = appBarActions
             )
         }
@@ -139,26 +139,17 @@ fun MainScreen(
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun TopAppBar(
-    currentDestination: NavDestination?,
     canNavigateBack: Boolean,
     onBackClick: () -> Unit,
-    allScreens: List<Screens>,
-    customTitle: String? = null,
+    title: String? = null,
     actions: (@Composable () -> Unit)? = null
 ) {
-    val currentScreen = allScreens.find { it.route == currentDestination?.route }
-    
     CenterAlignedTopAppBar(
         title = {
-            if (customTitle != null) {
-                Text(text = customTitle, textAlign = TextAlign.Center)
-            } else {
-                val title = currentScreen?.title ?: R.string.error
-                Text(
-                    text = stringResource(id = title),
-                    textAlign = TextAlign.Center
-                )
-            }
+            Text(
+                text = title ?: "",
+                textAlign = TextAlign.Center
+            )
         },
         navigationIcon = {
             if (canNavigateBack) {
@@ -233,17 +224,13 @@ fun TopAppBarPreview() {
     SolveLogJetpackComposeTheme {
         Column {
             TopAppBar(
-                currentDestination = null,
                 canNavigateBack = false,
                 onBackClick = {},
-                allScreens = Screens.getAllScreens()
             )
             Spacer(modifier = Modifier.height(16.dp))
             TopAppBar(
-                currentDestination = null,
                 canNavigateBack = true,
                 onBackClick = {},
-                allScreens = Screens.getAllScreens()
             )
         }
     }

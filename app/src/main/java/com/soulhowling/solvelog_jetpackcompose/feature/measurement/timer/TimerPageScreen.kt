@@ -52,6 +52,7 @@ import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.soulhowling.solvelog_jetpackcompose.R
+import com.soulhowling.solvelog_jetpackcompose.core.CustomAppBarEffect
 import com.soulhowling.solvelog_jetpackcompose.ui.theme.Dimensions
 import com.soulhowling.solvelog_jetpackcompose.ui.theme.SolveLogJetpackComposeTheme
 import com.soulhowling.solvelog_jetpackcompose.utils.LogUtils
@@ -63,6 +64,9 @@ fun TimerPageScreen(
     viewModel: TimerViewModel = viewModel()
 ) {
     val timers by viewModel.displayTimers.collectAsStateWithLifecycle()
+
+    // Reset custom app bar title to show the default title
+    CustomAppBarEffect(title = null)
 
     TimerPageContent(
         timers = timers,

@@ -4,17 +4,24 @@ import android.app.Application
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.application
 import androidx.compose.runtime.Composable
+import androidx.lifecycle.viewModelScope
 import com.soulhowling.solvelog_jetpackcompose.data.PreferenceRepository
 import com.soulhowling.solvelog_jetpackcompose.ui.theme.ThemeMode
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.stateIn
 
 class MainViewModel(application: Application): AndroidViewModel(application), AppBarController {
     val themeMode: StateFlow<ThemeMode> = PreferenceRepository.themeMode
 
     private val _customTitle = MutableStateFlow<String?>(null)
-    val customTitle: StateFlow<String?> = _customTitle.asStateFlow()
+    private val _defaultTitle = MutableStateFlow<String?>(null)
+    val title: StateFlow<String?> = combine(_customTitle, _defaultTitle) { custom, default ->
+        custom ?: default
+    }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), null)
 
     private val _appBarActions = MutableStateFlow<(@Composable () -> Unit)?>(null)
     val appBarActions: StateFlow<(@Composable () -> Unit)?> = _appBarActions.asStateFlow()
@@ -27,9 +34,8 @@ class MainViewModel(application: Application): AndroidViewModel(application), Ap
         _appBarActions.value = actions
     }
 
-    fun setCustomAppBar(title: String?, actions: (@Composable () -> Unit)? = null) {
-        _customTitle.value = title
-        _appBarActions.value = actions
+    fun setDefaultTitle(resId: Int?) {
+        _defaultTitle.value = resId?.let { application.getString(it) }
     }
 
     fun loadThemeMode() {

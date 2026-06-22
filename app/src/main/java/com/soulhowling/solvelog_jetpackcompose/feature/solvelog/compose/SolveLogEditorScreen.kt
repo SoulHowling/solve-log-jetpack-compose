@@ -52,8 +52,11 @@ fun SolveLogEditorScreen(
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
     val solveLog = (uiState as? SolveLogEditorUiState.Success)?.solveLog
+    
+    // Only update the title when we actually have the log data.
+    // This allows the previous screen's title to persist during the loading state.
     if (solveLog != null) {
-        CustomAppBarEffect(solveLog.name)
+        CustomAppBarEffect(title = solveLog.name)
     }
 
     when (val state = uiState) {
