@@ -1,6 +1,7 @@
 [pr_reviewer]
 inline_comments = true
 num_code_suggestions = 5
+minimal_commendable_issue_score = 1
 prompt_custom_instructions = "Please ensure that every issue found provides a clear code snippet of the proposed fix, formatted as a standard markdown diff block."
 extra_instructions = """
 - レビューのコメントは必ず日本語で出力してください。
