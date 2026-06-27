@@ -7,11 +7,10 @@ import androidx.compose.animation.slideInVertically
 import androidx.compose.animation.slideOutVertically
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.height
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material3.CenterAlignedTopAppBar
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
@@ -40,7 +39,6 @@ import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
-import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavDestination
@@ -64,23 +62,25 @@ fun MainScreen(
     val currentDestination = navBackStackEntry?.destination
 
     var isBottomBarVisible by rememberSaveable { mutableStateOf(true) }
-    var lastRoute by remember { mutableStateOf<String?>(null) }
+    var lastRoute by rememberSaveable { mutableStateOf<String?>(null) }
 
     LaunchedEffect(currentDestination) {
-        val currentScreen = allScreens.find { it.route == currentDestination?.route }
-        
-        // Actions should be cleared as they are strictly screen-specific
-        viewModel.setActions(null)
+        val currentRoute = currentDestination?.route
+        if (currentRoute != null && lastRoute != currentRoute) {
+            val currentScreen = allScreens.find { it.route == currentRoute }
+            
+            // Actions should be cleared as they are strictly screen-specific
+            viewModel.setActions(null)
 
-        // Set the default title for the new screen. 
-        // We don't clear the custom title here; each screen will manage it via CustomAppBarEffect.
-        viewModel.setDefaultTitle(currentScreen?.title)
+            // Set the default title for the new screen. 
+            // We don't clear the custom title here; each screen will manage it via CustomAppBarEffect.
+            viewModel.setDefaultTitle(currentScreen?.title)
 
-        // Reset bottom bar visibility when navigating
-        if (lastRoute != null && lastRoute != currentDestination?.route) {
+            // Reset bottom bar visibility when navigating
             isBottomBarVisible = true
+            
+            lastRoute = currentRoute
         }
-        lastRoute = currentDestination?.route
     }
 
     val appBarTitle by viewModel.title.collectAsStateWithLifecycle()
@@ -232,13 +232,18 @@ fun TopAppBarPreview() {
     SolveLogJetpackComposeTheme {
         Column {
             TopAppBar(
-                canNavigateBack = false,
-                onBackClick = {},
-            )
-            Spacer(modifier = Modifier.height(16.dp))
-            TopAppBar(
                 canNavigateBack = true,
+                title = "タイトル",
                 onBackClick = {},
+                actions = {
+                    IconButton(onClick = {}) {
+                        Icon(
+                            imageVector = Icons.Default.Edit,
+                            contentDescription = null,
+                            tint = MaterialTheme.colorScheme.onPrimary
+                        )
+                    }
+                }
             )
         }
     }
