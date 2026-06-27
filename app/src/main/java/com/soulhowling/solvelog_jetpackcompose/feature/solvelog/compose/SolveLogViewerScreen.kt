@@ -1,6 +1,5 @@
 package com.soulhowling.solvelog_jetpackcompose.feature.solvelog.compose
 
-import androidx.activity.compose.LocalActivity
 import androidx.compose.animation.core.animateDpAsState
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.background
@@ -34,8 +33,8 @@ import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
+import com.soulhowling.solvelog_jetpackcompose.core.CustomAppBarEffect
 import com.soulhowling.solvelog_jetpackcompose.core.LocalBottomBarVisibility
-import com.soulhowling.solvelog_jetpackcompose.core.MainViewModel
 import com.soulhowling.solvelog_jetpackcompose.feature.solvelog.Correctness
 import com.soulhowling.solvelog_jetpackcompose.feature.solvelog.SelectionType
 import com.soulhowling.solvelog_jetpackcompose.feature.solvelog.model.entity.Question
@@ -57,44 +56,33 @@ fun SolveLogViewerScreen(
     onNavigateToEditor: (Int) -> Unit,
     viewModel: SolveLogViewerViewModel = viewModel(),
 ) {
-    val activity = LocalActivity.current as androidx.activity.ComponentActivity
-    val mainViewModel: MainViewModel = viewModel(activity)
-
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
     val isEditMode by viewModel.isEditMode.collectAsStateWithLifecycle()
     val selectedIndices by viewModel.selectedQuestionIndices.collectAsStateWithLifecycle()
 
     var showDeleteConfirm by remember { mutableStateOf(false) }
 
-    LaunchedEffect(uiState, isEditMode, selectedIndices) {
-        val solveLog = (uiState as? SolveLogViewerUiState.Success)?.solveLog
-        if (solveLog != null) {
-            mainViewModel.setCustomAppBar(
-                title = solveLog.name,
-                actions = {
-                    if (isEditMode) {
-                        if (selectedIndices.isNotEmpty()) {
-                            IconButton(onClick = { showDeleteConfirm = true }) {
-                                Icon(Icons.Default.Delete, contentDescription = "削除", tint = MaterialTheme.colorScheme.onPrimary)
-                            }
-                        }
-                        IconButton(onClick = { viewModel.toggleEditMode() }) {
-                            Icon(Icons.Default.Cancel, contentDescription = "キャンセル", tint = MaterialTheme.colorScheme.onPrimary)
-                        }
-                    } else {
-                        IconButton(onClick = { viewModel.toggleEditMode() }) {
-                            Icon(Icons.Default.Edit, contentDescription = "編集", tint = MaterialTheme.colorScheme.onPrimary)
+    val solveLog = (uiState as? SolveLogViewerUiState.Success)?.solveLog
+    if (solveLog != null) {
+        CustomAppBarEffect(
+            title = solveLog.name,
+            actions = {
+                if (isEditMode) {
+                    if (selectedIndices.isNotEmpty()) {
+                        IconButton(onClick = { showDeleteConfirm = true }) {
+                            Icon(Icons.Default.Delete, contentDescription = "削除", tint = MaterialTheme.colorScheme.onPrimary)
                         }
                     }
+                    IconButton(onClick = { viewModel.toggleEditMode() }) {
+                        Icon(Icons.Default.Cancel, contentDescription = "キャンセル", tint = MaterialTheme.colorScheme.onPrimary)
+                    }
+                } else {
+                    IconButton(onClick = { viewModel.toggleEditMode() }) {
+                        Icon(Icons.Default.Edit, contentDescription = "編集", tint = MaterialTheme.colorScheme.onPrimary)
+                    }
                 }
-            )
-        }
-    }
-
-    DisposableEffect(Unit) {
-        onDispose {
-            mainViewModel.setCustomAppBar(null, null)
-        }
+            }
+        )
     }
 
     if (showDeleteConfirm) {
@@ -318,10 +306,21 @@ fun SolveLogViewerScreenContent(
                                 modifier = Modifier
                                     .width(colWidth * solveLog.attemptCount + spacing * (solveLog.attemptCount - 1))
                                     .height(rowHeight)
+                                    .background(MaterialTheme.colorScheme.surface)
                                     .clickable { onAddQuestion() },
                                 contentAlignment = Alignment.Center
                             ) {
-                                Row(verticalAlignment = Alignment.CenterVertically) {
+                                Row(
+                                    modifier = Modifier
+                                        .fillMaxSize()
+                                        .padding(8.dp)
+                                        .background(
+                                            color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.2f),
+                                            shape = MaterialTheme.shapes.small
+                                        ),
+                                    verticalAlignment = Alignment.CenterVertically,
+                                    horizontalArrangement = Arrangement.Center
+                                ) {
                                     Icon(
                                         imageVector = Icons.Default.Add,
                                         contentDescription = null,

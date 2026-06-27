@@ -74,6 +74,7 @@ import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.soulhowling.solvelog_jetpackcompose.R
+import com.soulhowling.solvelog_jetpackcompose.core.CustomAppBarEffect
 import com.soulhowling.solvelog_jetpackcompose.core.LocalBottomBarVisibility
 import com.soulhowling.solvelog_jetpackcompose.feature.solvelog.SelectionQuantity
 import com.soulhowling.solvelog_jetpackcompose.feature.solvelog.SelectionType
@@ -97,6 +98,9 @@ fun SolveLogListScreen(
     val deleteLogSuccessFormat = stringResource(R.string.log_list_delete_log_success)
     val deleteFolderSuccessFormat = stringResource(R.string.log_list_delete_folder_success)
     val moveSuccessMessage = stringResource(R.string.log_list_move_success)
+
+    // Reset custom app bar title to show the default title (R.string.tab_editor)
+    CustomAppBarEffect(title = null)
 
     SolveLogListScreenContent(
         displayItems = displayItems,
@@ -176,7 +180,6 @@ private fun SolveLogListScreenContent(
 
     Box(modifier = Modifier.fillMaxSize()) {
         Column(modifier = Modifier.fillMaxSize()) {
-            // フォルダ内にいる場合、戻るボタンとフォルダ名を表示
             if (currentFolderPath != null) {
                 CurrentFolderHeader(
                     currentFolderPath = currentFolderPath,

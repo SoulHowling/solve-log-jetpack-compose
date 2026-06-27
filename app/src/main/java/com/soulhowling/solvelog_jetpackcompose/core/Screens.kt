@@ -2,7 +2,6 @@ package com.soulhowling.solvelog_jetpackcompose.core
 
 import androidx.annotation.StringRes
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.BarChart
 import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material.icons.filled.Preview
 import androidx.compose.material.icons.filled.Settings
@@ -13,7 +12,6 @@ import com.soulhowling.solvelog_jetpackcompose.R
 private const val SOLVE_LOG_ROUTE = "solve_log"
 private const val SOLVE_LOG_VIEWER_ROUTE = "solve_log_viewer"
 private const val SOLVE_LOG_EDITOR_ROUTE = "solve_log_editor"
-private const val LOG_STATISTICS_ROUTE = "log_statistics"
 private const val MEASUREMENT_ROUTE = "measurement"
 private const val SETTING_ROUTE = "setting"
 private const val SLASH = "/"
@@ -43,11 +41,6 @@ sealed class Screens(
         fun createRoute(solveLogId: Int, attempt: Int) =
             SOLVE_LOG_EDITOR_ROUTE + SLASH + "$solveLogId" + SLASH + "$attempt"
     }
-    data object LogStatistics: Screens(
-        route = LOG_STATISTICS_ROUTE,
-        title = R.string.tab_statistics,
-        icon = Icons.Default.BarChart
-    )
     data object Measurement: Screens(
         route = MEASUREMENT_ROUTE,
         title = R.string.tab_measurement,
@@ -67,14 +60,12 @@ sealed class Screens(
             SolveLog,
             SolveLogViewer,
             SolveLogEditor,
-            LogStatistics,
             Measurement,
             Setting
         )
 
         fun getBottomNaviScreens(): List<Screens> = listOf(
             SolveLog,
-            LogStatistics,
             Measurement,
             Setting
         )

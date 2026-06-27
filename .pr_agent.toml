@@ -1,4 +1,7 @@
 [pr_reviewer]
+inline_comments = true
+num_code_suggestions = 5
+prompt_custom_instructions = "Please ensure that every issue found provides a clear code snippet of the proposed fix, formatted as a standard markdown diff block."
 extra_instructions = """
 - レビューのコメントは必ず日本語で出力してください。
 - レビューコメントに対して「対応しない」という旨の返信がされた場合、その後、そのPRで同じ内容のレビューコメントはしないでください。
