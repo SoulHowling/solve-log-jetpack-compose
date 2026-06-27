@@ -49,6 +49,19 @@
 
     <!-- Log viewer -->
     <string name="log_view">ログ閲覧</string>
+    <string name="log_viewer_dialog_delete_questions_title">問題を削除</string>
+    <string name="log_viewer_dialog_delete_questions_message">%1$d件の問題を削除しますか？\nこの操作はすべての試行に適用されます。</string>
+    <string name="log_viewer_dialog_delete_attempt_title">第 %1$d 回を削除</string>
+    <string name="log_viewer_dialog_delete_attempt_message">第 %1$d 回のデータをすべて削除しますか？\n(この操作は取り消せません)</string>
+    <string name="log_viewer_error_not_found">ログが見つかりませんでした</string>
+    <string name="log_viewer_button_add_question">問題を追加</string>
+    <string name="log_viewer_footer_score">Score</string>
+    <string name="log_viewer_header_attempt">第 %1$d 回</string>
+    <string name="log_viewer_cd_delete_questions">削除</string>
+    <string name="log_viewer_cd_cancel_edit">キャンセル</string>
+    <string name="log_viewer_cd_edit">編集</string>
+    <string name="log_viewer_cd_delete_attempt">削除</string>
+    <string name="log_viewer_cd_flag">フラグ</string>
 
     <!-- Log editor -->
     <string name="log_edit">ログ編集</string>
