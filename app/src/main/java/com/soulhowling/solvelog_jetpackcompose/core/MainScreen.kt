@@ -213,8 +213,9 @@ fun CustomAppBarEffect(
         controller.setTitle(title)
         if (actions == null) {
             controller.setActions(null)
+        } else {
+            controller.setActions { currentAction?.invoke() }
         }
-        controller.setActions { currentAction?.invoke() }
     }
 }
 
