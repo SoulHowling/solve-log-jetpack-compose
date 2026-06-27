@@ -63,6 +63,8 @@ fun MainScreen(
     val navBackStackEntry by navController.currentBackStackEntryAsState()
     val currentDestination = navBackStackEntry?.destination
 
+    var isBottomBarVisible by rememberSaveable { mutableStateOf(true) }
+
     LaunchedEffect(currentDestination) {
         val currentScreen = allScreens.find { it.route == currentDestination?.route }
         
@@ -72,6 +74,9 @@ fun MainScreen(
         // Set the default title for the new screen. 
         // We don't clear the custom title here; each screen will manage it via CustomAppBarEffect.
         viewModel.setDefaultTitle(currentScreen?.title)
+
+        // Reset bottom bar visibility when navigating
+        isBottomBarVisible = true
     }
 
     val appBarTitle by viewModel.title.collectAsStateWithLifecycle()
@@ -79,8 +84,6 @@ fun MainScreen(
 
     val canNavigateBack = navController.previousBackStackEntry != null &&
             bottomNaviItems.none { it.route == currentDestination?.route }
-
-    var isBottomBarVisible by rememberSaveable { mutableStateOf(true) }
 
     val nestedScrollConnection = remember {
         object : NestedScrollConnection {
