@@ -308,7 +308,7 @@ fun SolveLogViewerScreenContent(
                                     AttemptHeader(
                                         attemptNumber = attemptNumber,
                                         shape = headerShape,
-                                        onNavigateToEditor = { onNavigateToEditor(attemptNumber) },
+                                        onNavigateToEditor = { if (!isEditMode) onNavigateToEditor(attemptNumber) },
                                         width = colWidth
                                     )
                                 }

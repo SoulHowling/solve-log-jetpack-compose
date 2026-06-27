@@ -143,6 +143,9 @@ class SolveLogViewerViewModel(
         viewModelScope.launch {
             val successState = uiState.value as? SolveLogViewerUiState.Success ?: return@launch
             val solveLog = successState.solveLog
+            if (attemptToDelete < 1 || attemptToDelete > solveLog.attemptCount || solveLog.attemptCount <= 1) {
+                return@launch
+            }
 
             database.withTransaction {
                 questionRepository.deleteQuestionsByAttempt(solveLog.id, attemptToDelete)
