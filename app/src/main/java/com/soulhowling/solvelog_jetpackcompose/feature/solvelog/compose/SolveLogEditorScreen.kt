@@ -233,118 +233,118 @@ fun SolveLogEditorRowItem(
     }
     val shouldShowArchivesRow = hasEffectiveArchives || hasCheckedFlag
 
-    Box{
-        ListItem(
-            modifier = modifier
-                .padding(horizontal = 8.dp, vertical = 4.dp)
-                .clip(MaterialTheme.shapes.medium),
-            tonalElevation = 1.dp,
-            leadingContent = {
-                Text(
-                    text = "$number.",
-                    style = MaterialTheme.typography.bodyLarge,
-                    modifier = Modifier.width(32.dp),
-                    color = MaterialTheme.colorScheme.primary,
-                    textAlign = TextAlign.Center
+    Surface(
+        modifier = modifier
+            .padding(horizontal = 8.dp, vertical = 4.dp)
+            .clip(MaterialTheme.shapes.medium),
+        tonalElevation = 1.dp
+    ) {
+        Column {
+            if (shouldShowArchivesRow) {
+                CorrectnessArchive(
+                    correctnessArchives = correctnessArchives,
+                    hasCheckedFlag = hasCheckedFlag
                 )
-            },
-            headlineContent = {
-                Row(
-                    verticalAlignment = Alignment.CenterVertically,
-                    modifier = Modifier.fillMaxWidth()
-                ) {
-                    // 2. Selected answer
-                    Box(
-                        modifier = Modifier.weight(1.0f),
-                        contentAlignment = Alignment.Center
+            }
+            ListItem(
+                leadingContent = {
+                    Text(
+                        text = "$number.",
+                        style = MaterialTheme.typography.bodyLarge,
+                        modifier = Modifier.width(32.dp),
+                        color = MaterialTheme.colorScheme.primary,
+                        textAlign = TextAlign.Center
+                    )
+                },
+                headlineContent = {
+                    Row(
+                        verticalAlignment = Alignment.CenterVertically,
+                        modifier = Modifier.fillMaxWidth()
                     ) {
-                        OutlinedCard(
-                            onClick = { isExpandedDropdown = true },
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .padding(horizontal = 8.dp)
+                        // 2. Selected answer
+                        Box(
+                            modifier = Modifier.weight(1.0f),
+                            contentAlignment = Alignment.Center
                         ) {
-                            Row(
-                                verticalAlignment = Alignment.CenterVertically,
-                                horizontalArrangement = Arrangement.Center,
+                            OutlinedCard(
+                                onClick = { isExpandedDropdown = true },
                                 modifier = Modifier
-                                    .fillMaxSize()
-                                    .padding(horizontal = 10.dp, vertical = 10.dp)
+                                    .fillMaxWidth()
+                                    .padding(horizontal = 8.dp)
                             ) {
-                                Text(
-                                    text = selectedAnswer,
-                                    style = MaterialTheme.typography.titleMedium
-                                )
-                                Icon(
-                                    Icons.Default.ArrowDropDown,
-                                    contentDescription = null,
-                                    modifier = Modifier.size(18.dp)
-                                )
+                                Row(
+                                    verticalAlignment = Alignment.CenterVertically,
+                                    horizontalArrangement = Arrangement.Center,
+                                    modifier = Modifier
+                                        .fillMaxSize()
+                                        .padding(horizontal = 10.dp, vertical = 10.dp)
+                                ) {
+                                    Text(
+                                        text = selectedAnswer,
+                                        style = MaterialTheme.typography.titleMedium
+                                    )
+                                    Icon(
+                                        Icons.Default.ArrowDropDown,
+                                        contentDescription = null,
+                                        modifier = Modifier.size(18.dp)
+                                    )
+                                }
+                            }
+                            DropdownMenu(
+                                expanded = isExpandedDropdown,
+                                onDismissRequest = { isExpandedDropdown = false }) {
+
+                                selectionTypeStringList.forEach { option ->
+                                    DropdownMenuItem(
+                                        text = { Text(option) },
+                                        onClick = {
+                                            selectedAnswer = option
+                                            isExpandedDropdown = false
+                                            val answerIndex = selectionTypeStringList.indexOf(option)
+                                            onUpdate(
+                                                answerIndex,
+                                                resultStatus ?: Correctness.NONE,
+                                                isCheckedFlag
+                                            )
+                                        }
+                                    )
+                                }
                             }
                         }
-                        DropdownMenu(
-                            expanded = isExpandedDropdown,
-                            onDismissRequest = { isExpandedDropdown = false }) {
 
-                            selectionTypeStringList.forEach { option ->
-                                DropdownMenuItem(
-                                    text = { Text(option) },
-                                    onClick = {
-                                        selectedAnswer = option
-                                        isExpandedDropdown = false
-                                        val answerIndex = selectionTypeStringList.indexOf(option)
-                                        onUpdate(
-                                            answerIndex,
-                                            resultStatus ?: Correctness.NONE,
-                                            isCheckedFlag
-                                        )
-                                    }
-                                )
-                            }
+                        // 3. Correctness
+                        Box(
+                            modifier = Modifier.weight(1.2f),
+                            contentAlignment = Alignment.Center
+                        ) {
+                            CorrectIncorrectToggleButton(
+                                selectedItem = resultStatus,
+                                onItemSelected = {
+                                    resultStatus = it
+                                    val answerIndex = selectionTypeStringList.indexOf(selectedAnswer)
+                                    onUpdate(answerIndex, it, isCheckedFlag)
+                                }
+                            )
                         }
                     }
-
-                    // 3. Correctness
+                },
+                trailingContent = {
+                    // 4. Flag
                     Box(
-                        modifier = Modifier.weight(1.2f),
+                        modifier = Modifier.width(48.dp),
                         contentAlignment = Alignment.Center
                     ) {
-                        CorrectIncorrectToggleButton(
-                            selectedItem = resultStatus,
-                            onItemSelected = {
-                                resultStatus = it
+                        Checkbox(
+                            checked = isCheckedFlag,
+                            onCheckedChange = {
+                                isCheckedFlag = it
                                 val answerIndex = selectionTypeStringList.indexOf(selectedAnswer)
-                                onUpdate(answerIndex, it, isCheckedFlag)
-                            }
+                                onUpdate(answerIndex, resultStatus ?: Correctness.NONE, it)
+                            },
+                            modifier = Modifier.size(48.dp)
                         )
                     }
                 }
-            },
-            overlineContent = if (shouldShowArchivesRow) {
-                { Spacer(modifier = Modifier.height(16.dp)) }
-            } else null,
-            trailingContent = {
-                // 4. Flag
-                Box(
-                    modifier = Modifier.width(48.dp),
-                    contentAlignment = Alignment.Center
-                ) {
-                    Checkbox(
-                        checked = isCheckedFlag,
-                        onCheckedChange = {
-                            isCheckedFlag = it
-                            val answerIndex = selectionTypeStringList.indexOf(selectedAnswer)
-                            onUpdate(answerIndex, resultStatus ?: Correctness.NONE, it)
-                        },
-                        modifier = Modifier.size(48.dp)
-                    )
-                }
-            }
-        )
-        if (shouldShowArchivesRow) {
-            CorrectnessArchive(
-                correctnessArchives = correctnessArchives,
-                hasCheckedFlag = hasCheckedFlag
             )
         }
     }
@@ -358,7 +358,7 @@ fun CorrectnessArchive(
     Row(
         modifier = Modifier
             .fillMaxWidth()
-            .padding(start = 16.dp, top = 10.dp, end = 16.dp),
+            .padding(start = 8.dp, top = 8.dp, end = 8.dp),
         verticalAlignment = Alignment.CenterVertically
     ) {
         correctnessArchives.forEach { correctnessIndex ->
