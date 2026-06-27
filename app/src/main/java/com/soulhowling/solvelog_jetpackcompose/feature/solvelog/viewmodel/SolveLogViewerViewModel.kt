@@ -146,12 +146,7 @@ class SolveLogViewerViewModel(
 
             database.withTransaction {
                 questionRepository.deleteQuestionsByAttempt(solveLog.id, attemptToDelete)
-
-                val allQuestions = questionRepository.getQuestionListBy(solveLog.id)
-                allQuestions.filter { it.attempt > attemptToDelete }.forEach { question ->
-                    questionRepository.upsertQuestion(question.copy(attempt = question.attempt - 1))
-                }
-
+                questionRepository.decrementAttemptIndices(solveLog.id, attemptToDelete)
                 solveLogRepository.upsertSolveLog(
                     solveLog.copy(
                         attemptCount = solveLog.attemptCount - 1,

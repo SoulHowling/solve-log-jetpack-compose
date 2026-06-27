@@ -67,4 +67,8 @@ class QuestionRepository(private val questionDao: QuestionDao) {
         questionDao.deleteQuestionsByAttempt(solveLogId, attempt)
     }
 
+    suspend fun decrementAttemptIndices(solveLogId: Int, attempt: Int) {
+        questionDao.decrementAttemptIndices(solveLogId, attempt)
+    }
+
 }

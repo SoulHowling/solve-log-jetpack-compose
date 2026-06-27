@@ -31,4 +31,7 @@ interface QuestionDao: BaseDao<Question> {
 
     @Query("DELETE FROM question WHERE solveLogId = :solveLogId AND attempt = :attempt")
     suspend fun deleteQuestionsByAttempt(solveLogId: Int, attempt: Int)
+
+    @Query("UPDATE question SET attempt = attempt - 1 WHERE solveLogId = :solveLogId AND attempt > :attempt")
+    suspend fun decrementAttemptIndices(solveLogId: Int, attempt: Int)
 }

@@ -133,14 +133,15 @@ fun SolveLogViewerScreen(
         )
     }
 
-    if (attemptToDelete != null) {
+    val currentAttemptToDelete = attemptToDelete
+    if (currentAttemptToDelete != null) {
         AlertDialog(
             onDismissRequest = { attemptToDelete = null },
             title = {
                 Text(
                     stringResource(
                         R.string.log_viewer_dialog_delete_attempt_title,
-                        attemptToDelete!!
+                        currentAttemptToDelete
                     )
                 )
             },
@@ -148,14 +149,14 @@ fun SolveLogViewerScreen(
                 Text(
                     stringResource(
                         R.string.log_viewer_dialog_delete_attempt_message,
-                        attemptToDelete!!
+                        currentAttemptToDelete
                     )
                 )
             },
             confirmButton = {
                 TextButton(
                     onClick = {
-                        attemptToDelete?.let { viewModel.deleteAttempt(it) }
+                        viewModel.deleteAttempt(currentAttemptToDelete)
                         attemptToDelete = null
                     }
                 ) {
