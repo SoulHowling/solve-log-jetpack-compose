@@ -1,10 +1,17 @@
 [pr_reviewer]
 inline_comments = true
+minimize_markdown_report = false
 num_code_suggestions = 5
 minimal_commendable_issue_score = 1
-prompt_custom_instructions = "Please ensure that every issue found provides a clear code snippet of the proposed fix, formatted as a standard markdown diff block."
+prompt_custom_instructions = """
+You must provide both a high-level summary of the PR and highly detailed, critical code reviews.
+For the code reviews, act like a strict local development CLI linter. Do not hold back on minor issues.
+Find as many technical flaws, edge cases, and anti-patterns as possible, up to the limit of 5.
+For EVERY code suggestion, you MUST include a concrete, ready-to-use Markdown Diff code block showing exactly how to rewrite the code.
+"""
 extra_instructions = """
 - レビューのコメントは必ず日本語で出力してください。
+- レビュー「Suggestion importance」の部分も必ず日本語で出力してください。
 - レビューコメントに対して「対応しない」という旨の返信がされた場合、その後、そのPRで同じ内容のレビューコメントはしないでください。
 - 現在、このリポジトリは開発中で未リリースです。そのため、Databaseの構造が変更された場合でもDatabaseのバージョンを更新する必要はないため、その指摘はしないでください。
 """

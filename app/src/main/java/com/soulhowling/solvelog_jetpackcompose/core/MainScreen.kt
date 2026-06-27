@@ -216,7 +216,7 @@ fun CustomAppBarEffect(
 ) {
     val controller = LocalAppBarController.current
     val currentAction by rememberUpdatedState(actions)
-    LaunchedEffect(title, actions) {
+    LaunchedEffect(title, actions == null) {
         controller.setTitle(title)
         if (actions == null) {
             controller.setActions(null)
