@@ -52,7 +52,7 @@ fun SolveLogEditorScreen(
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
     val solveLog = (uiState as? SolveLogEditorUiState.Success)?.solveLog
-    
+
     // Only update the title when we actually have the log data.
     // This allows the previous screen's title to persist during the loading state.
     if (solveLog != null) {
@@ -65,6 +65,7 @@ fun SolveLogEditorScreen(
                 CircularProgressIndicator()
             }
         }
+
         is SolveLogEditorUiState.Success -> {
             SolveLogEditorScreenContent(
                 solveLog = state.solveLog,
@@ -77,6 +78,7 @@ fun SolveLogEditorScreen(
                 hasCheckedFlagMap = state.hasCheckedFlagMap
             )
         }
+
         is SolveLogEditorUiState.Error -> {
             Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
                 Text("データの読み込みに失敗しました")
@@ -138,12 +140,15 @@ fun SolveLogEditorScreenContent(
                 },
             ) { index ->
                 val question = questionsMap[index]
-                val selectionType = SelectionType.entries.getOrElse(solveLog.selectionType) { SelectionType.ALPHABET }
+                val selectionType =
+                    SelectionType.entries.getOrElse(solveLog.selectionType) { SelectionType.ALPHABET }
 
                 SolveLogEditorRowItem(
                     number = index + 1,
-                    initialAnswer = question?.let { selectionType.getAnswerString(it.selectedAnswer) } ?: "",
-                    initialCorrectness = question?.let { Correctness.from(it.correctness) } ?: Correctness.NONE,
+                    initialAnswer = question?.let { selectionType.getAnswerString(it.selectedAnswer) }
+                        ?: "",
+                    initialCorrectness = question?.let { Correctness.from(it.correctness) }
+                        ?: Correctness.NONE,
                     initialIsFlagged = question?.isFlag ?: false,
                     onUpdate = { selectedAnswer, correctness, isFlag ->
                         onUpdate(selectedAnswer, index, correctness, isFlag)
@@ -300,7 +305,8 @@ fun SolveLogEditorRowItem(
                                         onClick = {
                                             selectedAnswer = option
                                             isExpandedDropdown = false
-                                            val answerIndex = selectionTypeStringList.indexOf(option)
+                                            val answerIndex =
+                                                selectionTypeStringList.indexOf(option)
                                             onUpdate(
                                                 answerIndex,
                                                 resultStatus ?: Correctness.NONE,
@@ -321,7 +327,8 @@ fun SolveLogEditorRowItem(
                                 selectedItem = resultStatus,
                                 onItemSelected = {
                                     resultStatus = it
-                                    val answerIndex = selectionTypeStringList.indexOf(selectedAnswer)
+                                    val answerIndex =
+                                        selectionTypeStringList.indexOf(selectedAnswer)
                                     onUpdate(answerIndex, it, isCheckedFlag)
                                 }
                             )
@@ -363,17 +370,16 @@ fun CorrectnessArchive(
     ) {
         correctnessArchives.forEach { correctnessIndex ->
             val correctness = Correctness.from(correctnessIndex)
-            if (correctness != Correctness.NONE) {
-                Text(
-                    text = correctness.symbol,
-                    modifier = Modifier.padding(horizontal = 1.dp),
-                    style = MaterialTheme.typography.labelSmall,
-                    color = when (correctness) {
-                        Correctness.CORRECT -> MaterialTheme.colorScheme.onSurface
-                        else -> MaterialTheme.colorScheme.error
-                    }
-                )
-            }
+            Text(
+                text = correctness.symbol,
+                modifier = Modifier.padding(horizontal = 1.dp),
+                textAlign = TextAlign.Center,
+                style = MaterialTheme.typography.labelSmall,
+                color = when (correctness) {
+                    Correctness.INCORRECT -> MaterialTheme.colorScheme.error
+                    else -> MaterialTheme.colorScheme.onSurface
+                }
+            )
         }
         Spacer(modifier = Modifier.weight(1f))
         if (hasCheckedFlag) {
