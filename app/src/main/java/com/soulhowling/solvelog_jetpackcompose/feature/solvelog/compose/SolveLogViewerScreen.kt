@@ -26,6 +26,7 @@ import androidx.compose.ui.draw.drawBehind
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Shape
 import androidx.compose.ui.graphics.graphicsLayer
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
@@ -33,6 +34,7 @@ import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
+import com.soulhowling.solvelog_jetpackcompose.R
 import com.soulhowling.solvelog_jetpackcompose.core.CustomAppBarEffect
 import com.soulhowling.solvelog_jetpackcompose.core.LocalBottomBarVisibility
 import com.soulhowling.solvelog_jetpackcompose.feature.solvelog.Correctness
@@ -61,6 +63,7 @@ fun SolveLogViewerScreen(
     val selectedIndices by viewModel.selectedQuestionIndices.collectAsStateWithLifecycle()
 
     var showDeleteConfirm by remember { mutableStateOf(false) }
+    var attemptToDelete by remember { mutableStateOf<Int?>(null) }
 
     val solveLog = (uiState as? SolveLogViewerUiState.Success)?.solveLog
     if (solveLog != null) {
@@ -70,15 +73,27 @@ fun SolveLogViewerScreen(
                 if (isEditMode) {
                     if (selectedIndices.isNotEmpty()) {
                         IconButton(onClick = { showDeleteConfirm = true }) {
-                            Icon(Icons.Default.Delete, contentDescription = "削除", tint = MaterialTheme.colorScheme.onPrimary)
+                            Icon(
+                                Icons.Default.Delete,
+                                contentDescription = stringResource(R.string.log_viewer_cd_delete_questions),
+                                tint = MaterialTheme.colorScheme.onPrimary
+                            )
                         }
                     }
                     IconButton(onClick = { viewModel.toggleEditMode() }) {
-                        Icon(Icons.Default.Cancel, contentDescription = "キャンセル", tint = MaterialTheme.colorScheme.onPrimary)
+                        Icon(
+                            Icons.Default.Cancel,
+                            contentDescription = stringResource(R.string.log_viewer_cd_cancel_edit),
+                            tint = MaterialTheme.colorScheme.onPrimary
+                        )
                     }
                 } else {
                     IconButton(onClick = { viewModel.toggleEditMode() }) {
-                        Icon(Icons.Default.Edit, contentDescription = "編集", tint = MaterialTheme.colorScheme.onPrimary)
+                        Icon(
+                            Icons.Default.Edit,
+                            contentDescription = stringResource(R.string.log_viewer_cd_edit),
+                            tint = MaterialTheme.colorScheme.onPrimary
+                        )
                     }
                 }
             }
@@ -88,8 +103,15 @@ fun SolveLogViewerScreen(
     if (showDeleteConfirm) {
         AlertDialog(
             onDismissRequest = { showDeleteConfirm = false },
-            title = { Text("問題を削除") },
-            text = { Text("${selectedIndices.size}件の問題を削除しますか？\nこの操作はすべての回数に適用されます。") },
+            title = { Text(stringResource(R.string.log_viewer_dialog_delete_questions_title)) },
+            text = {
+                Text(
+                    stringResource(
+                        R.string.log_viewer_dialog_delete_questions_message,
+                        selectedIndices.size
+                    )
+                )
+            },
             confirmButton = {
                 TextButton(
                     onClick = {
@@ -97,12 +119,56 @@ fun SolveLogViewerScreen(
                         showDeleteConfirm = false
                     }
                 ) {
-                    Text("削除", color = MaterialTheme.colorScheme.error)
+                    Text(
+                        stringResource(R.string.log_list_dialog_delete_button),
+                        color = MaterialTheme.colorScheme.error
+                    )
                 }
             },
             dismissButton = {
                 TextButton(onClick = { showDeleteConfirm = false }) {
-                    Text("キャンセル")
+                    Text(stringResource(R.string.common_dialog_cancel_button))
+                }
+            }
+        )
+    }
+
+    val currentAttemptToDelete = attemptToDelete
+    if (currentAttemptToDelete != null) {
+        AlertDialog(
+            onDismissRequest = { attemptToDelete = null },
+            title = {
+                Text(
+                    stringResource(
+                        R.string.log_viewer_dialog_delete_attempt_title,
+                        currentAttemptToDelete
+                    )
+                )
+            },
+            text = {
+                Text(
+                    stringResource(
+                        R.string.log_viewer_dialog_delete_attempt_message,
+                        currentAttemptToDelete
+                    )
+                )
+            },
+            confirmButton = {
+                TextButton(
+                    onClick = {
+                        viewModel.deleteAttempt(currentAttemptToDelete)
+                        attemptToDelete = null
+                    }
+                ) {
+                    Text(
+                        stringResource(R.string.log_list_dialog_delete_button),
+                        color = MaterialTheme.colorScheme.error
+                    )
+                }
+            },
+            dismissButton = {
+                TextButton(onClick = { attemptToDelete = null }) {
+                    Text(stringResource(R.string.common_dialog_cancel_button))
                 }
             }
         )
@@ -127,7 +193,8 @@ fun SolveLogViewerScreen(
                     onNavigateToEditor = onNavigateToEditor,
                     onStartNewAttempt = { viewModel.startNewAttempt(it) },
                     onAddQuestion = { viewModel.addQuestion() },
-                    onToggleSelection = { viewModel.toggleQuestionSelection(it) }
+                    onToggleSelection = { viewModel.toggleQuestionSelection(it) },
+                    onDeleteAttempt = { attemptToDelete = it }
                 )
             }
             is SolveLogViewerUiState.Error -> {
@@ -136,7 +203,7 @@ fun SolveLogViewerScreen(
                     contentAlignment = Alignment.Center
                 ) {
                     Text(
-                        text = "ログが見つかりませんでした",
+                        text = stringResource(R.string.log_viewer_error_not_found),
                         style = MaterialTheme.typography.titleMedium,
                         color = MaterialTheme.colorScheme.error
                     )
@@ -156,7 +223,8 @@ fun SolveLogViewerScreenContent(
     onNavigateToEditor: (Int) -> Unit,
     onStartNewAttempt: ((Int) -> Unit) -> Unit,
     onAddQuestion: () -> Unit,
-    onToggleSelection: (Int) -> Unit
+    onToggleSelection: (Int) -> Unit,
+    onDeleteAttempt: (Int) -> Unit,
 ) {
     val horizontalScrollState = rememberScrollState()
     val questionsByAttempt = remember(questions) {
@@ -222,12 +290,28 @@ fun SolveLogViewerScreenContent(
                             )
                             repeat(solveLog.attemptCount) { index ->
                                 val attemptNumber = index + 1
-                                AttemptHeader(
-                                    attemptNumber = attemptNumber,
-                                    shape = headerShape,
-                                    onNavigateToEditor = { onNavigateToEditor(attemptNumber) },
-                                    width = colWidth
-                                )
+                                Column(
+                                    horizontalAlignment = Alignment.CenterHorizontally
+                                ) {
+                                    if (isEditMode && solveLog.attemptCount > 1) {
+                                        IconButton(
+                                            onClick = { onDeleteAttempt(attemptNumber) },
+                                            modifier = Modifier
+                                        ) {
+                                            Icon(
+                                                imageVector = Icons.Default.Delete,
+                                                contentDescription = stringResource(R.string.log_viewer_cd_delete_attempt),
+                                                tint = MaterialTheme.colorScheme.error
+                                            )
+                                        }
+                                    }
+                                    AttemptHeader(
+                                        attemptNumber = attemptNumber,
+                                        shape = headerShape,
+                                        onNavigateToEditor = { if (!isEditMode) onNavigateToEditor(attemptNumber) },
+                                        width = colWidth
+                                    )
+                                }
                             }
                         }
                     }
@@ -329,7 +413,7 @@ fun SolveLogViewerScreenContent(
                                     )
                                     Spacer(Modifier.width(4.dp))
                                     Text(
-                                        text = "問題を追加",
+                                        text = stringResource(R.string.log_viewer_button_add_question),
                                         style = MaterialTheme.typography.labelLarge,
                                         color = MaterialTheme.colorScheme.primary
                                     )
@@ -477,7 +561,7 @@ fun AttemptHeader(
         contentAlignment = Alignment.Center
     ) {
         Text(
-            text = "第 $attemptNumber 回",
+            text = stringResource(R.string.log_viewer_header_attempt, attemptNumber),
             style = MaterialTheme.typography.titleSmall,
             fontWeight = FontWeight.Bold,
             color = MaterialTheme.colorScheme.primary
@@ -541,7 +625,7 @@ fun ScoreFooter(
     ) {
         Column(horizontalAlignment = Alignment.CenterHorizontally) {
             Text(
-                text = "Score",
+                text = stringResource(R.string.log_viewer_footer_score),
                 style = MaterialTheme.typography.labelSmall,
                 color = MaterialTheme.colorScheme.onSurfaceVariant
             )
@@ -598,14 +682,17 @@ fun SolveLogRowItem(
             fontWeight = FontWeight.ExtraBold,
             textAlign = TextAlign.Center
         )
-        Icon(
-            imageVector = Icons.Default.Flag,
-            contentDescription = "フラグ",
-            modifier = Modifier
-                .weight(1f)
-                .visible(isChecked),
-            tint = MaterialTheme.colorScheme.secondary
-        )
+        Box(
+            modifier = Modifier.weight(1f),
+            contentAlignment = Alignment.Center
+        ) {
+            Icon(
+                imageVector = Icons.Default.Flag,
+                contentDescription = stringResource(R.string.log_viewer_cd_flag),
+                modifier = Modifier.visible(isChecked),
+                tint = MaterialTheme.colorScheme.secondary
+            )
+        }
     }
 }
 
@@ -660,7 +747,8 @@ fun SolveLogViewerScreenPreview() {
             onNavigateToEditor = {},
             onStartNewAttempt = {},
             onAddQuestion = {},
-            onToggleSelection = {}
+            onToggleSelection = {},
+            onDeleteAttempt = {},
         )
     }
 }

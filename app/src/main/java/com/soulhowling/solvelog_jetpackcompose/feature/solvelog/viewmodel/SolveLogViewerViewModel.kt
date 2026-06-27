@@ -139,6 +139,27 @@ class SolveLogViewerViewModel(
         }
     }
 
+    fun deleteAttempt(attemptToDelete: Int) {
+        viewModelScope.launch {
+            val successState = uiState.value as? SolveLogViewerUiState.Success ?: return@launch
+            val solveLog = successState.solveLog
+            if (attemptToDelete < 1 || attemptToDelete > solveLog.attemptCount || solveLog.attemptCount <= 1) {
+                return@launch
+            }
+
+            database.withTransaction {
+                questionRepository.deleteQuestionsByAttempt(solveLog.id, attemptToDelete)
+                questionRepository.decrementAttemptIndices(solveLog.id, attemptToDelete)
+                solveLogRepository.upsertSolveLog(
+                    solveLog.copy(
+                        attemptCount = solveLog.attemptCount - 1,
+                        updatedAt = System.currentTimeMillis()
+                    )
+                )
+            }
+        }
+    }
+
     fun deleteSelectedQuestions() {
         viewModelScope.launch {
             val successState = uiState.value as? SolveLogViewerUiState.Success ?: return@launch
