@@ -64,6 +64,7 @@ fun MainScreen(
     val currentDestination = navBackStackEntry?.destination
 
     var isBottomBarVisible by rememberSaveable { mutableStateOf(true) }
+    var lastRoute by remember { mutableStateOf<String?>(null) }
 
     LaunchedEffect(currentDestination) {
         val currentScreen = allScreens.find { it.route == currentDestination?.route }
@@ -76,7 +77,10 @@ fun MainScreen(
         viewModel.setDefaultTitle(currentScreen?.title)
 
         // Reset bottom bar visibility when navigating
-        isBottomBarVisible = true
+        if (lastRoute != null && lastRoute != currentDestination?.route) {
+            isBottomBarVisible = true
+        }
+        lastRoute = currentDestination?.route
     }
 
     val appBarTitle by viewModel.title.collectAsStateWithLifecycle()
