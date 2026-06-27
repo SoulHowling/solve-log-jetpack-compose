@@ -292,7 +292,7 @@ fun SolveLogViewerScreenContent(
                                 Column(
                                     horizontalAlignment = Alignment.CenterHorizontally
                                 ) {
-                                    if (isEditMode) {
+                                    if (isEditMode && solveLog.attemptCount > 1) {
                                         IconButton(
                                             onClick = { onDeleteAttempt(attemptNumber) },
                                             modifier = Modifier
