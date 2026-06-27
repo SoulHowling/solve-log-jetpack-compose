@@ -62,6 +62,7 @@ class SolveLogEditorViewModel(
 
             val pastQuestionsByIndex = allQuestions
                 .filter { it.attempt < attempt }
+                .sortedBy { it.attempt }
                 .groupBy { it.questionIndex }
 
             val correctnessArchives = pastQuestionsByIndex.mapValues { (_, questions) ->
