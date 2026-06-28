@@ -70,8 +70,13 @@
     <string name="measurement_stopwatch_title">Stopwatch</string>
     <string name="measurement_timer_title">Timer</string>
     <string name="measurement_start_button">Start</string>
+    <string name="measurement_resume_button">Resume</string>
     <string name="measurement_stop_button">Stop</string>
     <string name="measurement_reset_button">Reset</string>
+
+    <!-- Stopwatch Notification -->
+    <string name="stopwatch_notification_channel_name">Stopwatch</string>
+    <string name="stopwatch_notification_channel_description">Shows elapsed time of the stopwatch</string>
 
     <!-- Timer -->
     <string name="timer_add_title">Add Timer</string>
