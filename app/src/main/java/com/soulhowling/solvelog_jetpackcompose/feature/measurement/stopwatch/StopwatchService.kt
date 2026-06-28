@@ -5,6 +5,8 @@ import android.app.NotificationManager
 import android.app.PendingIntent
 import android.app.Service
 import android.content.Intent
+import android.content.pm.ServiceInfo
+import android.os.Build
 import android.os.IBinder
 import com.soulhowling.solvelog_jetpackcompose.R
 import com.soulhowling.solvelog_jetpackcompose.utils.NotificationUtils
@@ -69,7 +71,11 @@ class StopwatchService : Service() {
         )
         
         startTicker()
-        startForeground(NOTIFICATION_ID, createNotification())
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.UPSIDE_DOWN_CAKE) {
+            startForeground(NOTIFICATION_ID, createNotification(), ServiceInfo.FOREGROUND_SERVICE_TYPE_SPECIAL_USE)
+        } else {
+            startForeground(NOTIFICATION_ID, createNotification())
+        }
     }
 
     private fun resumeStopwatch() {
