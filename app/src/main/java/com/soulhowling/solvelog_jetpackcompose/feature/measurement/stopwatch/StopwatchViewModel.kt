@@ -3,6 +3,7 @@ package com.soulhowling.solvelog_jetpackcompose.feature.measurement.stopwatch
 import android.app.Application
 import android.content.Intent
 import androidx.lifecycle.AndroidViewModel
+import androidx.lifecycle.application
 import androidx.lifecycle.viewModelScope
 import com.soulhowling.solvelog_jetpackcompose.feature.measurement.stopwatch.StopwatchService.Companion.ACTION_PAUSE
 import com.soulhowling.solvelog_jetpackcompose.feature.measurement.stopwatch.StopwatchService.Companion.ACTION_RESET
@@ -27,20 +28,21 @@ class StopwatchViewModel(application: Application) : AndroidViewModel(applicatio
     )
 
     fun toggleStartStop() {
-        val context = getApplication<Application>()
+        val context = application
         val intent = Intent(context, StopwatchService::class.java)
 
         if (isRunning.value) {
             intent.action = ACTION_PAUSE
+            context.startService(intent)
         } else {
             if (elapsedTime.value == 0L) {
                 intent.action = ACTION_START
+                context.startForegroundService(intent)
             } else {
                 intent.action = ACTION_RESUME
+                context.startService(intent)
             }
         }
-
-        context.startForegroundService(intent)
     }
 
     fun reset() {
@@ -48,7 +50,7 @@ class StopwatchViewModel(application: Application) : AndroidViewModel(applicatio
         val intent = Intent(context, StopwatchService::class.java).apply {
             action = ACTION_RESET
         }
-        context.startForegroundService(intent)
+        context.startService(intent)
     }
 
     fun formatTime(ms: Long): String {
