@@ -24,7 +24,11 @@ import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableLongStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalConfiguration
@@ -42,19 +46,36 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import com.soulhowling.solvelog_jetpackcompose.R
 import com.soulhowling.solvelog_jetpackcompose.ui.theme.Dimensions
 import com.soulhowling.solvelog_jetpackcompose.ui.theme.SolveLogJetpackComposeTheme
+import kotlinx.coroutines.delay
+import kotlin.time.Duration.Companion.milliseconds
 
 @Composable
 fun StopwatchPageScreen(
     viewModel: StopwatchViewModel = viewModel()
 ) {
     val context = LocalContext.current
-    val elapsedTime by viewModel.elapsedTime.collectAsStateWithLifecycle()
     val isRunning by viewModel.isRunning.collectAsStateWithLifecycle()
     val isPaused by viewModel.isPaused.collectAsStateWithLifecycle()
+    val accumulatedTime by viewModel.accumulatedTime.collectAsStateWithLifecycle()
+    val baseTime by viewModel.baseTime.collectAsStateWithLifecycle()
+    
+    var displayTime by remember { mutableLongStateOf(0L) }
+
+    LaunchedEffect(isRunning, baseTime, accumulatedTime) {
+        if (isRunning) {
+            while (true) {
+                displayTime = System.currentTimeMillis() - baseTime
+                delay(10.milliseconds)
+            }
+        } else {
+            displayTime = accumulatedTime
+        }
+    }
+
     val isVertical = LocalConfiguration.current.orientation == Configuration.ORIENTATION_PORTRAIT
     StopwatchPageScreenContent(
         context = context,
-        elapsedTime = elapsedTime,
+        displayTime = displayTime,
         isRunning = isRunning,
         isPaused = isPaused,
         isVertical = isVertical,
@@ -67,7 +88,7 @@ fun StopwatchPageScreen(
 @Composable
 fun StopwatchPageScreenContent(
     context: Context,
-    elapsedTime: Long,
+    displayTime: Long,
     isRunning: Boolean,
     isPaused: Boolean,
     isVertical: Boolean,
@@ -103,12 +124,12 @@ fun StopwatchPageScreenContent(
                 horizontalAlignment = Alignment.CenterHorizontally,
                 verticalArrangement = Arrangement.Center
             ) {
-                TimeDisplay(onFormatTime(elapsedTime), fontSize = 56.sp)
+                TimeDisplay(onFormatTime(displayTime), fontSize = 56.sp)
                 Spacer(modifier = Modifier.height(Dimensions.SPACING_LARGE))
                 ControlButtons(
                     isRunning = isRunning,
                     isPaused = isPaused,
-                    showReset = elapsedTime > 0,
+                    showReset = displayTime > 0,
                     onStartClick = onStartClick,
                     onReset = onReset,
                     buttonWidth = 120.dp,
@@ -120,11 +141,11 @@ fun StopwatchPageScreenContent(
                 modifier = Modifier
                     .fillMaxSize()
                     .padding(Dimensions.PADDING_MEDIUM),
-                verticalAlignment = Alignment.Top,
+                verticalAlignment = Alignment.CenterVertically,
                 horizontalArrangement = Arrangement.Center
             ) {
                 Box(modifier = Modifier.weight(1f), contentAlignment = Alignment.Center) {
-                    TimeDisplay(onFormatTime(elapsedTime), fontSize = 48.sp)
+                    TimeDisplay(onFormatTime(displayTime), fontSize = 48.sp)
                 }
                 Spacer(modifier = Modifier.width(Dimensions.SPACING_LARGE))
                 Column(
@@ -135,7 +156,7 @@ fun StopwatchPageScreenContent(
                     ControlButtons(
                         isRunning = isRunning,
                         isPaused = isPaused,
-                        showReset = elapsedTime > 0,
+                        showReset = displayTime > 0,
                         onStartClick = onStartClick,
                         onReset = onReset,
                         buttonWidth = 160.dp,
@@ -197,7 +218,7 @@ fun StopWatchPageScreenVerticalContentPreview() {
     SolveLogJetpackComposeTheme {
         StopwatchPageScreenContent(
             context = LocalContext.current,
-            elapsedTime = 0L,
+            displayTime = 0L,
             isRunning = false,
             isPaused = false,
             isVertical = true,
@@ -217,7 +238,7 @@ fun StopWatchPageScreenLandscapePreview() {
     SolveLogJetpackComposeTheme {
         StopwatchPageScreenContent(
             context = LocalContext.current,
-            elapsedTime = 0L,
+            displayTime = 0L,
             isRunning = false,
             isPaused = false,
             isVertical = false,

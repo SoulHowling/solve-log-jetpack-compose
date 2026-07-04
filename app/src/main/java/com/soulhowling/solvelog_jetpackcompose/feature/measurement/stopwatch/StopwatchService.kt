@@ -10,22 +10,11 @@ import android.os.Build
 import android.os.IBinder
 import com.soulhowling.solvelog_jetpackcompose.R
 import com.soulhowling.solvelog_jetpackcompose.utils.NotificationUtils
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.Job
-import kotlinx.coroutines.SupervisorJob
-import kotlinx.coroutines.cancel
-import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
-import kotlinx.coroutines.launch
-import kotlin.time.Duration.Companion.milliseconds
 
 class StopwatchService : Service() {
-
-    private val serviceScope = CoroutineScope(SupervisorJob() + Dispatchers.Main)
-    private var timerJob: Job? = null
 
     companion object {
         const val ACTION_START = "ACTION_START"
@@ -35,14 +24,23 @@ class StopwatchService : Service() {
 
         private const val NOTIFICATION_ID = 1001
 
-        private val _elapsedTime = MutableStateFlow(0L)
-        val elapsedTime: StateFlow<Long> = _elapsedTime.asStateFlow()
+        private val _baseTime = MutableStateFlow(0L)
+        /**
+         * System.currentTimeMillis() when the stopwatch was at 0.
+         * Used for Chronometer and UI calculation.
+         */
+        val baseTime: StateFlow<Long> = _baseTime.asStateFlow()
+
+        private val _accumulatedTime = MutableStateFlow(0L)
+        /**
+         * Total elapsed time when paused.
+         */
+        val accumulatedTime: StateFlow<Long> = _accumulatedTime.asStateFlow()
 
         private val _isRunning = MutableStateFlow(false)
         val isRunning: StateFlow<Boolean> = _isRunning.asStateFlow()
 
         private var startTime = 0L
-        private var accumulatedTime = 0L
     }
 
     override fun onBind(intent: Intent?): IBinder? = null
@@ -61,7 +59,8 @@ class StopwatchService : Service() {
         if (_isRunning.value) return
         _isRunning.value = true
         startTime = System.currentTimeMillis()
-        accumulatedTime = 0L
+        _accumulatedTime.value = 0L
+        _baseTime.value = startTime
         
         NotificationUtils.createNotificationChannel(
             this,
@@ -70,7 +69,6 @@ class StopwatchService : Service() {
             getString(R.string.stopwatch_notification_channel_description)
         )
         
-        startTicker()
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.UPSIDE_DOWN_CAKE) {
             startForeground(NOTIFICATION_ID, createNotification(), ServiceInfo.FOREGROUND_SERVICE_TYPE_SPECIAL_USE)
         } else {
@@ -82,57 +80,44 @@ class StopwatchService : Service() {
         if (_isRunning.value) return
         _isRunning.value = true
         startTime = System.currentTimeMillis()
-        startTicker()
+        _baseTime.value = startTime - _accumulatedTime.value
         updateNotification()
     }
 
     private fun pauseStopwatch() {
         if (!_isRunning.value) return
         _isRunning.value = false
-        accumulatedTime += System.currentTimeMillis() - startTime
-        _elapsedTime.value = accumulatedTime
-        timerJob?.cancel()
+        _accumulatedTime.value += System.currentTimeMillis() - startTime
         updateNotification()
     }
 
     private fun resetStopwatch() {
         _isRunning.value = false
-        accumulatedTime = 0L
+        _accumulatedTime.value = 0L
         startTime = 0L
-        _elapsedTime.value = 0L
-        timerJob?.cancel()
+        _baseTime.value = 0L
         stopForeground(STOP_FOREGROUND_REMOVE)
         stopSelf()
     }
 
-    private fun startTicker() {
-        timerJob?.cancel()
-        timerJob = serviceScope.launch(Dispatchers.Default) {
-            var lastNotificationUpdateTime = 0L
-            while (true) {
-                val currentElapsed = accumulatedTime + (System.currentTimeMillis() - startTime)
-                _elapsedTime.value = currentElapsed
-                
-                if (currentElapsed - lastNotificationUpdateTime >= 1000L) {
-                    updateNotification()
-                    lastNotificationUpdateTime = currentElapsed
-                }
-                delay(10.milliseconds)
-            }
-        }
-    }
-
     private fun createNotification(): Notification {
-        val formatTime = formatTimeForNotification(_elapsedTime.value)
-
         val builder = NotificationUtils.getBaseNotificationBuilder(
             this,
             NotificationUtils.STOPWATCH_CHANNEL_ID,
             getString(R.string.measurement_stopwatch_title),
-            formatTime
+            ""
         ).apply {
             setOngoing(_isRunning.value)
             setAutoCancel(false)
+            
+            if (_isRunning.value) {
+                // システムに通知内タイマーの更新を任せる
+                setUsesChronometer(true)
+                setWhen(_baseTime.value)
+            } else {
+                setUsesChronometer(false)
+                setContentText(formatTimeForNotification(_accumulatedTime.value))
+            }
         }
 
         // アクションの追加
@@ -182,7 +167,7 @@ class StopwatchService : Service() {
     }
 
     override fun onDestroy() {
-        serviceScope.cancel()
+        _isRunning.value = false
         super.onDestroy()
     }
 }
