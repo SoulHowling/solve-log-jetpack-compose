@@ -283,13 +283,13 @@ fun SolveLogViewerScreenContent(
                             },
                     ) {
                         Row(
-                            modifier = Modifier.padding(top = 8.dp),
+                            modifier = Modifier,
                             horizontalArrangement = Arrangement.spacedBy(spacing),
-                            verticalAlignment = Alignment.CenterVertically
+                            verticalAlignment = Alignment.Bottom
                         ) {
                             Box(
                                 modifier = Modifier
-                                    .size(dynamicStickyWidth, 32.dp)
+                                    .size(dynamicStickyWidth, 48.dp)
                                     .graphicsLayer {
                                         translationX = horizontalScrollState.value.toFloat()
                                     }
@@ -298,8 +298,7 @@ fun SolveLogViewerScreenContent(
                             ) {
                                 IconButton(
                                     modifier = Modifier
-                                        .align(Alignment.Center)
-                                        .padding(bottom = 8.dp),
+                                        .align(Alignment.Center),
                                     onClick = { onAnswerVisibility() },
                                 ) {
                                     Icon(
@@ -357,7 +356,7 @@ fun SolveLogViewerScreenContent(
                                 val question = questionsForThisNumber.find { it.attempt == attemptNumber }
 
                                 SolveLogItemCell(
-                                    selectedAnswer = question?.let { selectionType.getAnswerString(it.selectedAnswer) } ?: "-",
+                                    selectedAnswer = question?.let { selectionType.getAnswerString(it.selectedAnswer) } ?: "",
                                     correctness = question?.correctness ?: Correctness.NONE.index,
                                     isChecked = question?.isFlag ?: false,
                                     isLast = false, // Always show divider for cells now
@@ -661,7 +660,7 @@ fun ScoreFooter(
                 color = MaterialTheme.colorScheme.primary
             )
             Text(
-                text = "%.1f%%".format(accuracy),
+                text = stringResource(R.string.log_viewer_accuracy_format, accuracy),
                 style = MaterialTheme.typography.labelLarge,
                 fontWeight = FontWeight.ExtraBold,
                 color = MaterialTheme.colorScheme.primary
@@ -680,11 +679,11 @@ fun SolveLogRowItem(
     val correctnessType = Correctness.entries.getOrNull(correctness) ?: Correctness.NONE
     val isError = correctnessType == Correctness.INCORRECT
     val displayedAnswer = if (selectedAnswer.isEmpty()) {
-        "-"
+        stringResource(R.string.log_viewer_unselected_answer)
     } else if (isAnswerVisible) {
         selectedAnswer
     } else {
-        "＊"
+        stringResource(R.string.log_viewer_invisible_answer)
     }
     
     Row(
@@ -781,7 +780,7 @@ fun SolveLogViewerScreenPreview() {
         SolveLogViewerScreenContent(
             solveLog = solveLog,
             questions = questions,
-            isEditMode = true,
+            isEditMode = false,
             selectedIndices = emptySet(),
             isAnswerVisible = true,
             onNavigateToEditor = {},
