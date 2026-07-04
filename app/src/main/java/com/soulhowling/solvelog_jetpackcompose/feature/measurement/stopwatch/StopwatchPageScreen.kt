@@ -105,7 +105,15 @@ fun StopwatchPageScreenContent(
             ) {
                 TimeDisplay(onFormatTime(elapsedTime), fontSize = 56.sp)
                 Spacer(modifier = Modifier.height(Dimensions.SPACING_LARGE))
-                ControlButtons(isRunning, isPaused, elapsedTime > 0, onStartClick, onReset, buttonWidth = 120.dp)
+                ControlButtons(
+                    isRunning = isRunning,
+                    isPaused = isPaused,
+                    showReset = elapsedTime > 0,
+                    onStartClick = onStartClick,
+                    onReset = onReset,
+                    buttonWidth = 120.dp,
+                    isVertical = true
+                )
             }
         } else {
             Row(
@@ -124,7 +132,15 @@ fun StopwatchPageScreenContent(
                     horizontalAlignment = Alignment.CenterHorizontally,
                     verticalArrangement = Arrangement.Center
                 ) {
-                    ControlButtons(isRunning, isPaused, elapsedTime > 0, onStartClick, onReset, buttonWidth = 160.dp, isVertical = true)
+                    ControlButtons(
+                        isRunning = isRunning,
+                        isPaused = isPaused,
+                        showReset = elapsedTime > 0,
+                        onStartClick = onStartClick,
+                        onReset = onReset,
+                        buttonWidth = 160.dp,
+                        isVertical = false
+                    )
                 }
             }
         }
@@ -162,9 +178,9 @@ fun ControlButtons(
         }
         if (showReset) {
             if (isVertical) {
-                Spacer(modifier = Modifier.height(Dimensions.SPACING_MEDIUM))
+                Spacer(modifier = Modifier.width(Dimensions.SPACING_MEDIUM))
             } else {
-                Spacer(modifier = Modifier.width(buttonWidth))
+                Spacer(modifier = Modifier.height(Dimensions.SPACING_SMALL))
             }
             OutlinedButton(onClick = onReset, modifier = Modifier.width(buttonWidth)) {
                 Text(text = stringResource(R.string.measurement_reset_button))
@@ -172,7 +188,7 @@ fun ControlButtons(
         }
     }
 
-    if (isVertical) Column { content() } else Row { content() }
+    if (isVertical) Row { content() } else Column { content() }
 }
 
 @Preview(showBackground = true)
