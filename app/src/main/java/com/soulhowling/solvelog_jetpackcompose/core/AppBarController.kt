@@ -6,6 +6,7 @@ import androidx.compose.runtime.staticCompositionLocalOf
 interface AppBarController {
     fun setTitle(title: String?)
     fun setActions(actions: (@Composable () -> Unit)?)
+    fun setBottomBarVisible(visible: Boolean)
 }
 
 val LocalAppBarController = staticCompositionLocalOf<AppBarController> {
