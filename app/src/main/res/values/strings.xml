@@ -62,6 +62,7 @@
     <string name="log_viewer_cd_edit">Edit</string>
     <string name="log_viewer_cd_delete_attempt">Delete</string>
     <string name="log_viewer_cd_flag">Flag</string>
+    <string name="log_viewer_cd_toggle_visibility">Toggle answer visibility</string>
 
     <!-- Log editor -->
     <string name="log_edit">Edit Log</string>

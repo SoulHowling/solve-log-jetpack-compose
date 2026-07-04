@@ -17,6 +17,8 @@ import androidx.compose.material.icons.filled.Cancel
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material.icons.filled.Flag
+import androidx.compose.material.icons.filled.Visibility
+import androidx.compose.material.icons.filled.VisibilityOff
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -61,6 +63,7 @@ fun SolveLogViewerScreen(
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
     val isEditMode by viewModel.isEditMode.collectAsStateWithLifecycle()
     val selectedIndices by viewModel.selectedQuestionIndices.collectAsStateWithLifecycle()
+    val isAnswerVisible by viewModel.isAnswerVisible.collectAsStateWithLifecycle()
 
     var showDeleteConfirm by remember { mutableStateOf(false) }
     var attemptToDelete by remember { mutableStateOf<Int?>(null) }
@@ -190,11 +193,13 @@ fun SolveLogViewerScreen(
                     questions = state.questions,
                     isEditMode = isEditMode,
                     selectedIndices = selectedIndices,
+                    isAnswerVisible = isAnswerVisible,
                     onNavigateToEditor = onNavigateToEditor,
                     onStartNewAttempt = { viewModel.startNewAttempt(it) },
                     onAddQuestion = { viewModel.addQuestion() },
                     onToggleSelection = { viewModel.toggleQuestionSelection(it) },
-                    onDeleteAttempt = { attemptToDelete = it }
+                    onDeleteAttempt = { attemptToDelete = it },
+                    onAnswerVisibility = { viewModel.toggleAnswerVisibility()}
                 )
             }
             is SolveLogViewerUiState.Error -> {
@@ -220,11 +225,13 @@ fun SolveLogViewerScreenContent(
     questions: Map<Int, List<Question>>,
     isEditMode: Boolean,
     selectedIndices: Set<Int>,
+    isAnswerVisible: Boolean,
     onNavigateToEditor: (Int) -> Unit,
     onStartNewAttempt: ((Int) -> Unit) -> Unit,
     onAddQuestion: () -> Unit,
     onToggleSelection: (Int) -> Unit,
     onDeleteAttempt: (Int) -> Unit,
+    onAnswerVisibility: () -> Unit,
 ) {
     val horizontalScrollState = rememberScrollState()
     val questionsByAttempt = remember(questions) {
@@ -286,8 +293,23 @@ fun SolveLogViewerScreenContent(
                                     .graphicsLayer {
                                         translationX = horizontalScrollState.value.toFloat()
                                     }
+                                    .align(Alignment.Bottom)
                                     .background(MaterialTheme.colorScheme.surfaceContainerLow)
-                            )
+                            ) {
+                                IconButton(
+                                    modifier = Modifier
+                                        .fillMaxHeight()
+                                        .padding(bottom = 8.dp)
+                                        .align(Alignment.Center),
+                                    onClick = { onAnswerVisibility() },
+                                ) {
+                                    Icon(
+                                        imageVector = if (isAnswerVisible) Icons.Default.VisibilityOff else Icons.Default.Visibility,
+                                        contentDescription = stringResource(R.string.log_viewer_cd_toggle_visibility),
+                                        tint = MaterialTheme.colorScheme.primary
+                                    )
+                                }
+                            }
                             repeat(solveLog.attemptCount) { index ->
                                 val attemptNumber = index + 1
                                 Column(
@@ -340,6 +362,7 @@ fun SolveLogViewerScreenContent(
                                     correctness = question?.correctness ?: Correctness.NONE.index,
                                     isChecked = question?.isFlag ?: false,
                                     isLast = false, // Always show divider for cells now
+                                    isAnswerVisible = isAnswerVisible,
                                     onNavigateToEditor = { if (!isEditMode) onNavigateToEditor(attemptNumber) },
                                     width = colWidth,
                                     height = rowHeight
@@ -575,6 +598,7 @@ fun SolveLogItemCell(
     correctness: Int,
     isChecked: Boolean,
     isLast: Boolean,
+    isAnswerVisible: Boolean,
     onNavigateToEditor: () -> Unit,
     width: Dp,
     height: Dp
@@ -602,7 +626,8 @@ fun SolveLogItemCell(
         SolveLogRowItem(
             selectedAnswer = selectedAnswer,
             correctness = correctness,
-            isChecked = isChecked
+            isChecked = isChecked,
+            isAnswerVisible = isAnswerVisible
         )
     }
 }
@@ -615,6 +640,7 @@ fun ScoreFooter(
     width: Dp,
     onNavigateToEditor: () -> Unit,
 ) {
+    val accuracy: Float = (score.toFloat() / total.toFloat()) * 100
     Box(
         modifier = Modifier
             .width(width)
@@ -635,6 +661,12 @@ fun ScoreFooter(
                 fontWeight = FontWeight.ExtraBold,
                 color = MaterialTheme.colorScheme.primary
             )
+            Text(
+                text = "%.1f%%".format(accuracy),
+                style = MaterialTheme.typography.labelLarge,
+                fontWeight = FontWeight.ExtraBold,
+                color = MaterialTheme.colorScheme.primary
+            )
         }
     }
 }
@@ -643,10 +675,18 @@ fun ScoreFooter(
 fun SolveLogRowItem(
     selectedAnswer: String,
     correctness: Int,
-    isChecked: Boolean
+    isChecked: Boolean,
+    isAnswerVisible: Boolean,
 ) {
     val correctnessType = Correctness.entries.getOrNull(correctness) ?: Correctness.NONE
     val isError = correctnessType == Correctness.INCORRECT
+    val selectedAnswer = if (selectedAnswer.isEmpty()) {
+        "-"
+    } else if (isAnswerVisible) {
+        selectedAnswer
+    } else {
+        "＊"
+    }
     
     Row(
         modifier = Modifier
@@ -660,7 +700,7 @@ fun SolveLogRowItem(
         verticalAlignment = Alignment.CenterVertically
     ) {
         Text(
-            text = selectedAnswer.ifEmpty { "-" },
+            text = selectedAnswer,
             modifier = Modifier.weight(1f),
             style = MaterialTheme.typography.titleMedium,
             fontWeight = FontWeight.ExtraBold,
@@ -744,11 +784,13 @@ fun SolveLogViewerScreenPreview() {
             questions = questions,
             isEditMode = true,
             selectedIndices = emptySet(),
+            isAnswerVisible = true,
             onNavigateToEditor = {},
             onStartNewAttempt = {},
             onAddQuestion = {},
             onToggleSelection = {},
             onDeleteAttempt = {},
+            onAnswerVisibility = {}
         )
     }
 }

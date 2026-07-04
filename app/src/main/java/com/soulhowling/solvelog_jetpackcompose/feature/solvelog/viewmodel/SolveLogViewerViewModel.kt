@@ -12,6 +12,7 @@ import com.soulhowling.solvelog_jetpackcompose.feature.solvelog.model.entity.Que
 import com.soulhowling.solvelog_jetpackcompose.feature.solvelog.model.entity.SolveLog
 import com.soulhowling.solvelog_jetpackcompose.feature.solvelog.model.repository.QuestionRepository
 import com.soulhowling.solvelog_jetpackcompose.feature.solvelog.model.repository.SolveLogRepository
+import com.soulhowling.solvelog_jetpackcompose.utils.SharedPrefHelper
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
@@ -41,6 +42,13 @@ class SolveLogViewerViewModel(
 
     private val _isEditMode = MutableStateFlow(false)
     val isEditMode: StateFlow<Boolean> = _isEditMode.asStateFlow()
+
+    private val _isAnswerVisible = MutableStateFlow(SharedPrefHelper.getBoolean(
+        context = getApplication(),
+        key = SharedPrefHelper.KEY_IS_ANSWER_VISIBLE,
+        defaultValue = true
+    ))
+    val isAnswerVisible: StateFlow<Boolean> = _isAnswerVisible.asStateFlow()
 
     private val _selectedQuestionIndices = MutableStateFlow<Set<Int>>(emptySet())
     val selectedQuestionIndices: StateFlow<Set<Int>> = _selectedQuestionIndices.asStateFlow()
@@ -198,8 +206,13 @@ class SolveLogViewerViewModel(
             toggleEditMode()
         }
     }
-
-
-
-
+    
+    fun toggleAnswerVisibility() {
+        _isAnswerVisible.value = !_isAnswerVisible.value
+        SharedPrefHelper.putBoolean(
+            context = getApplication(),
+            key = SharedPrefHelper.KEY_IS_ANSWER_VISIBLE,
+            value = _isAnswerVisible.value
+        )
+    }
 }
