@@ -26,12 +26,19 @@ class MainViewModel(application: Application): AndroidViewModel(application), Ap
     private val _appBarActions = MutableStateFlow<(@Composable () -> Unit)?>(null)
     val appBarActions: StateFlow<(@Composable () -> Unit)?> = _appBarActions.asStateFlow()
 
+    private val _isBottomBarVisible = MutableStateFlow(true)
+    val isBottomBarVisible: StateFlow<Boolean> = _isBottomBarVisible.asStateFlow()
+
     override fun setTitle(title: String?) {
         _customTitle.value = title
     }
 
     override fun setActions(actions: @Composable (() -> Unit)?) {
         _appBarActions.value = actions
+    }
+
+    override fun setBottomBarVisible(visible: Boolean) {
+        _isBottomBarVisible.value = visible
     }
 
     fun setDefaultTitle(resId: Int?) {

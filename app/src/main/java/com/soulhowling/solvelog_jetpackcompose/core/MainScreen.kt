@@ -61,7 +61,6 @@ fun MainScreen(
     val navBackStackEntry by navController.currentBackStackEntryAsState()
     val currentDestination = navBackStackEntry?.destination
 
-    var isBottomBarVisible by rememberSaveable { mutableStateOf(true) }
     var lastRoute by rememberSaveable { mutableStateOf<String?>(null) }
 
     LaunchedEffect(currentDestination) {
@@ -77,7 +76,7 @@ fun MainScreen(
             viewModel.setDefaultTitle(currentScreen?.title)
 
             // Reset bottom bar visibility when navigating
-            isBottomBarVisible = true
+            viewModel.setBottomBarVisible(true)
             
             lastRoute = currentRoute
         }
@@ -85,6 +84,7 @@ fun MainScreen(
 
     val appBarTitle by viewModel.title.collectAsStateWithLifecycle()
     val appBarActions by viewModel.appBarActions.collectAsStateWithLifecycle()
+    val isBottomBarVisible by viewModel.isBottomBarVisible.collectAsStateWithLifecycle()
 
     val canNavigateBack = navController.previousBackStackEntry != null &&
             bottomNaviItems.none { it.route == currentDestination?.route }
@@ -97,9 +97,9 @@ fun MainScreen(
                 source: NestedScrollSource
             ): Offset {
                 if (consumed.y < -5) {
-                    isBottomBarVisible = false
-                } else if (consumed.y > 5) {
-                    isBottomBarVisible = true
+                    viewModel.setBottomBarVisible(false)
+                } else if (consumed.y > 5 || available.y > 5) {
+                    viewModel.setBottomBarVisible(true)
                 }
                 return Offset.Zero
             }

@@ -56,6 +56,8 @@ import androidx.compose.material3.TextButton
 import androidx.compose.material3.TextField
 import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -75,6 +77,7 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.soulhowling.solvelog_jetpackcompose.R
 import com.soulhowling.solvelog_jetpackcompose.core.CustomAppBarEffect
+import com.soulhowling.solvelog_jetpackcompose.core.LocalAppBarController
 import com.soulhowling.solvelog_jetpackcompose.core.LocalBottomBarVisibility
 import com.soulhowling.solvelog_jetpackcompose.feature.solvelog.SelectionQuantity
 import com.soulhowling.solvelog_jetpackcompose.feature.solvelog.SelectionType
@@ -168,6 +171,21 @@ private fun SolveLogListScreenContent(
     var isShownAddFolderDialog by remember { mutableStateOf(false) }
     var isFabExpanded by remember { mutableStateOf(false) }
     
+    val listState = rememberLazyListState()
+    val appBarController = LocalAppBarController.current
+
+    val canScroll = remember {
+        derivedStateOf {
+            listState.canScrollForward || listState.canScrollBackward
+        }
+    }
+
+    LaunchedEffect(canScroll.value) {
+        if (!canScroll.value) {
+            appBarController.setBottomBarVisible(true)
+        }
+    }
+
     var movingLog by remember { mutableStateOf<SolveLog?>(null) }
     var movingFolder by remember { mutableStateOf<Folder?>(null) }
 
@@ -188,6 +206,7 @@ private fun SolveLogListScreenContent(
             }
 
             LazyColumn(
+                state = listState,
                 modifier = Modifier.weight(1f),
                 contentPadding = PaddingValues(
                     start = Dimensions.PADDING_MEDIUM,

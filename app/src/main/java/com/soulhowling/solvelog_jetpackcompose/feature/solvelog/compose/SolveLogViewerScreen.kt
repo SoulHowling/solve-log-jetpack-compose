@@ -38,6 +38,7 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.soulhowling.solvelog_jetpackcompose.R
 import com.soulhowling.solvelog_jetpackcompose.core.CustomAppBarEffect
+import com.soulhowling.solvelog_jetpackcompose.core.LocalAppBarController
 import com.soulhowling.solvelog_jetpackcompose.core.LocalBottomBarVisibility
 import com.soulhowling.solvelog_jetpackcompose.feature.solvelog.Correctness
 import com.soulhowling.solvelog_jetpackcompose.feature.solvelog.SelectionType
@@ -234,6 +235,21 @@ fun SolveLogViewerScreenContent(
     onAnswerVisibility: () -> Unit,
 ) {
     val horizontalScrollState = rememberScrollState()
+    val listState = androidx.compose.foundation.lazy.rememberLazyListState()
+    val appBarController = LocalAppBarController.current
+
+    val canScroll = remember {
+        derivedStateOf {
+            listState.canScrollForward || listState.canScrollBackward
+        }
+    }
+
+    LaunchedEffect(canScroll.value) {
+        if (!canScroll.value) {
+            appBarController.setBottomBarVisible(true)
+        }
+    }
+
     val questionsByAttempt = remember(questions) {
         questions.values.flatten().groupBy { it.attempt }
     }
@@ -264,6 +280,7 @@ fun SolveLogViewerScreenContent(
                 .horizontalScroll(horizontalScrollState)
         ) {
             LazyColumn(
+                state = listState,
                 modifier = Modifier.fillMaxHeight(),
                 contentPadding = PaddingValues(bottom = 80.dp)
             ) {
