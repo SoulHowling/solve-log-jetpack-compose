@@ -54,7 +54,7 @@ class StopwatchService : Service() {
             ACTION_RESUME -> resumeStopwatch()
             ACTION_RESET -> resetStopwatch()
         }
-        return START_STICKY
+        return START_NOT_STICKY
     }
 
     private fun startStopwatch() {
@@ -107,7 +107,7 @@ class StopwatchService : Service() {
 
     private fun startTicker() {
         timerJob?.cancel()
-        timerJob = serviceScope.launch {
+        timerJob = serviceScope.launch(Dispatchers.Default) {
             var lastNotificationUpdateTime = 0L
             while (true) {
                 val currentElapsed = accumulatedTime + (System.currentTimeMillis() - startTime)
