@@ -170,6 +170,8 @@ class StopwatchService : Service() {
 
     override fun onDestroy() {
         _isRunning.value = false
+        _accumulatedTime.value = 0L
+        _baseTime.value = 0L
         super.onDestroy()
     }
 }
