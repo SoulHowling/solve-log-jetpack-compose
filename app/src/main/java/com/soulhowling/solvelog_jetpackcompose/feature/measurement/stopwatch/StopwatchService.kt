@@ -1,7 +1,6 @@
 package com.soulhowling.solvelog_jetpackcompose.feature.measurement.stopwatch
 
 import android.app.Notification
-import android.app.NotificationManager
 import android.app.PendingIntent
 import android.app.Service
 import android.content.Intent
@@ -81,14 +80,22 @@ class StopwatchService : Service() {
         _isRunning.value = true
         startTime = System.currentTimeMillis()
         _baseTime.value = startTime - _accumulatedTime.value
-        updateNotification()
+        promptToForeground()
     }
 
     private fun pauseStopwatch() {
         if (!_isRunning.value) return
         _isRunning.value = false
         _accumulatedTime.value += System.currentTimeMillis() - startTime
-        updateNotification()
+        promptToForeground()
+    }
+
+    private fun promptToForeground() {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.UPSIDE_DOWN_CAKE) {
+            startForeground(NOTIFICATION_ID, createNotification(), ServiceInfo.FOREGROUND_SERVICE_TYPE_SPECIAL_USE)
+        } else {
+            startForeground(NOTIFICATION_ID, createNotification())
+        }
     }
 
     private fun resetStopwatch() {
@@ -139,11 +146,6 @@ class StopwatchService : Service() {
         )
 
         return builder.build()
-    }
-
-    private fun updateNotification() {
-        val manager = getSystemService(NOTIFICATION_SERVICE) as NotificationManager
-        manager.notify(NOTIFICATION_ID, createNotification())
     }
 
     private fun getServicePendingIntent(action: String): PendingIntent {
