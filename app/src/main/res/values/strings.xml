@@ -57,11 +57,15 @@
     <string name="log_viewer_button_add_question">Add Question</string>
     <string name="log_viewer_footer_score">Score</string>
     <string name="log_viewer_header_attempt">Attempt %1$d</string>
+    <string name="log_viewer_unselected_answer">-</string>
+    <string name="log_viewer_invisible_answer">＊</string>
+    <string name="log_viewer_accuracy_format">%1$.1f%%</string>
     <string name="log_viewer_cd_delete_questions">Delete</string>
     <string name="log_viewer_cd_cancel_edit">Cancel</string>
     <string name="log_viewer_cd_edit">Edit</string>
     <string name="log_viewer_cd_delete_attempt">Delete</string>
     <string name="log_viewer_cd_flag">Flag</string>
+    <string name="log_viewer_cd_toggle_visibility">Toggle answer visibility</string>
 
     <!-- Log editor -->
     <string name="log_edit">Edit Log</string>

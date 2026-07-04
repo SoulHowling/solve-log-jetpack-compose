@@ -57,11 +57,15 @@
     <string name="log_viewer_button_add_question">問題を追加</string>
     <string name="log_viewer_footer_score">Score</string>
     <string name="log_viewer_header_attempt">第 %1$d 回</string>
+    <string name="log_viewer_unselected_answer">-</string>
+    <string name="log_viewer_invisible_answer">＊</string>
+    <string name="log_viewer_accuracy_format">%1$.1f%%</string>
     <string name="log_viewer_cd_delete_questions">削除</string>
     <string name="log_viewer_cd_cancel_edit">キャンセル</string>
     <string name="log_viewer_cd_edit">編集</string>
     <string name="log_viewer_cd_delete_attempt">削除</string>
     <string name="log_viewer_cd_flag">フラグ</string>
+    <string name="log_viewer_cd_toggle_visibility">回答の表示を切り替え</string>
 
     <!-- Log editor -->
     <string name="log_edit">ログ編集</string>
