@@ -11,7 +11,9 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.tooling.preview.Preview
-import com.soulhowling.solvelog_jetpackcompose.feature.measurement.stopwatch.StopWatchPageScreen
+import androidx.compose.ui.res.stringResource
+import com.soulhowling.solvelog_jetpackcompose.R
+import com.soulhowling.solvelog_jetpackcompose.feature.measurement.stopwatch.StopwatchPageScreen
 import com.soulhowling.solvelog_jetpackcompose.feature.measurement.timer.TimerPageScreen
 import com.soulhowling.solvelog_jetpackcompose.ui.theme.SolveLogJetpackComposeTheme
 import kotlinx.coroutines.launch
@@ -23,8 +25,11 @@ fun MeasurementScreen() {
 
     Column(modifier = Modifier.fillMaxSize()) {
         PrimaryTabRow(selectedTabIndex = pagerState.currentPage) {
-            val titles = listOf("Stopwatch", "Timer") // TODO
-            titles.forEachIndexed { index, title ->
+            val titles = listOf(
+                R.string.measurement_stopwatch_title,
+                R.string.measurement_timer_title
+            )
+            titles.forEachIndexed { index, titleResId ->
                 Tab(
                     selected = pagerState.currentPage == index,
                     onClick = {
@@ -32,7 +37,7 @@ fun MeasurementScreen() {
                             pagerState.animateScrollToPage(index)
                         }
                     },
-                    text = { Text(text = title) }
+                    text = { Text(text = stringResource(titleResId)) }
                 )
             }
         }
@@ -42,7 +47,7 @@ fun MeasurementScreen() {
             modifier = Modifier.fillMaxSize()
         ) { page ->
             when (page) {
-                0 -> StopWatchPageScreen()
+                0 -> StopwatchPageScreen()
                 1 -> TimerPageScreen()
             }
         }
