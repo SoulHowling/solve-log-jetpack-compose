@@ -57,12 +57,12 @@ import androidx.compose.material3.TextField
 import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
+import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -170,20 +170,17 @@ private fun SolveLogListScreenContent(
     var isShownBottomSheet by remember { mutableStateOf(false) }
     var isShownAddFolderDialog by remember { mutableStateOf(false) }
     var isFabExpanded by remember { mutableStateOf(false) }
-    
+
     val listState = rememberLazyListState()
     val appBarController = LocalAppBarController.current
 
-    val canScroll = remember {
-        derivedStateOf {
-            listState.canScrollForward || listState.canScrollBackward
-        }
-    }
-
-    LaunchedEffect(canScroll.value) {
-        if (!canScroll.value) {
-            appBarController.setBottomBarVisible(true)
-        }
+    LaunchedEffect(listState) {
+        snapshotFlow { listState.canScrollForward || listState.canScrollBackward }
+            .collect { canScroll ->
+                if (!canScroll) {
+                    appBarController.setBottomBarVisible(true)
+                }
+            }
     }
 
     var movingLog by remember { mutableStateOf<SolveLog?>(null) }
@@ -234,6 +231,7 @@ private fun SolveLogListScreenContent(
                                 onMove = { movingFolder = item.folder }
                             )
                         }
+
                         is SolveLogListItem.LogItem -> {
                             SolveLogItemCard(
                                 title = item.log.name,
@@ -277,10 +275,10 @@ private fun SolveLogListScreenContent(
                 isShownBottomSheet = true
             }
         )
-        
+
         if (isShownAddFolderDialog) {
             FolderAddDialog(
-                onDismiss = { isShownAddFolderDialog = false},
+                onDismiss = { isShownAddFolderDialog = false },
                 onConfirm = { name ->
                     isShownAddFolderDialog = false
                     onAddFolder(name)
@@ -486,7 +484,10 @@ fun CurrentFolderHeader(
         verticalAlignment = Alignment.CenterVertically
     ) {
         IconButton(onClick = { onNavigateBack() }) {
-            Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = stringResource(R.string.log_list_cd_back))
+            Icon(
+                Icons.AutoMirrored.Filled.ArrowBack,
+                contentDescription = stringResource(R.string.log_list_cd_back)
+            )
         }
         Text(
             text = currentFolderPath,
@@ -538,7 +539,10 @@ private fun NewActionButtons(
                         containerColor = MaterialTheme.colorScheme.secondaryContainer,
                         contentColor = MaterialTheme.colorScheme.onSecondaryContainer
                     ) {
-                        Icon(Icons.Default.CreateNewFolder, contentDescription = stringResource(R.string.log_list_cd_add_folder))
+                        Icon(
+                            Icons.Default.CreateNewFolder,
+                            contentDescription = stringResource(R.string.log_list_cd_add_folder)
+                        )
                     }
                 }
 
@@ -562,7 +566,10 @@ private fun NewActionButtons(
                         containerColor = MaterialTheme.colorScheme.secondaryContainer,
                         contentColor = MaterialTheme.colorScheme.onSecondaryContainer
                     ) {
-                        Icon(Icons.Default.PostAdd, contentDescription = stringResource(R.string.log_list_cd_add_log))
+                        Icon(
+                            Icons.Default.PostAdd,
+                            contentDescription = stringResource(R.string.log_list_cd_add_log)
+                        )
                     }
                 }
             }
@@ -575,7 +582,9 @@ private fun NewActionButtons(
             val rotation by animateFloatAsState(if (expanded) 45f else 0f, label = "fabRotation")
             Icon(
                 Icons.Filled.Add,
-                contentDescription = if (expanded) stringResource(R.string.log_list_cd_close_menu) else stringResource(R.string.log_list_cd_open_menu),
+                contentDescription = if (expanded) stringResource(R.string.log_list_cd_close_menu) else stringResource(
+                    R.string.log_list_cd_open_menu
+                ),
                 modifier = Modifier.rotate(rotation)
             )
         }
@@ -612,7 +621,7 @@ private fun FolderAddDialog(
         dismissButton = {
             TextButton(
                 onClick = onDismiss
-            ) { 
+            ) {
                 Text(stringResource(R.string.common_dialog_cancel_button))
             }
         }
@@ -915,10 +924,14 @@ private fun MoveToFolderContent(
         ) {
             if (currentViewedFolderId != null) {
                 IconButton(onClick = {
-                    val parentId = allFolders.find { it.id == currentViewedFolderId }?.parentFolderId
+                    val parentId =
+                        allFolders.find { it.id == currentViewedFolderId }?.parentFolderId
                     onViewFolder(parentId)
                 }) {
-                    Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = stringResource(R.string.log_list_cd_go_up))
+                    Icon(
+                        Icons.AutoMirrored.Filled.ArrowBack,
+                        contentDescription = stringResource(R.string.log_list_cd_go_up)
+                    )
                 }
             }
             Text(
@@ -940,7 +953,7 @@ private fun MoveToFolderContent(
                     onClick = { onViewFolder(folder.id) }
                 )
             }
-            
+
             if (foldersToShow.isEmpty()) {
                 item {
                     Text(
@@ -967,7 +980,11 @@ private fun MoveToFolderItem(
             .padding(vertical = 12.dp, horizontal = 8.dp),
         verticalAlignment = Alignment.CenterVertically
     ) {
-        Icon(Icons.Default.Folder, contentDescription = null, tint = MaterialTheme.colorScheme.secondary)
+        Icon(
+            Icons.Default.Folder,
+            contentDescription = null,
+            tint = MaterialTheme.colorScheme.secondary
+        )
         Spacer(modifier = Modifier.width(12.dp))
         Text(text = name, style = MaterialTheme.typography.bodyLarge)
     }
@@ -1035,11 +1052,41 @@ private fun FolderAddContentPreview() {
 fun MoveToFolderContentPreview() {
     val createdAt = System.currentTimeMillis()
     val folders = listOf(
-        Folder(id = 1, name = "フォルダA", createdAt = createdAt, updatedAt = createdAt, parentFolderId = null),
-        Folder(id = 2, name = "フォルダB", createdAt = createdAt, updatedAt = createdAt, parentFolderId = null),
-        Folder(id = 3, name = "サブフォルダA-1", createdAt = createdAt, updatedAt = createdAt, parentFolderId = 1),
-        Folder(id = 4, name = "サブフォルダA-2", createdAt = createdAt, updatedAt = createdAt, parentFolderId = 1),
-        Folder(id = 5, name = "サブフォルダB-1", createdAt = createdAt, updatedAt = createdAt, parentFolderId = 2)
+        Folder(
+            id = 1,
+            name = "フォルダA",
+            createdAt = createdAt,
+            updatedAt = createdAt,
+            parentFolderId = null
+        ),
+        Folder(
+            id = 2,
+            name = "フォルダB",
+            createdAt = createdAt,
+            updatedAt = createdAt,
+            parentFolderId = null
+        ),
+        Folder(
+            id = 3,
+            name = "サブフォルダA-1",
+            createdAt = createdAt,
+            updatedAt = createdAt,
+            parentFolderId = 1
+        ),
+        Folder(
+            id = 4,
+            name = "サブフォルダA-2",
+            createdAt = createdAt,
+            updatedAt = createdAt,
+            parentFolderId = 1
+        ),
+        Folder(
+            id = 5,
+            name = "サブフォルダB-1",
+            createdAt = createdAt,
+            updatedAt = createdAt,
+            parentFolderId = 2
+        )
     )
     SolveLogJetpackComposeTheme {
         MoveToFolderContent(
