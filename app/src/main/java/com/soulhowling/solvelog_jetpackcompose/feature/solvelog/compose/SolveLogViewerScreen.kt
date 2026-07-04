@@ -298,9 +298,8 @@ fun SolveLogViewerScreenContent(
                             ) {
                                 IconButton(
                                     modifier = Modifier
-                                        .fillMaxHeight()
-                                        .padding(bottom = 8.dp)
-                                        .align(Alignment.Center),
+                                        .align(Alignment.Center)
+                                        .padding(bottom = 8.dp),
                                     onClick = { onAnswerVisibility() },
                                 ) {
                                     Icon(
@@ -640,7 +639,7 @@ fun ScoreFooter(
     width: Dp,
     onNavigateToEditor: () -> Unit,
 ) {
-    val accuracy: Float = (score.toFloat() / total.toFloat()) * 100
+    val accuracy: Float = if (total > 0) (score.toFloat() / total.toFloat()) * 100 else 0f
     Box(
         modifier = Modifier
             .width(width)
@@ -680,7 +679,7 @@ fun SolveLogRowItem(
 ) {
     val correctnessType = Correctness.entries.getOrNull(correctness) ?: Correctness.NONE
     val isError = correctnessType == Correctness.INCORRECT
-    val selectedAnswer = if (selectedAnswer.isEmpty()) {
+    val displayedAnswer = if (selectedAnswer.isEmpty()) {
         "-"
     } else if (isAnswerVisible) {
         selectedAnswer
@@ -700,7 +699,7 @@ fun SolveLogRowItem(
         verticalAlignment = Alignment.CenterVertically
     ) {
         Text(
-            text = selectedAnswer,
+            text = displayedAnswer,
             modifier = Modifier.weight(1f),
             style = MaterialTheme.typography.titleMedium,
             fontWeight = FontWeight.ExtraBold,
