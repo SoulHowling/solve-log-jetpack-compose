@@ -3,14 +3,15 @@ package com.soulhowling.solvelog_jetpackcompose.feature.solvelog.model.entity
 import androidx.room.Entity
 import androidx.room.ForeignKey
 import androidx.room.PrimaryKey
+import com.soulhowling.solvelog_jetpackcompose.core.database.DBKeys
 
 @Entity(
-    tableName = "solve_log",
+    tableName = DBKeys.TABLE_SOLVE_LOG,
     foreignKeys = [
         ForeignKey(
             entity = Folder::class,
-            parentColumns = ["id"],
-            childColumns = ["folderId"],
+            parentColumns = [DBKeys.KEY_ID],
+            childColumns = [DBKeys.KEY_FOLDER_ID],
             onDelete = ForeignKey.CASCADE
         )
     ]

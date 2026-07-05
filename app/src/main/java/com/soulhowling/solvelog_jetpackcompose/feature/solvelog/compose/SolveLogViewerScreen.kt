@@ -124,7 +124,7 @@ fun SolveLogViewerScreen(
                     }
                 ) {
                     Text(
-                        stringResource(R.string.log_list_dialog_delete_button),
+                        stringResource(R.string.log_list_dropdown_menu_item_delete),
                         color = MaterialTheme.colorScheme.error
                     )
                 }
@@ -165,7 +165,7 @@ fun SolveLogViewerScreen(
                     }
                 ) {
                     Text(
-                        stringResource(R.string.log_list_dialog_delete_button),
+                        stringResource(R.string.log_list_dropdown_menu_item_delete),
                         color = MaterialTheme.colorScheme.error
                     )
                 }

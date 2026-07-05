@@ -34,4 +34,7 @@ interface QuestionDao: BaseDao<Question> {
 
     @Query("UPDATE question SET attempt = attempt - 1 WHERE solveLogId = :solveLogId AND attempt > :attempt")
     suspend fun decrementAttemptIndices(solveLogId: Int, attempt: Int)
+
+    @Query("SELECT * FROM question WHERE solveLogId IN (:solveLogIds)")
+    suspend fun getQuestionsBySolveLogIds(solveLogIds: List<Int>): List<Question>
 }

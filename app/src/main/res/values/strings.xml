@@ -4,6 +4,8 @@
     <!-- Common -->
     <string name="common_dialog_confirm_button">Add</string>
     <string name="common_dialog_cancel_button">Cancel</string>
+    <string name="common_export_success">Exported successfully</string>
+    <string name="common_export_failed">Export failed</string>
 
     <!--  App bar title -->
     <string name="app_bar_title_editor">Log List</string>
@@ -21,8 +23,10 @@
     <string name="log_list_move_success">Moved successfully</string>
     <string name="log_list_title_question_quantity">Questions: %1$d</string>
     <string name="log_list_title_attempt_count">Attempts: %1$d</string>
-    <string name="log_list_dialog_move_button">Move</string>
-    <string name="log_list_dialog_delete_button">Delete</string>
+    <string name="log_list_dropdown_menu_item_move">Move</string>
+    <string name="log_list_dropdown_menu_item_delete">Delete</string>
+    <string name="log_list_dropdown_menu_item_export">Export</string>
+    <string name="log_list_dropdown_menu_item_all_export">Export all</string>
     <string name="log_list_add_folder_button">Folder</string>
     <string name="log_list_add_log_button">Log</string>
     <string name="log_list_add_new_folder_title">Create New Folder</string>

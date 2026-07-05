@@ -23,13 +23,12 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
+import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberUpdatedState
-import androidx.compose.runtime.saveable.rememberSaveable
-import androidx.compose.runtime.setValue
+import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.Offset
@@ -39,8 +38,12 @@ import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
+import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.compose.LocalLifecycleOwner
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import androidx.lifecycle.repeatOnLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
+import androidx.navigation.NavController
 import androidx.navigation.NavDestination
 import androidx.navigation.NavDestination.Companion.hierarchy
 import androidx.navigation.NavGraph.Companion.findStartDestination
@@ -48,6 +51,7 @@ import androidx.navigation.NavHostController
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import com.soulhowling.solvelog_jetpackcompose.ui.theme.SolveLogJetpackComposeTheme
+import kotlinx.coroutines.launch
 
 @Composable
 fun MainScreen(
@@ -61,24 +65,17 @@ fun MainScreen(
     val navBackStackEntry by navController.currentBackStackEntryAsState()
     val currentDestination = navBackStackEntry?.destination
 
-    var lastRoute by rememberSaveable { mutableStateOf<String?>(null) }
-
-    LaunchedEffect(currentDestination) {
-        val currentRoute = currentDestination?.route
-        if (currentRoute != null && lastRoute != currentRoute) {
-            val currentScreen = allScreens.find { it.route == currentRoute }
-            
-            // Actions should be cleared as they are strictly screen-specific
+    DisposableEffect(navController, allScreens, viewModel) {
+        val listener = NavController.OnDestinationChangedListener { _, destination, _ ->
+            val currentScreen = allScreens.find { it.route == destination.route }
             viewModel.setActions(null)
-
-            // Set the default title for the new screen. 
-            // We don't clear the custom title here; each screen will manage it via CustomAppBarEffect.
+            viewModel.setTitle(null)
             viewModel.setDefaultTitle(currentScreen?.title)
-
-            // Reset bottom bar visibility when navigating
             viewModel.setBottomBarVisible(true)
-            
-            lastRoute = currentRoute
+        }
+        navController.addOnDestinationChangedListener(listener)
+        onDispose {
+            navController.removeOnDestinationChangedListener(listener)
         }
     }
 
@@ -177,7 +174,8 @@ fun TopAppBar(
         colors = TopAppBarDefaults.topAppBarColors(
             containerColor = MaterialTheme.colorScheme.primary,
             titleContentColor = MaterialTheme.colorScheme.onPrimary,
-            navigationIconContentColor = MaterialTheme.colorScheme.onPrimary
+            navigationIconContentColor = MaterialTheme.colorScheme.onPrimary,
+            actionIconContentColor = MaterialTheme.colorScheme.onPrimary
         )
     )
 }
@@ -215,13 +213,26 @@ fun CustomAppBarEffect(
     actions: (@Composable () -> Unit)? = null
 ) {
     val controller = LocalAppBarController.current
+    val lifecycleOwner = LocalLifecycleOwner.current
     val currentAction by rememberUpdatedState(actions)
-    LaunchedEffect(title, actions == null) {
-        controller.setTitle(title)
-        if (actions == null) {
-            controller.setActions(null)
-        } else {
-            controller.setActions { currentAction?.invoke() }
+    val currentTitle by rememberUpdatedState(title)
+
+    LaunchedEffect(lifecycleOwner) {
+        lifecycleOwner.lifecycle.repeatOnLifecycle(Lifecycle.State.RESUMED) {
+            launch {
+                snapshotFlow { currentTitle }.collect { title ->
+                    controller.setTitle(title)
+                }
+            }
+            launch {
+                snapshotFlow { currentAction == null }.collect { isNull ->
+                    if (isNull) {
+                        controller.setActions(null)
+                    } else {
+                        controller.setActions { currentAction?.invoke() }
+                    }
+                }
+            }
         }
     }
 }

@@ -4,6 +4,8 @@
     <!-- Common -->
     <string name="common_dialog_confirm_button">追加</string>
     <string name="common_dialog_cancel_button">キャンセル</string>
+    <string name="common_export_success">エクスポートに成功しました</string>
+    <string name="common_export_failed">エクスポートに失敗しました</string>
 
     <!--  App bar title -->
     <string name="app_bar_title_editor">ログ一覧</string>
@@ -21,8 +23,10 @@
     <string name="log_list_move_success">移動しました</string>
     <string name="log_list_title_question_quantity">問題数: %1$d</string>
     <string name="log_list_title_attempt_count">試行回数: %1$d</string>
-    <string name="log_list_dialog_move_button">移動</string>
-    <string name="log_list_dialog_delete_button">削除</string>
+    <string name="log_list_dropdown_menu_item_move">移動</string>
+    <string name="log_list_dropdown_menu_item_delete">削除</string>
+    <string name="log_list_dropdown_menu_item_export">エクスポート</string>
+    <string name="log_list_dropdown_menu_item_all_export">まるごとエクスポート</string>
     <string name="log_list_add_folder_button">フォルダ</string>
     <string name="log_list_add_log_button">ログ</string>
     <string name="log_list_add_new_folder_title">新規フォルダーを作成</string>

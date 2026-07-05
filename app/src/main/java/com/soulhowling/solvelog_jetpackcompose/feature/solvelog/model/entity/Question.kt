@@ -3,15 +3,16 @@ package com.soulhowling.solvelog_jetpackcompose.feature.solvelog.model.entity
 import androidx.room.Entity
 import androidx.room.ForeignKey
 import androidx.room.PrimaryKey
+import com.soulhowling.solvelog_jetpackcompose.core.database.DBKeys
 import com.soulhowling.solvelog_jetpackcompose.feature.solvelog.Correctness
 
 @Entity(
-    tableName = "question",
+    tableName = DBKeys.TABLE_QUESTION,
     foreignKeys = [
         ForeignKey(
             entity = SolveLog::class,
-            parentColumns = ["id"],
-            childColumns = ["solveLogId"],
+            parentColumns = [DBKeys.KEY_ID],
+            childColumns = [DBKeys.KEY_SOLVE_LOG_ID],
             onDelete = ForeignKey.CASCADE
         )
     ]

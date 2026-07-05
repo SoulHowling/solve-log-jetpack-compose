@@ -1,6 +1,9 @@
 package com.soulhowling.solvelog_jetpackcompose.feature.solvelog.compose
 
+import android.net.Uri
 import android.widget.Toast
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.core.animateDpAsState
 import androidx.compose.animation.core.animateFloatAsState
@@ -68,6 +71,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.rotate
 import androidx.compose.ui.graphics.graphicsLayer
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.style.TextAlign
@@ -83,6 +87,7 @@ import com.soulhowling.solvelog_jetpackcompose.feature.solvelog.SelectionQuantit
 import com.soulhowling.solvelog_jetpackcompose.feature.solvelog.SelectionType
 import com.soulhowling.solvelog_jetpackcompose.feature.solvelog.model.entity.SolveLog
 import com.soulhowling.solvelog_jetpackcompose.feature.solvelog.model.entity.Folder
+import com.soulhowling.solvelog_jetpackcompose.feature.solvelog.viewmodel.ExportTarget
 import com.soulhowling.solvelog_jetpackcompose.feature.solvelog.viewmodel.SolveLogListItem
 import com.soulhowling.solvelog_jetpackcompose.feature.solvelog.viewmodel.SolveLogListViewModel
 import com.soulhowling.solvelog_jetpackcompose.ui.theme.Dimensions
@@ -96,14 +101,74 @@ fun SolveLogListScreen(
     val displayItems by viewModel.displayItems.collectAsStateWithLifecycle()
     val folders by viewModel.folders.collectAsStateWithLifecycle()
     val currentFolderPath by viewModel.currentFolderPath.collectAsStateWithLifecycle()
-    val context = androidx.compose.ui.platform.LocalContext.current
+    val context = LocalContext.current
+
+    var pendingExportTarget by rememberSaveable { mutableStateOf<ExportTarget?>(null) }
+    val createDocumentLauncher = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.CreateDocument("application/json")
+    ) { uri: Uri? ->
+        val target = pendingExportTarget ?: return@rememberLauncherForActivityResult
+        if (uri != null) {
+            viewModel.performExport(uri, target) { success ->
+                if (success) {
+                    Toast.makeText(context, R.string.common_export_success, Toast.LENGTH_SHORT)
+                        .show()
+                } else {
+                    Toast.makeText(context, R.string.common_export_failed, Toast.LENGTH_SHORT)
+                        .show()
+                }
+            }
+        }
+        pendingExportTarget = null
+    }
+
+    LaunchedEffect(Unit) {
+        viewModel.exportTarget.collect { target ->
+            pendingExportTarget = target
+            createDocumentLauncher.launch(target.fileName)
+        }
+    }
 
     val deleteLogSuccessFormat = stringResource(R.string.log_list_delete_log_success)
     val deleteFolderSuccessFormat = stringResource(R.string.log_list_delete_folder_success)
     val moveSuccessMessage = stringResource(R.string.log_list_move_success)
+    var isExpanded by remember { mutableStateOf(false) }
 
-    // Reset custom app bar title to show the default title (R.string.tab_editor)
-    CustomAppBarEffect(title = null)
+    CustomAppBarEffect(
+        title = null,
+        actions = {
+            IconButton(
+                onClick = { isExpanded = true }
+            ) {
+                Icon(
+                    imageVector = Icons.Default.MoreVert,
+                    contentDescription = null,
+                    tint = MaterialTheme.colorScheme.onPrimary
+                )
+            }
+            DropdownMenu(
+                modifier = Modifier
+                    .clip(RoundedCornerShape(16.dp))
+                    .background(MaterialTheme.colorScheme.background),
+                expanded = isExpanded,
+                onDismissRequest = { isExpanded = false }
+            ) {
+                DropdownMenuItem(
+                    onClick = {
+                        viewModel.exportAll()
+                        isExpanded = false
+                    },
+                    text = {
+                        Text(
+                            text = stringResource(R.string.log_list_dropdown_menu_item_all_export),
+                            style = MaterialTheme.typography.titleMedium,
+                            modifier = Modifier
+                        )
+                    }
+                )
+            }
+        }
+    )
 
     SolveLogListScreenContent(
         displayItems = displayItems,
@@ -147,6 +212,12 @@ fun SolveLogListScreen(
                 moveSuccessMessage,
                 Toast.LENGTH_SHORT
             ).show()
+        },
+        onExportLog = { log ->
+            viewModel.export(log)
+        },
+        onExportFolder = { folder ->
+            viewModel.export(folder)
         }
     )
 }
@@ -164,7 +235,9 @@ private fun SolveLogListScreenContent(
     onDeleteSolveLog: (SolveLog) -> Unit,
     onDeleteFolder: (Folder) -> Unit,
     onMoveSolveLog: (SolveLog, Int?) -> Unit,
-    onMoveFolder: (Folder, Int?) -> Unit
+    onMoveFolder: (Folder, Int?) -> Unit,
+    onExportLog: (SolveLog) -> Unit,
+    onExportFolder: (Folder) -> Unit,
 ) {
     val questionQuantityFormatText = stringResource(R.string.log_list_title_question_quantity)
     var isShownBottomSheet by remember { mutableStateOf(false) }
@@ -228,7 +301,8 @@ private fun SolveLogListScreenContent(
                                 title = item.folder.name,
                                 onClick = { onSelectFolder(item.folder.id) },
                                 onDelete = { onDeleteFolder(item.folder) },
-                                onMove = { movingFolder = item.folder }
+                                onMove = { movingFolder = item.folder },
+                                onExportFolder = { onExportFolder(item.folder) }
                             )
                         }
 
@@ -239,7 +313,8 @@ private fun SolveLogListScreenContent(
                                 attemptCount = item.log.attemptCount,
                                 onClick = { onNavigateToViewer(item.log.id) },
                                 onDelete = { onDeleteSolveLog(item.log) },
-                                onMove = { movingLog = item.log }
+                                onMove = { movingLog = item.log },
+                                onExportLog = { onExportLog(item.log) }
                             )
                         }
                     }
@@ -323,7 +398,8 @@ private fun FolderItemCard(
     title: String,
     onClick: () -> Unit,
     onDelete: () -> Unit,
-    onMove: () -> Unit
+    onMove: () -> Unit,
+    onExportFolder: () -> Unit,
 ) {
     Card(
         modifier = Modifier
@@ -353,7 +429,11 @@ private fun FolderItemCard(
                 style = MaterialTheme.typography.titleLarge,
                 modifier = Modifier.weight(1f)
             )
-            OverFlowMenu(onDelete = onDelete, onMove = onMove)
+            OverFlowMenu(
+                onDelete = onDelete,
+                onMove = onMove,
+                onExport = onExportFolder,
+            )
         }
     }
 }
@@ -365,7 +445,8 @@ private fun SolveLogItemCard(
     attemptCount: Int,
     onClick: () -> Unit,
     onDelete: () -> Unit,
-    onMove: () -> Unit
+    onMove: () -> Unit,
+    onExportLog: () -> Unit,
 ) {
     val attemptCountFormatText = stringResource(R.string.log_list_title_attempt_count)
     Card(
@@ -415,7 +496,11 @@ private fun SolveLogItemCard(
                 }
 
             }
-            OverFlowMenu(onDelete = onDelete, onMove = onMove)
+            OverFlowMenu(
+                onDelete = onDelete,
+                onMove = onMove,
+                onExport = onExportLog,
+            )
         }
     }
 }
@@ -423,7 +508,8 @@ private fun SolveLogItemCard(
 @Composable
 private fun OverFlowMenu(
     onDelete: () -> Unit,
-    onMove: () -> Unit
+    onMove: () -> Unit,
+    onExport: () -> Unit,
 ) {
     var isExpanded by remember { mutableStateOf(false) }
     Box {
@@ -449,7 +535,7 @@ private fun OverFlowMenu(
                 },
                 text = {
                     Text(
-                        text = stringResource(R.string.log_list_dialog_move_button),
+                        text = stringResource(R.string.log_list_dropdown_menu_item_move),
                         style = MaterialTheme.typography.titleMedium,
                         modifier = Modifier
                     )
@@ -462,7 +548,20 @@ private fun OverFlowMenu(
                 },
                 text = {
                     Text(
-                        text = stringResource(R.string.log_list_dialog_delete_button),
+                        text = stringResource(R.string.log_list_dropdown_menu_item_delete),
+                        style = MaterialTheme.typography.titleMedium,
+                        modifier = Modifier
+                    )
+                }
+            )
+            DropdownMenuItem(
+                onClick = {
+                    onExport()
+                    isExpanded = false
+                },
+                text = {
+                    Text(
+                        text = stringResource(R.string.log_list_dropdown_menu_item_export),
                         style = MaterialTheme.typography.titleMedium,
                         modifier = Modifier
                     )
@@ -1020,7 +1119,9 @@ private fun SolveLogListScreenContentPreview() {
             onDeleteSolveLog = {},
             onDeleteFolder = {},
             onMoveSolveLog = { _, _ -> },
-            onMoveFolder = { _, _ -> }
+            onMoveFolder = { _, _ -> },
+            onExportLog = {},
+            onExportFolder = {}
         )
     }
 }
