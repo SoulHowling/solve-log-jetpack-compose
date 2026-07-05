@@ -28,6 +28,7 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberUpdatedState
+import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.Offset
@@ -50,6 +51,7 @@ import androidx.navigation.NavHostController
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import com.soulhowling.solvelog_jetpackcompose.ui.theme.SolveLogJetpackComposeTheme
+import kotlinx.coroutines.launch
 
 @Composable
 fun MainScreen(
@@ -63,7 +65,7 @@ fun MainScreen(
     val navBackStackEntry by navController.currentBackStackEntryAsState()
     val currentDestination = navBackStackEntry?.destination
 
-    DisposableEffect(navController) {
+    DisposableEffect(navController, allScreens, viewModel) {
         val listener = NavController.OnDestinationChangedListener { _, destination, _ ->
             val currentScreen = allScreens.find { it.route == destination.route }
             viewModel.setActions(null)
@@ -215,10 +217,22 @@ fun CustomAppBarEffect(
     val currentAction by rememberUpdatedState(actions)
     val currentTitle by rememberUpdatedState(title)
 
-    LaunchedEffect(currentTitle, currentAction, lifecycleOwner) {
+    LaunchedEffect(lifecycleOwner) {
         lifecycleOwner.lifecycle.repeatOnLifecycle(Lifecycle.State.RESUMED) {
-            controller.setTitle(currentTitle)
-            controller.setActions(currentAction)
+            launch {
+                snapshotFlow { currentTitle }.collect { title ->
+                    controller.setTitle(title)
+                }
+            }
+            launch {
+                snapshotFlow { currentAction == null }.collect { isNull ->
+                    if (isNull) {
+                        controller.setActions(null)
+                    } else {
+                        controller.setActions { currentAction?.invoke() }
+                    }
+                }
+            }
         }
     }
 }
