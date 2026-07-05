@@ -14,6 +14,7 @@ import com.soulhowling.solvelog_jetpackcompose.feature.solvelog.model.repository
 import com.soulhowling.solvelog_jetpackcompose.feature.solvelog.model.repository.QuestionRepository
 import com.soulhowling.solvelog_jetpackcompose.feature.solvelog.model.repository.SolveLogRepository
 import com.soulhowling.solvelog_jetpackcompose.utils.FileUtils
+import com.soulhowling.solvelog_jetpackcompose.utils.LogUtils
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -31,10 +32,18 @@ sealed class SolveLogListItem {
     data class LogItem(val log: SolveLog) : SolveLogListItem()
 }
 
-data class ExportData(
-    val fileName: String,
-    val json: String
-)
+sealed class ExportTarget : java.io.Serializable {
+    data class Log(val id: Int, val name: String) : ExportTarget()
+    data class Folder(val id: Int, val name: String) : ExportTarget()
+    object All : ExportTarget()
+
+    val fileName: String
+        get() = when (this) {
+            is Log -> "$name.json"
+            is Folder -> "$name.json"
+            is All -> "solve_log_backup.json"
+        }
+}
 
 class SolveLogListViewModel(application: Application) : AndroidViewModel(application) {
 
@@ -48,8 +57,8 @@ class SolveLogListViewModel(application: Application) : AndroidViewModel(applica
     private val allFolders = folderRepository.allFolders
     private val allSolveLogs = solveLogRepository.allSolveLogs
 
-    private val _exportData = MutableSharedFlow<ExportData>()
-    val exportData = _exportData.asSharedFlow()
+    private val _exportTarget = MutableSharedFlow<ExportTarget>()
+    val exportTarget = _exportTarget.asSharedFlow()
 
     val folders: StateFlow<List<Folder>> = allFolders.stateIn(
         scope = viewModelScope,
@@ -191,53 +200,69 @@ class SolveLogListViewModel(application: Application) : AndroidViewModel(applica
 
     fun export(solveLog: SolveLog) {
         viewModelScope.launch {
-            val jsonString = withContext(Dispatchers.IO) {
-                val questions = questionRepository.getQuestionListBy(solveLog.id)
-                FileUtils.generateSolveLogJson(solveLog, questions)
-            }
-            _exportData.emit(
-                ExportData(
-                    fileName = "${solveLog.name}.json",
-                    json = jsonString
-                )
-            )
+            _exportTarget.emit(ExportTarget.Log(solveLog.id, solveLog.name))
         }
     }
 
     fun export(folder: Folder) {
         viewModelScope.launch {
-            val jsonString = withContext(Dispatchers.IO) {
-                val solveLogs = solveLogRepository.getSolveLogListBy(folder.id)
-                val logQuestionsMap = solveLogs.associate { log ->
-                    log.id to questionRepository.getQuestionListBy(log.id)
-                }
-                FileUtils.generateFolderJson(folder, solveLogs, logQuestionsMap)
-            }
-            _exportData.emit(
-                ExportData(
-                    fileName = "${folder.name}.json",
-                    json = jsonString
-                )
-            )
+            _exportTarget.emit(ExportTarget.Folder(folder.id, folder.name))
         }
     }
 
     fun exportAll() {
         viewModelScope.launch {
-            val jsonString = withContext(Dispatchers.IO) {
-                val folders = folders.first()
-                val logs = allSolveLogs.first()
-                val logQuestionsMap = logs.associate { log ->
-                    log.id to questionRepository.getQuestionListBy(log.id)
+            _exportTarget.emit(ExportTarget.All)
+        }
+    }
+
+    fun performExport(uri: android.net.Uri, target: ExportTarget, onResult: (Boolean) -> Unit) {
+        viewModelScope.launch {
+            val success = withContext(Dispatchers.IO) {
+                try {
+                    val jsonString = when (target) {
+                        is ExportTarget.Log -> {
+                            val solveLog = solveLogRepository.getSolveLog(target.id).first() ?: return@withContext false
+                            val questions = questionRepository.getQuestionListBy(target.id)
+                            FileUtils.generateSolveLogJson(solveLog, questions)
+                        }
+                        is ExportTarget.Folder -> {
+                            val allFolders = folderRepository.allFolders.first()
+                            val folder = allFolders.find { it.id == target.id } ?: return@withContext false
+                            val allLogs = solveLogRepository.allSolveLogs.first()
+
+                            // 再帰的に含めるフォルダIDを収集
+                            val descendantFolderIds = mutableSetOf<Int>()
+                            fun collectFolderIds(id: Int) {
+                                if (descendantFolderIds.add(id)) {
+                                    allFolders.filter { it.parentFolderId == id }.forEach { collectFolderIds(it.id) }
+                                }
+                            }
+                            collectFolderIds(target.id)
+
+                            // 対象となるログの質問情報を取得
+                            val logsToExport = allLogs.filter { it.folderId in descendantFolderIds }
+                            val logQuestionsMap = logsToExport.associate { log ->
+                                log.id to questionRepository.getQuestionListBy(log.id)
+                            }
+                            FileUtils.generateFolderJson(folder, allFolders, allLogs, logQuestionsMap)
+                        }
+                        is ExportTarget.All -> {
+                            val folders = folderRepository.allFolders.first()
+                            val logs = solveLogRepository.allSolveLogs.first()
+                            val logQuestionsMap = logs.associate { log ->
+                                log.id to questionRepository.getQuestionListBy(log.id)
+                            }
+                            FileUtils.generateAllDataJson(folders, logs, logQuestionsMap)
+                        }
+                    }
+                    FileUtils.writeTextToUri(getApplication(), uri, jsonString)
+                } catch (e: Exception) {
+                    LogUtils.e("Export failed", e)
+                    false
                 }
-                FileUtils.generateAllDataJson(folders, logs, logQuestionsMap)
             }
-            _exportData.emit(
-                ExportData(
-                    fileName = "solve_log_backup.json",
-                    json = jsonString
-                )
-            )
+            onResult(success)
         }
     }
 }

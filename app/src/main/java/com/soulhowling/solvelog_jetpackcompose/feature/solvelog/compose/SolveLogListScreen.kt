@@ -63,7 +63,6 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.runtime.snapshotFlow
@@ -88,14 +87,11 @@ import com.soulhowling.solvelog_jetpackcompose.feature.solvelog.SelectionQuantit
 import com.soulhowling.solvelog_jetpackcompose.feature.solvelog.SelectionType
 import com.soulhowling.solvelog_jetpackcompose.feature.solvelog.model.entity.SolveLog
 import com.soulhowling.solvelog_jetpackcompose.feature.solvelog.model.entity.Folder
+import com.soulhowling.solvelog_jetpackcompose.feature.solvelog.viewmodel.ExportTarget
 import com.soulhowling.solvelog_jetpackcompose.feature.solvelog.viewmodel.SolveLogListItem
 import com.soulhowling.solvelog_jetpackcompose.feature.solvelog.viewmodel.SolveLogListViewModel
 import com.soulhowling.solvelog_jetpackcompose.ui.theme.Dimensions
 import com.soulhowling.solvelog_jetpackcompose.ui.theme.SolveLogJetpackComposeTheme
-import com.soulhowling.solvelog_jetpackcompose.utils.FileUtils
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.launch
-import kotlinx.coroutines.withContext
 
 @Composable
 fun SolveLogListScreen(
@@ -107,31 +103,27 @@ fun SolveLogListScreen(
     val currentFolderPath by viewModel.currentFolderPath.collectAsStateWithLifecycle()
     val context = LocalContext.current
 
-    var pendingJson by rememberSaveable { mutableStateOf<String?>(null) }
-    val coroutineScope = rememberCoroutineScope()
+    var pendingExportTarget by rememberSaveable { mutableStateOf<ExportTarget?>(null) }
     val createDocumentLauncher = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.CreateDocument("application/json")
     ) { uri: Uri? ->
-        uri?.let {
-            val json = pendingJson ?: return@let
-            coroutineScope.launch(Dispatchers.IO) {
-                val success = FileUtils.writeTextToUri(context, it, json)
-                withContext(Dispatchers.Main) {
-                    if (success) {
-                        Toast.makeText(context, R.string.common_export_success, Toast.LENGTH_SHORT).show()
-                    } else {
-                        Toast.makeText(context, R.string.common_export_failed, Toast.LENGTH_SHORT).show()
-                    }
+        val target = pendingExportTarget ?: return@rememberLauncherForActivityResult
+        if (uri != null) {
+            viewModel.performExport(uri, target) { success ->
+                if (success) {
+                    Toast.makeText(context, R.string.common_export_success, Toast.LENGTH_SHORT).show()
+                } else {
+                    Toast.makeText(context, R.string.common_export_failed, Toast.LENGTH_SHORT).show()
                 }
             }
         }
-        pendingJson = null
+        pendingExportTarget = null
     }
 
     LaunchedEffect(Unit) {
-        viewModel.exportData.collect { data ->
-            pendingJson = data.json
-            createDocumentLauncher.launch(data.fileName)
+        viewModel.exportTarget.collect { target ->
+            pendingExportTarget = target
+            createDocumentLauncher.launch(target.fileName)
         }
     }
 

@@ -12,6 +12,7 @@ import org.json.JSONObject
 object FileUtils {
 
     const val KEY_SOLVE_LOGS = "solveLogs"
+    const val KEY_SUBFOLDERS = "subfolders"
     const val KEY_QUESTIONS = "questions"
 
     fun generateSolveLogJson(solveLog: SolveLog, questions: List<Question>): String {
@@ -47,10 +48,20 @@ object FileUtils {
 
     fun generateFolderJson(
         folder: Folder,
-        logs: List<SolveLog>,
+        allFolders: List<Folder>,
+        allLogs: List<SolveLog>,
         logQuestionsMap: Map<Int, List<Question>>
     ): String {
-        val jsonObject = JSONObject().apply {
+        return folderToJsonObject(folder, allFolders, allLogs, logQuestionsMap).toString(4)
+    }
+
+    private fun folderToJsonObject(
+        folder: Folder,
+        allFolders: List<Folder>,
+        allLogs: List<SolveLog>,
+        logQuestionsMap: Map<Int, List<Question>>
+    ): JSONObject {
+        return JSONObject().apply {
             put(DBKeys.KEY_ID, folder.id)
             put(DBKeys.KEY_NAME, folder.name)
             put(DBKeys.KEY_CREATED_AT, folder.createdAt)
@@ -58,13 +69,18 @@ object FileUtils {
             put(DBKeys.KEY_PARENT_FOLDER_ID, folder.parentFolderId)
 
             val logsArray = JSONArray()
-            logs.forEach { log ->
+            allLogs.filter { it.folderId == folder.id }.forEach { log ->
                 val questions = logQuestionsMap[log.id] ?: emptyList()
                 logsArray.put(solveLogToJsonObject(log, questions))
             }
             put(KEY_SOLVE_LOGS, logsArray)
+
+            val subfoldersArray = JSONArray()
+            allFolders.filter { it.parentFolderId == folder.id }.forEach { subfolder ->
+                subfoldersArray.put(folderToJsonObject(subfolder, allFolders, allLogs, logQuestionsMap))
+            }
+            put(KEY_SUBFOLDERS, subfoldersArray)
         }
-        return jsonObject.toString(4)
     }
 
     /**
