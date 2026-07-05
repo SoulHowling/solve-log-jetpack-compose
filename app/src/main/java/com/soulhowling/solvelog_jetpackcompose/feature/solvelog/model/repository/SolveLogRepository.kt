@@ -35,6 +35,10 @@ class SolveLogRepository(private val solveLogDao: SolveLogDao) {
         return solveLogDao.getSolveLog(id)
     }
 
+    suspend fun getSolveLogListBy(folderId: Int): List<SolveLog> {
+        return solveLogDao.getSolveLogListBy(folderId)
+    }
+
     suspend fun insertSolveLog(solveLog: SolveLog) {
         solveLogDao.insert(solveLog)
     }

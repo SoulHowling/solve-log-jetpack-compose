@@ -1,0 +1,112 @@
+package com.soulhowling.solvelog_jetpackcompose.utils
+
+import android.content.Context
+import android.net.Uri
+import com.soulhowling.solvelog_jetpackcompose.core.database.DBKeys
+import com.soulhowling.solvelog_jetpackcompose.feature.solvelog.model.entity.Folder
+import com.soulhowling.solvelog_jetpackcompose.feature.solvelog.model.entity.Question
+import com.soulhowling.solvelog_jetpackcompose.feature.solvelog.model.entity.SolveLog
+import org.json.JSONArray
+import org.json.JSONObject
+
+object FileUtils {
+
+    const val KEY_SOLVE_LOGS = "solveLogs"
+    const val KEY_QUESTIONS = "questions"
+
+    fun generateSolveLogJson(solveLog: SolveLog, questions: List<Question>): String {
+        return solveLogToJsonObject(solveLog, questions).toString(4)
+    }
+
+    private fun solveLogToJsonObject(solveLog: SolveLog, questions: List<Question>): JSONObject {
+        return JSONObject().apply {
+            put(DBKeys.KEY_ID, solveLog.id)
+            put(DBKeys.KEY_NAME, solveLog.name)
+            put(DBKeys.KEY_QUESTION_QUANTITY, solveLog.questionQuantity)
+            put(DBKeys.KEY_SELECTION_TYPE, solveLog.selectionType)
+            put(DBKeys.KEY_SELECTION_QUANTITY, solveLog.selectionQuantity)
+            put(DBKeys.KEY_ATTEMPT_COUNT, solveLog.attemptCount)
+            put(DBKeys.KEY_CREATED_AT, solveLog.createdAt)
+            put(DBKeys.KEY_UPDATED_AT, solveLog.updatedAt)
+            put(DBKeys.KEY_FOLDER_ID, solveLog.folderId)
+
+            val questionsArray = JSONArray()
+            questions.forEach { question ->
+                questionsArray.put(JSONObject().apply {
+                    put(DBKeys.KEY_ID, question.id)
+                    put(DBKeys.KEY_ATTEMPT, question.attempt)
+                    put(DBKeys.KEY_QUESTION_INDEX, question.questionIndex)
+                    put(DBKeys.KEY_SELECTED_ANSWER, question.selectedAnswer)
+                    put(DBKeys.KEY_CORRECTNESS, question.correctness)
+                    put(DBKeys.KEY_IS_FLAG, question.isFlag)
+                })
+            }
+            put(KEY_QUESTIONS, questionsArray)
+        }
+    }
+
+    fun generateFolderJson(
+        folder: Folder,
+        logs: List<SolveLog>,
+        logQuestionsMap: Map<Int, List<Question>>
+    ): String {
+        val jsonObject = JSONObject().apply {
+            put(DBKeys.KEY_ID, folder.id)
+            put(DBKeys.KEY_NAME, folder.name)
+            put(DBKeys.KEY_CREATED_AT, folder.createdAt)
+            put(DBKeys.KEY_UPDATED_AT, folder.updatedAt)
+            put(DBKeys.KEY_PARENT_FOLDER_ID, folder.parentFolderId)
+
+            val logsArray = JSONArray()
+            logs.forEach { log ->
+                val questions = logQuestionsMap[log.id] ?: emptyList()
+                logsArray.put(solveLogToJsonObject(log, questions))
+            }
+            put(KEY_SOLVE_LOGS, logsArray)
+        }
+        return jsonObject.toString(4)
+    }
+
+    /**
+     * すべてのデータをJSON形式の文字列に変換する
+     */
+    fun generateAllDataJson(
+        folders: List<Folder>,
+        logs: List<SolveLog>,
+        logQuestionsMap: Map<Int, List<Question>>
+    ): String {
+        val jsonObject = JSONObject().apply {
+            val foldersArray = JSONArray()
+            folders.forEach { folder ->
+                foldersArray.put(JSONObject().apply {
+                    put(DBKeys.KEY_ID, folder.id)
+                    put(DBKeys.KEY_NAME, folder.name)
+                    put(DBKeys.KEY_CREATED_AT, folder.createdAt)
+                    put(DBKeys.KEY_UPDATED_AT, folder.updatedAt)
+                    put(DBKeys.KEY_PARENT_FOLDER_ID, folder.parentFolderId)
+                })
+            }
+            put("folders", foldersArray)
+
+            val logsArray = JSONArray()
+            logs.forEach { log ->
+                val questions = logQuestionsMap[log.id] ?: emptyList()
+                logsArray.put(solveLogToJsonObject(log, questions))
+            }
+            put(KEY_SOLVE_LOGS, logsArray)
+        }
+        return jsonObject.toString(4)
+    }
+
+    fun writeTextToUri(context: Context, uri: Uri, text: String): Boolean {
+        return try {
+            context.contentResolver.openOutputStream(uri)?.use { outputStream ->
+                outputStream.write(text.toByteArray())
+                true
+            } ?: false
+        } catch (e: Exception) {
+            LogUtils.e("Failed to write text to Uri: ${e.message}")
+            false
+        }
+    }
+}

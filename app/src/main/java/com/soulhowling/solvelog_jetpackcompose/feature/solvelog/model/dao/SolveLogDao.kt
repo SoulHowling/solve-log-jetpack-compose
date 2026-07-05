@@ -12,6 +12,9 @@ interface SolveLogDao: BaseDao<SolveLog> {
 
     @Query("SELECT * FROM solve_log WHERE id = :id")
     fun getSolveLog(id: Int): Flow<SolveLog?>
+    
+    @Query("SELECT * FROM solve_log WHERE folderId = :folderId")
+    suspend fun getSolveLogListBy(folderId: Int): List<SolveLog>
 
     @Query("SELECT * FROM solve_log")
     fun getAllSolveLogs(): Flow<List<SolveLog>>

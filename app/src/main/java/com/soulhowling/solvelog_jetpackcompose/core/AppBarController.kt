@@ -10,5 +10,9 @@ interface AppBarController {
 }
 
 val LocalAppBarController = staticCompositionLocalOf<AppBarController> {
-    error("No AppBarController provided")
+    object : AppBarController {
+        override fun setTitle(title: String?) {}
+        override fun setActions(actions: (@Composable () -> Unit)?) {}
+        override fun setBottomBarVisible(visible: Boolean) {}
+    }
 }
