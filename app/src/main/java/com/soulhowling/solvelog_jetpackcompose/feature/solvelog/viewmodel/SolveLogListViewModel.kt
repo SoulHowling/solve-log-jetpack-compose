@@ -14,6 +14,7 @@ import com.soulhowling.solvelog_jetpackcompose.feature.solvelog.model.repository
 import com.soulhowling.solvelog_jetpackcompose.feature.solvelog.model.repository.QuestionRepository
 import com.soulhowling.solvelog_jetpackcompose.feature.solvelog.model.repository.SolveLogRepository
 import com.soulhowling.solvelog_jetpackcompose.utils.FileUtils
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted.Companion.WhileSubscribed
@@ -23,6 +24,7 @@ import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 
 sealed class SolveLogListItem {
     data class FolderItem(val folder: Folder) : SolveLogListItem()
@@ -189,8 +191,10 @@ class SolveLogListViewModel(application: Application) : AndroidViewModel(applica
 
     fun export(solveLog: SolveLog) {
         viewModelScope.launch {
-            val questions = questionRepository.getQuestionListBy(solveLog.id)
-            val jsonString = FileUtils.generateSolveLogJson(solveLog, questions)
+            val jsonString = withContext(Dispatchers.IO) {
+                val questions = questionRepository.getQuestionListBy(solveLog.id)
+                FileUtils.generateSolveLogJson(solveLog, questions)
+            }
             _exportData.emit(
                 ExportData(
                     fileName = "${solveLog.name}.json",
@@ -199,14 +203,16 @@ class SolveLogListViewModel(application: Application) : AndroidViewModel(applica
             )
         }
     }
-    
+
     fun export(folder: Folder) {
         viewModelScope.launch {
-            val solveLogs = solveLogRepository.getSolveLogListBy(folder.id)
-            val logQuestionsMap = solveLogs.associate { log ->
-                log.id to questionRepository.getQuestionListBy(log.id)
+            val jsonString = withContext(Dispatchers.IO) {
+                val solveLogs = solveLogRepository.getSolveLogListBy(folder.id)
+                val logQuestionsMap = solveLogs.associate { log ->
+                    log.id to questionRepository.getQuestionListBy(log.id)
+                }
+                FileUtils.generateFolderJson(folder, solveLogs, logQuestionsMap)
             }
-            val jsonString = FileUtils.generateFolderJson(folder, solveLogs, logQuestionsMap)
             _exportData.emit(
                 ExportData(
                     fileName = "${folder.name}.json",
@@ -215,15 +221,17 @@ class SolveLogListViewModel(application: Application) : AndroidViewModel(applica
             )
         }
     }
-    
+
     fun exportAll() {
         viewModelScope.launch {
-            val folders = folders.first()
-            val logs = allSolveLogs.first()
-            val logQuestionsMap = logs.associate { log ->
-                log.id to questionRepository.getQuestionListBy(log.id)
+            val jsonString = withContext(Dispatchers.IO) {
+                val folders = folders.first()
+                val logs = allSolveLogs.first()
+                val logQuestionsMap = logs.associate { log ->
+                    log.id to questionRepository.getQuestionListBy(log.id)
+                }
+                FileUtils.generateAllDataJson(folders, logs, logQuestionsMap)
             }
-            val jsonString = FileUtils.generateAllDataJson(folders, logs, logQuestionsMap)
             _exportData.emit(
                 ExportData(
                     fileName = "solve_log_backup.json",
