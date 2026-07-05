@@ -111,9 +111,11 @@ fun SolveLogListScreen(
         if (uri != null) {
             viewModel.performExport(uri, target) { success ->
                 if (success) {
-                    Toast.makeText(context, R.string.common_export_success, Toast.LENGTH_SHORT).show()
+                    Toast.makeText(context, R.string.common_export_success, Toast.LENGTH_SHORT)
+                        .show()
                 } else {
-                    Toast.makeText(context, R.string.common_export_failed, Toast.LENGTH_SHORT).show()
+                    Toast.makeText(context, R.string.common_export_failed, Toast.LENGTH_SHORT)
+                        .show()
                 }
             }
         }
@@ -146,8 +148,8 @@ fun SolveLogListScreen(
             }
             DropdownMenu(
                 modifier = Modifier
-                    .background(MaterialTheme.colorScheme.background)
-                    .clip(RoundedCornerShape(16.dp)),
+                    .clip(RoundedCornerShape(16.dp))
+                    .background(MaterialTheme.colorScheme.background),
                 expanded = isExpanded,
                 onDismissRequest = { isExpanded = false }
             ) {

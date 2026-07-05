@@ -38,10 +38,14 @@ sealed class ExportTarget : java.io.Serializable {
     object All : ExportTarget()
 
     val fileName: String
-        get() = when (this) {
-            is Log -> "$name.json"
-            is Folder -> "$name.json"
-            is All -> "solve_log_backup.json"
+        get() {
+            val baseName = when (this) {
+                is Log -> name
+                is Folder -> name
+                is All -> "solve_log_backup"
+            }
+            val safeName = baseName.replace(Regex("[\\\\/:*?\"<>|]"), "_")
+            return "$safeName.json"
         }
 }
 
@@ -231,7 +235,6 @@ class SolveLogListViewModel(application: Application) : AndroidViewModel(applica
                             val folder = allFolders.find { it.id == target.id } ?: return@withContext false
                             val allLogs = solveLogRepository.allSolveLogs.first()
 
-                            // 再帰的に含めるフォルダIDを収集
                             val descendantFolderIds = mutableSetOf<Int>()
                             fun collectFolderIds(id: Int) {
                                 if (descendantFolderIds.add(id)) {
@@ -240,19 +243,21 @@ class SolveLogListViewModel(application: Application) : AndroidViewModel(applica
                             }
                             collectFolderIds(target.id)
 
-                            // 対象となるログの質問情報を取得
                             val logsToExport = allLogs.filter { it.folderId in descendantFolderIds }
-                            val logQuestionsMap = logsToExport.associate { log ->
-                                log.id to questionRepository.getQuestionListBy(log.id)
-                            }
+                            val logIds = logsToExport.map { it.id }
+                            val allQuestions = questionRepository.getQuestionsBySolveLogIds(logIds)
+                            val logQuestionsMap = allQuestions.groupBy { it.solveLogId }
+
                             FileUtils.generateFolderJson(folder, allFolders, allLogs, logQuestionsMap)
                         }
                         is ExportTarget.All -> {
                             val folders = folderRepository.allFolders.first()
                             val logs = solveLogRepository.allSolveLogs.first()
-                            val logQuestionsMap = logs.associate { log ->
-                                log.id to questionRepository.getQuestionListBy(log.id)
-                            }
+
+                            val logIds = logs.map { it.id }
+                            val allQuestions = questionRepository.getQuestionsBySolveLogIds(logIds)
+                            val logQuestionsMap = allQuestions.groupBy { it.solveLogId }
+
                             FileUtils.generateAllDataJson(folders, logs, logQuestionsMap)
                         }
                     }

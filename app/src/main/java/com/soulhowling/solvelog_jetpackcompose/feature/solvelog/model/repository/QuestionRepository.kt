@@ -71,4 +71,8 @@ class QuestionRepository(private val questionDao: QuestionDao) {
         questionDao.decrementAttemptIndices(solveLogId, attempt)
     }
 
+    suspend fun getQuestionsBySolveLogIds(solveLogIds: List<Int>): List<Question> {
+        return questionDao.getQuestionsBySolveLogIds(solveLogIds)
+    }
+
 }

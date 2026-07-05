@@ -14,9 +14,11 @@ object FileUtils {
     const val KEY_SOLVE_LOGS = "solveLogs"
     const val KEY_SUBFOLDERS = "subfolders"
     const val KEY_QUESTIONS = "questions"
+    const val KEY_FOLDERS = "folders"
+    const val INDENT_SPACE = 4
 
     fun generateSolveLogJson(solveLog: SolveLog, questions: List<Question>): String {
-        return solveLogToJsonObject(solveLog, questions).toString(4)
+        return solveLogToJsonObject(solveLog, questions).toString(INDENT_SPACE)
     }
 
     private fun solveLogToJsonObject(solveLog: SolveLog, questions: List<Question>): JSONObject {
@@ -52,7 +54,7 @@ object FileUtils {
         allLogs: List<SolveLog>,
         logQuestionsMap: Map<Int, List<Question>>
     ): String {
-        return folderToJsonObject(folder, allFolders, allLogs, logQuestionsMap).toString(4)
+        return folderToJsonObject(folder, allFolders, allLogs, logQuestionsMap).toString(INDENT_SPACE)
     }
 
     private fun folderToJsonObject(
@@ -83,9 +85,6 @@ object FileUtils {
         }
     }
 
-    /**
-     * すべてのデータをJSON形式の文字列に変換する
-     */
     fun generateAllDataJson(
         folders: List<Folder>,
         logs: List<SolveLog>,
@@ -102,7 +101,7 @@ object FileUtils {
                     put(DBKeys.KEY_PARENT_FOLDER_ID, folder.parentFolderId)
                 })
             }
-            put("folders", foldersArray)
+            put(KEY_FOLDERS, foldersArray)
 
             val logsArray = JSONArray()
             logs.forEach { log ->
@@ -111,13 +110,13 @@ object FileUtils {
             }
             put(KEY_SOLVE_LOGS, logsArray)
         }
-        return jsonObject.toString(4)
+        return jsonObject.toString(INDENT_SPACE)
     }
 
     fun writeTextToUri(context: Context, uri: Uri, text: String): Boolean {
         return try {
             context.contentResolver.openOutputStream(uri)?.use { outputStream ->
-                outputStream.write(text.toByteArray())
+                outputStream.write(text.toByteArray(Charsets.UTF_8))
                 true
             } ?: false
         } catch (e: Exception) {
