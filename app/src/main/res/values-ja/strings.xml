@@ -1,8 +1,9 @@
 <resources>
-    <string name="app_name">SolveLog-JetpackCompose</string>
+    <string name="app_name">SolveLog</string>
 
     <!-- Common -->
-    <string name="common_dialog_confirm_button">追加</string>
+    <string name="common_dialog_add_button">追加</string>
+    <string name="common_dialog_update_button">更新</string>
     <string name="common_dialog_cancel_button">キャンセル</string>
     <string name="common_export_success">エクスポートに成功しました</string>
     <string name="common_export_failed">エクスポートに失敗しました</string>
@@ -23,6 +24,7 @@
     <string name="log_list_move_success">移動しました</string>
     <string name="log_list_title_question_quantity">問題数: %1$d</string>
     <string name="log_list_title_attempt_count">試行回数: %1$d</string>
+    <string name="log_list_dropdown_menu_item_edit">編集</string>
     <string name="log_list_dropdown_menu_item_move">移動</string>
     <string name="log_list_dropdown_menu_item_delete">削除</string>
     <string name="log_list_dropdown_menu_item_export">エクスポート</string>
@@ -30,16 +32,17 @@
     <string name="log_list_add_folder_button">フォルダ</string>
     <string name="log_list_add_log_button">ログ</string>
     <string name="log_list_add_new_folder_title">新規フォルダーを作成</string>
+    <string name="log_list_edit_folder_title">フォルダを編集</string>
     <string name="log_list_label_folder_name">フォルダ名</string>
     <string name="log_list_placeholder_folder_name">例: 統計調査士</string>
     <string name="log_list_add_new_log_title">新しいログを追加</string>
+    <string name="log_list_edit_log_title">ログを編集</string>
     <string name="log_list_label_log_title">ログタイトル</string>
     <string name="log_list_placeholder_log_title">例: 統計調査士 2019年過去問</string>
     <string name="log_list_label_question_quantity">問題数</string>
     <string name="log_list_placeholder_question_quantity">1~1000</string>
     <string name="log_list_label_selection_type">選択肢の種類</string>
     <string name="log_list_label_selection_quantity">選択肢の数</string>
-    <string name="log_list_add_button">追加</string>
     <string name="log_list_dialog_move_to_folder_title">移動先を選択</string>
     <string name="log_list_dialog_move_here_button">ここに移動</string>
     <string name="log_list_root_folder">ルート</string>

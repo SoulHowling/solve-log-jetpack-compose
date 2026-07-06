@@ -451,6 +451,7 @@ fun CorrectIncorrectToggleButton(
                         modifier = Modifier
                             .weight(1f)
                             .fillMaxHeight()
+                            .align(Alignment.CenterVertically)
                             .clickable(
                                 interactionSource = remember { MutableInteractionSource() },
                                 indication = null

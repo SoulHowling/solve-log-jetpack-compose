@@ -18,4 +18,7 @@ interface BaseDao <T> {
 
     @Delete
     suspend fun delete(entity: T)
+
+    @Delete
+    suspend fun deleteAll(entities: List<T>)
 }

@@ -1,8 +1,9 @@
 <resources>
-    <string name="app_name">SolveLog-JetpackCompose</string>
+    <string name="app_name">SolveLog</string>
 
     <!-- Common -->
-    <string name="common_dialog_confirm_button">Add</string>
+    <string name="common_dialog_add_button">Add</string>
+    <string name="common_dialog_update_button">Update</string>
     <string name="common_dialog_cancel_button">Cancel</string>
     <string name="common_export_success">Exported successfully</string>
     <string name="common_export_failed">Export failed</string>
@@ -23,6 +24,7 @@
     <string name="log_list_move_success">Moved successfully</string>
     <string name="log_list_title_question_quantity">Questions: %1$d</string>
     <string name="log_list_title_attempt_count">Attempts: %1$d</string>
+    <string name="log_list_dropdown_menu_item_edit">Edit</string>
     <string name="log_list_dropdown_menu_item_move">Move</string>
     <string name="log_list_dropdown_menu_item_delete">Delete</string>
     <string name="log_list_dropdown_menu_item_export">Export</string>
@@ -30,16 +32,17 @@
     <string name="log_list_add_folder_button">Folder</string>
     <string name="log_list_add_log_button">Log</string>
     <string name="log_list_add_new_folder_title">Create New Folder</string>
+    <string name="log_list_edit_folder_title">Edit Folder</string>
     <string name="log_list_label_folder_name">Folder Name</string>
     <string name="log_list_placeholder_folder_name">e.g. Statistics Expert</string>
     <string name="log_list_add_new_log_title">Add New Log</string>
+    <string name="log_list_edit_log_title">Edit Log</string>
     <string name="log_list_label_log_title">Log Title</string>
     <string name="log_list_placeholder_log_title">e.g. Statistics Expert 2019 Past Questions</string>
     <string name="log_list_label_question_quantity">Number of Questions</string>
     <string name="log_list_placeholder_question_quantity">1~1000</string>
     <string name="log_list_label_selection_type">Selection Type</string>
     <string name="log_list_label_selection_quantity">Number of Selections</string>
-    <string name="log_list_add_button">Add</string>
     <string name="log_list_dialog_move_to_folder_title">Select Destination</string>
     <string name="log_list_dialog_move_here_button">Move Here</string>
     <string name="log_list_root_folder">Root</string>
