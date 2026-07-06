@@ -756,7 +756,7 @@ private fun FolderAddDialog(
     onDismiss: () -> Unit,
     onConfirm: (String) -> Unit,
 ) {
-    var folderTitle by rememberSaveable { mutableStateOf(initialName) }
+    var folderTitle by rememberSaveable(initialName) { mutableStateOf(initialName) }
     AlertDialog(
         onDismissRequest = onDismiss,
         title = { Text(stringResource(titleResId)) },
@@ -867,15 +867,15 @@ private fun SolveLogAddContent(
     val itemKindList = SelectionType.entries.map { it.displayString }
     val itemQuantityList = SelectionQuantity.entries.map { it.displayString }
 
-    var selectedKind by rememberSaveable { mutableStateOf(initialSelectionType) }
-    var selectedQuantity by rememberSaveable { mutableStateOf(initialSelectionQuantity) }
+    var selectedKind by rememberSaveable(initialSelectionType) { mutableStateOf(initialSelectionType) }
+    var selectedQuantity by rememberSaveable(initialSelectionQuantity) { mutableStateOf(initialSelectionQuantity) }
 
     val isTrueFalseSelected = selectedKind == SelectionType.CORRECTNESS
 
     val sectionSpace = Dimensions.SPACING_MEDIUM
 
-    var logTitle by rememberSaveable { mutableStateOf(initialName) }
-    var questionQuantity by rememberSaveable {
+    var logTitle by rememberSaveable(initialName) { mutableStateOf(initialName) }
+    var questionQuantity by rememberSaveable(initialQuestionQuantity) {
         mutableStateOf(
             initialQuestionQuantity?.toString() ?: ""
         )
