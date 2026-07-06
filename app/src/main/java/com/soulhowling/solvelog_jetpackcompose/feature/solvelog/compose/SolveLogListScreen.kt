@@ -213,6 +213,12 @@ fun SolveLogListScreen(
                 Toast.LENGTH_SHORT
             ).show()
         },
+        onUpdateSolveLog = { log, name, quantity, selectionType, selectionQuantity ->
+            viewModel.updateSolveLog(log, name, quantity, selectionType, selectionQuantity)
+        },
+        onUpdateFolder = { folder, name ->
+            viewModel.updateFolder(folder, name)
+        },
         onExportLog = { log ->
             viewModel.export(log)
         },
@@ -236,6 +242,8 @@ private fun SolveLogListScreenContent(
     onDeleteFolder: (Folder) -> Unit,
     onMoveSolveLog: (SolveLog, Int?) -> Unit,
     onMoveFolder: (Folder, Int?) -> Unit,
+    onUpdateSolveLog: (SolveLog, String, Int, SelectionType, SelectionQuantity) -> Unit,
+    onUpdateFolder: (Folder, String) -> Unit,
     onExportLog: (SolveLog) -> Unit,
     onExportFolder: (Folder) -> Unit,
 ) {
@@ -258,6 +266,8 @@ private fun SolveLogListScreenContent(
 
     var movingLog by remember { mutableStateOf<SolveLog?>(null) }
     var movingFolder by remember { mutableStateOf<Folder?>(null) }
+    var editingLog by remember { mutableStateOf<SolveLog?>(null) }
+    var editingFolder by remember { mutableStateOf<Folder?>(null) }
 
     val isBottomBarVisible = LocalBottomBarVisibility.current
 
@@ -302,7 +312,8 @@ private fun SolveLogListScreenContent(
                                 onClick = { onSelectFolder(item.folder.id) },
                                 onDelete = { onDeleteFolder(item.folder) },
                                 onMove = { movingFolder = item.folder },
-                                onExportFolder = { onExportFolder(item.folder) }
+                                onExportFolder = { onExportFolder(item.folder) },
+                                onEdit = { editingFolder = item.folder }
                             )
                         }
 
@@ -314,7 +325,8 @@ private fun SolveLogListScreenContent(
                                 onClick = { onNavigateToViewer(item.log.id) },
                                 onDelete = { onDeleteSolveLog(item.log) },
                                 onMove = { movingLog = item.log },
-                                onExportLog = { onExportLog(item.log) }
+                                onExportLog = { onExportLog(item.log) },
+                                onEdit = { editingLog = item.log }
                             )
                         }
                     }
@@ -361,10 +373,39 @@ private fun SolveLogListScreenContent(
             )
         }
 
+        editingFolder?.let { folder ->
+            FolderAddDialog(
+                initialName = folder.name,
+                titleResId = R.string.log_list_edit_folder_title,
+                onDismiss = { editingFolder = null },
+                onConfirm = { name ->
+                    onUpdateFolder(folder, name)
+                    editingFolder = null
+                }
+            )
+        }
+
         if (isShownBottomSheet) {
             SolveLogAddBottomSheet(
                 onDismiss = { isShownBottomSheet = false },
-                onAddSolveLog = onAddSolveLog
+                onConfirm = { name, quantity, selectionType, selectionQuantity ->
+                    onAddSolveLog(name, quantity, selectionType, selectionQuantity)
+                }
+            )
+        }
+
+        editingLog?.let { log ->
+            SolveLogAddBottomSheet(
+                initialName = log.name,
+                initialQuestionQuantity = log.questionQuantity,
+                initialSelectionType = SelectionType.entries[log.selectionType],
+                initialSelectionQuantity = SelectionQuantity.entries[log.selectionQuantity],
+                titleResId = R.string.log_list_edit_log_title,
+                onDismiss = { editingLog = null },
+                onConfirm = { name, quantity, selectionType, selectionQuantity ->
+                    onUpdateSolveLog(log, name, quantity, selectionType, selectionQuantity)
+                    editingLog = null
+                }
             )
         }
 
@@ -400,6 +441,7 @@ private fun FolderItemCard(
     onDelete: () -> Unit,
     onMove: () -> Unit,
     onExportFolder: () -> Unit,
+    onEdit: () -> Unit,
 ) {
     Card(
         modifier = Modifier
@@ -433,6 +475,7 @@ private fun FolderItemCard(
                 onDelete = onDelete,
                 onMove = onMove,
                 onExport = onExportFolder,
+                onEdit = onEdit,
             )
         }
     }
@@ -447,6 +490,7 @@ private fun SolveLogItemCard(
     onDelete: () -> Unit,
     onMove: () -> Unit,
     onExportLog: () -> Unit,
+    onEdit: () -> Unit,
 ) {
     val attemptCountFormatText = stringResource(R.string.log_list_title_attempt_count)
     Card(
@@ -500,6 +544,7 @@ private fun SolveLogItemCard(
                 onDelete = onDelete,
                 onMove = onMove,
                 onExport = onExportLog,
+                onEdit = onEdit,
             )
         }
     }
@@ -510,6 +555,7 @@ private fun OverFlowMenu(
     onDelete: () -> Unit,
     onMove: () -> Unit,
     onExport: () -> Unit,
+    onEdit: () -> Unit,
 ) {
     var isExpanded by remember { mutableStateOf(false) }
     Box {
@@ -528,6 +574,19 @@ private fun OverFlowMenu(
             expanded = isExpanded,
             onDismissRequest = { isExpanded = false }
         ) {
+            DropdownMenuItem(
+                onClick = {
+                    onEdit()
+                    isExpanded = false
+                },
+                text = {
+                    Text(
+                        text = stringResource(R.string.log_list_dropdown_menu_item_edit),
+                        style = MaterialTheme.typography.titleMedium,
+                        modifier = Modifier
+                    )
+                }
+            )
             DropdownMenuItem(
                 onClick = {
                     onMove()
@@ -692,13 +751,15 @@ private fun NewActionButtons(
 
 @Composable
 private fun FolderAddDialog(
+    initialName: String = "",
+    titleResId: Int = R.string.log_list_add_new_folder_title,
     onDismiss: () -> Unit,
     onConfirm: (String) -> Unit,
 ) {
-    var folderTitle by rememberSaveable { mutableStateOf("") }
+    var folderTitle by rememberSaveable { mutableStateOf(initialName) }
     AlertDialog(
         onDismissRequest = onDismiss,
-        title = { Text(stringResource(R.string.log_list_add_new_folder_title)) },
+        title = { Text(stringResource(titleResId)) },
         text = {
             FolderAddContent(
                 folderTitle = folderTitle,
@@ -755,8 +816,13 @@ private fun FolderAddContent(
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 private fun SolveLogAddBottomSheet(
+    initialName: String = "",
+    initialQuestionQuantity: Int? = null,
+    initialSelectionType: SelectionType = SelectionType.NUMBER,
+    initialSelectionQuantity: SelectionQuantity = SelectionQuantity.FOUR,
+    titleResId: Int = R.string.log_list_add_new_log_title,
     onDismiss: () -> Unit,
-    onAddSolveLog: (String, Int, SelectionType, SelectionQuantity) -> Unit
+    onConfirm: (String, Int, SelectionType, SelectionQuantity) -> Unit
 ) {
     val bottomSheetState = rememberModalBottomSheetState(
         skipPartiallyExpanded = true
@@ -767,8 +833,13 @@ private fun SolveLogAddBottomSheet(
         sheetState = bottomSheetState,
     ) {
         SolveLogAddContent(
+            initialName = initialName,
+            initialQuestionQuantity = initialQuestionQuantity,
+            initialSelectionType = initialSelectionType,
+            initialSelectionQuantity = initialSelectionQuantity,
+            titleResId = titleResId,
             onDismiss = onDismiss,
-            onAddSolveLog = onAddSolveLog
+            onConfirm = onConfirm
         )
     }
 }
@@ -776,22 +847,27 @@ private fun SolveLogAddBottomSheet(
 
 @Composable
 private fun SolveLogAddContent(
+    initialName: String = "",
+    initialQuestionQuantity: Int? = null,
+    initialSelectionType: SelectionType = SelectionType.NUMBER,
+    initialSelectionQuantity: SelectionQuantity = SelectionQuantity.FOUR,
+    titleResId: Int = R.string.log_list_add_new_log_title,
     onDismiss: () -> Unit,
-    onAddSolveLog: (String, Int, SelectionType, SelectionQuantity) -> Unit
+    onConfirm: (String, Int, SelectionType, SelectionQuantity) -> Unit
 ) {
     val listState = rememberLazyListState()
     val itemKindList = SelectionType.entries.map { it.displayString }
     val itemQuantityList = SelectionQuantity.entries.map { it.displayString }
 
-    var selectedKind by rememberSaveable { mutableStateOf(SelectionType.NUMBER) }
-    var selectedQuantity by rememberSaveable { mutableStateOf(SelectionQuantity.FOUR) }
+    var selectedKind by rememberSaveable { mutableStateOf(initialSelectionType) }
+    var selectedQuantity by rememberSaveable { mutableStateOf(initialSelectionQuantity) }
 
     val isTrueFalseSelected = selectedKind == SelectionType.CORRECTNESS
 
     val sectionSpace = Dimensions.SPACING_MEDIUM
 
-    var logTitle by rememberSaveable { mutableStateOf("") }
-    var questionQuantity by rememberSaveable { mutableStateOf("") }
+    var logTitle by rememberSaveable { mutableStateOf(initialName) }
+    var questionQuantity by rememberSaveable { mutableStateOf(initialQuestionQuantity?.toString() ?: "") }
 
     LazyColumn(
         state = listState,
@@ -801,7 +877,7 @@ private fun SolveLogAddContent(
     ) {
         item {
             Text(
-                text = stringResource(R.string.log_list_add_new_log_title),
+                text = stringResource(titleResId),
                 style = MaterialTheme.typography.titleLarge,
                 modifier = Modifier
                     .fillMaxWidth()
@@ -877,7 +953,7 @@ private fun SolveLogAddContent(
             Spacer(modifier = Modifier.height(Dimensions.SPACING_MEDIUM))
             Button(
                 onClick = {
-                    onAddSolveLog(
+                    onConfirm(
                         logTitle,
                         questionQuantity.toIntOrZero(),
                         selectedKind,
@@ -891,7 +967,7 @@ private fun SolveLogAddContent(
                     questionQuantity = questionQuantity
                 )
             ) {
-                Text(stringResource(R.string.log_list_add_button))
+                Text(stringResource(if (initialName.isEmpty()) R.string.log_list_add_button else R.string.common_dialog_confirm_button))
             }
         }
 
@@ -1120,6 +1196,8 @@ private fun SolveLogListScreenContentPreview() {
             onDeleteFolder = {},
             onMoveSolveLog = { _, _ -> },
             onMoveFolder = { _, _ -> },
+            onUpdateSolveLog = { _, _, _, _, _ -> },
+            onUpdateFolder = { _, _ -> },
             onExportLog = {},
             onExportFolder = {}
         )
@@ -1132,7 +1210,7 @@ private fun SolveLogAddContentPreview() {
     SolveLogJetpackComposeTheme {
         SolveLogAddContent(
             onDismiss = {},
-            onAddSolveLog = { _, _, _, _ -> }
+            onConfirm = { _, _, _, _ -> }
         )
     }
 }

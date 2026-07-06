@@ -148,6 +148,47 @@ class SolveLogListViewModel(application: Application) : AndroidViewModel(applica
         }
     }
 
+    fun updateSolveLog(
+        solveLog: SolveLog,
+        name: String,
+        questionQuantity: Int,
+        selectionType: SelectionType,
+        selectionQuantity: SelectionQuantity
+    ) {
+        viewModelScope.launch {
+            database.withTransaction {
+                val updatedLog = solveLog.copy(
+                    name = name,
+                    questionQuantity = questionQuantity,
+                    selectionType = selectionType.index,
+                    selectionQuantity = selectionQuantity.index,
+                    updatedAt = System.currentTimeMillis()
+                )
+                solveLogRepository.upsertSolveLog(updatedLog)
+
+                if (questionQuantity != solveLog.questionQuantity) {
+                    val currentQuestions = questionRepository.getQuestionListBy(solveLog.id)
+                    if (questionQuantity > solveLog.questionQuantity) {
+                        val newQuestions = (solveLog.questionQuantity until questionQuantity).map { index ->
+                            questionRepository.createQuestion(
+                                attempt = 1,
+                                selectedAnswer = -1,
+                                questionIndex = index,
+                                correctness = Correctness.NONE.index,
+                                isFlag = false,
+                                solveLogId = solveLog.id
+                            )
+                        }
+                        questionRepository.insertQuestions(newQuestions)
+                    } else {
+                        val questionsToDelete = currentQuestions.filter { it.questionIndex >= questionQuantity }
+                        questionRepository.deleteQuestions(questionsToDelete)
+                    }
+                }
+            }
+        }
+    }
+
     fun deleteSolveLog(solveLog: SolveLog) {
         viewModelScope.launch {
             solveLogRepository.deleteSolveLog(solveLog)
@@ -161,6 +202,16 @@ class SolveLogListViewModel(application: Application) : AndroidViewModel(applica
                 parentFolderId = _currentFolderId.value
             )
             folderRepository.insertFolder(folder)
+        }
+    }
+
+    fun updateFolder(folder: Folder, name: String) {
+        viewModelScope.launch {
+            val updatedFolder = folder.copy(
+                name = name,
+                updatedAt = System.currentTimeMillis()
+            )
+            folderRepository.upsertFolder(updatedFolder)
         }
     }
 

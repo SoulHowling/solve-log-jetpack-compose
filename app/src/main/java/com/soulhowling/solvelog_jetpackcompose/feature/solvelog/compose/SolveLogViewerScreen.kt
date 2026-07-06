@@ -450,9 +450,7 @@ fun SolveLogViewerScreenContent(
                                         .fillMaxSize()
                                         .padding(8.dp)
                                         .background(
-                                            color = MaterialTheme.colorScheme.outlineVariant.copy(
-                                                alpha = 0.2f
-                                            ),
+                                            color = MaterialTheme.colorScheme.surfaceContainerHigh,
                                             shape = MaterialTheme.shapes.small
                                         ),
                                     verticalAlignment = Alignment.CenterVertically,
@@ -619,7 +617,7 @@ fun AttemptHeader(
             text = stringResource(R.string.log_viewer_header_attempt, attemptNumber),
             style = MaterialTheme.typography.titleSmall,
             fontWeight = FontWeight.Bold,
-            color = MaterialTheme.colorScheme.primary
+            color = MaterialTheme.colorScheme.onPrimaryContainer
         )
     }
 }
@@ -727,7 +725,7 @@ fun SolveLogRowItem(
             .clip(shape = MaterialTheme.shapes.small)
             .background(
                 if (isError) MaterialTheme.colorScheme.errorContainer.copy(alpha = 0.3f)
-                else MaterialTheme.colorScheme.surfaceContainer
+                else MaterialTheme.colorScheme.surfaceContainerHigh
             ),
         verticalAlignment = Alignment.CenterVertically
     ) {

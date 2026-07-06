@@ -55,6 +55,10 @@ class QuestionRepository(private val questionDao: QuestionDao) {
         questionDao.delete(question)
     }
 
+    suspend fun deleteQuestions(questions: List<Question>) {
+        questionDao.deleteAll(questions)
+    }
+
     suspend fun deleteQuestionByIndex(solveLogId: Int, questionIndex: Int) {
         questionDao.deleteQuestionByIndex(solveLogId, questionIndex)
     }
