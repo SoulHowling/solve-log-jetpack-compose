@@ -398,8 +398,8 @@ private fun SolveLogListScreenContent(
             SolveLogAddBottomSheet(
                 initialName = log.name,
                 initialQuestionQuantity = log.questionQuantity,
-                initialSelectionType = SelectionType.entries[log.selectionType],
-                initialSelectionQuantity = SelectionQuantity.entries[log.selectionQuantity],
+                initialSelectionType = SelectionType.entries.getOrElse(log.selectionType) { SelectionType.NUMBER },
+                initialSelectionQuantity = SelectionQuantity.entries.getOrElse(log.selectionQuantity) { SelectionQuantity.FOUR },
                 titleResId = R.string.log_list_edit_log_title,
                 onDismiss = { editingLog = null },
                 onConfirm = { name, quantity, selectionType, selectionQuantity ->
@@ -775,7 +775,15 @@ private fun FolderAddDialog(
                     onConfirm(folderTitle)
                 }
             ) {
-                Text(stringResource(R.string.common_dialog_confirm_button))
+                Text(
+                    stringResource(
+                        if (initialName.isEmpty()) {
+                            R.string.common_dialog_add_button
+                        } else {
+                            R.string.common_dialog_update_button
+                        }
+                    )
+                )
             }
         },
         dismissButton = {
@@ -867,7 +875,11 @@ private fun SolveLogAddContent(
     val sectionSpace = Dimensions.SPACING_MEDIUM
 
     var logTitle by rememberSaveable { mutableStateOf(initialName) }
-    var questionQuantity by rememberSaveable { mutableStateOf(initialQuestionQuantity?.toString() ?: "") }
+    var questionQuantity by rememberSaveable {
+        mutableStateOf(
+            initialQuestionQuantity?.toString() ?: ""
+        )
+    }
 
     LazyColumn(
         state = listState,
@@ -967,7 +979,15 @@ private fun SolveLogAddContent(
                     questionQuantity = questionQuantity
                 )
             ) {
-                Text(stringResource(if (initialName.isEmpty()) R.string.log_list_add_button else R.string.common_dialog_confirm_button))
+                Text(
+                    stringResource(
+                        if (initialName.isEmpty()) {
+                            R.string.common_dialog_add_button
+                        } else {
+                            R.string.common_dialog_update_button
+                        }
+                    )
+                )
             }
         }
 

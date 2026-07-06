@@ -169,15 +169,17 @@ class SolveLogListViewModel(application: Application) : AndroidViewModel(applica
                 if (questionQuantity != solveLog.questionQuantity) {
                     val currentQuestions = questionRepository.getQuestionListBy(solveLog.id)
                     if (questionQuantity > solveLog.questionQuantity) {
-                        val newQuestions = (solveLog.questionQuantity until questionQuantity).map { index ->
-                            questionRepository.createQuestion(
-                                attempt = 1,
-                                selectedAnswer = -1,
-                                questionIndex = index,
-                                correctness = Correctness.NONE.index,
-                                isFlag = false,
-                                solveLogId = solveLog.id
-                            )
+                        val newQuestions = (1..solveLog.attemptCount).flatMap { attempt ->
+                            (solveLog.questionQuantity until questionQuantity).map { index ->
+                                questionRepository.createQuestion(
+                                    attempt = attempt,
+                                    selectedAnswer = -1,
+                                    questionIndex = index,
+                                    correctness = Correctness.NONE.index,
+                                    isFlag = false,
+                                    solveLogId = solveLog.id
+                                )
+                            }
                         }
                         questionRepository.insertQuestions(newQuestions)
                     } else {

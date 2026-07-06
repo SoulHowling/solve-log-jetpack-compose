@@ -2,7 +2,8 @@
     <string name="app_name">SolveLog</string>
 
     <!-- Common -->
-    <string name="common_dialog_confirm_button">Add</string>
+    <string name="common_dialog_add_button">Add</string>
+    <string name="common_dialog_update_button">Update</string>
     <string name="common_dialog_cancel_button">Cancel</string>
     <string name="common_export_success">Exported successfully</string>
     <string name="common_export_failed">Export failed</string>
@@ -42,7 +43,6 @@
     <string name="log_list_placeholder_question_quantity">1~1000</string>
     <string name="log_list_label_selection_type">Selection Type</string>
     <string name="log_list_label_selection_quantity">Number of Selections</string>
-    <string name="log_list_add_button">Add</string>
     <string name="log_list_dialog_move_to_folder_title">Select Destination</string>
     <string name="log_list_dialog_move_here_button">Move Here</string>
     <string name="log_list_root_folder">Root</string>
