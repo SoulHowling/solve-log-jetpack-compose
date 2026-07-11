@@ -9,13 +9,9 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.KeyboardArrowRight
-import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.ListItem
-import androidx.compose.material3.SegmentedButton
-import androidx.compose.material3.SegmentedButtonDefaults
-import androidx.compose.material3.SingleChoiceSegmentedButtonRow
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
@@ -29,6 +25,7 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import com.soulhowling.solvelog_jetpackcompose.ui.theme.SolveLogJetpackComposeTheme
 import com.soulhowling.solvelog_jetpackcompose.ui.theme.ThemeMode
 import com.soulhowling.solvelog_jetpackcompose.utils.LogUtils
+import com.soulhowling.solvelog_jetpackcompose.utils.compose.SingleChoiceSegmentedButton
 
 @Composable
 fun SettingScreen(
@@ -41,7 +38,6 @@ fun SettingScreen(
     )
 }
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun SettingScreenContent(
     themeMode: ThemeMode,
@@ -55,6 +51,7 @@ fun SettingScreenContent(
             SettingItem.AboutThisApp
         )
     }
+    val themeModeList: List<String> = ThemeMode.entries.map { stringResource(it.labelResId) }
 
     LazyColumn(modifier = Modifier.fillMaxSize()) {
         items(settingsOptions) { option ->
@@ -62,28 +59,21 @@ fun SettingScreenContent(
                 is SettingItem.AppTheme -> {
                     SettingItem(
                         titleResId = option.titleResId,
-                        onClick = { /* 行全体をクリックしても何もしない、またはボタンと同じ処理 */ },
+                        onClick = { /* nop */ },
                         supportingContent = {
-                            SingleChoiceSegmentedButtonRow(
+                            SingleChoiceSegmentedButton(
                                 modifier = Modifier
                                     .fillMaxWidth()
-                                    .padding(top = 8.dp)
-                            ) {
-                                ThemeMode.entries.forEachIndexed { index, mode ->
-                                    SegmentedButton(
-                                        shape = SegmentedButtonDefaults.itemShape(
-                                            index = index,
-                                            count = ThemeMode.entries.size
-                                        ),
-                                        onClick = {
-                                            onThemeModeChange(mode)
-                                            LogUtils.d("テーマ設定変更: $mode")
-                                        },
-                                        selected = themeMode == mode,
-                                        label = { Text(stringResource(mode.labelResId)) }
-                                    )
-                                }
-                            }
+                                    .padding(top = 8.dp),
+                                itemList = themeModeList,
+                                selectedIndex = ThemeMode.entries.indexOf(themeMode),
+                                onSelectedIndexChange = { index ->
+                                    val mode = ThemeMode.entries[index]
+                                    onThemeModeChange(mode)
+                                    LogUtils.d("テーマ設定変更: $mode")
+                                },
+                                isEnabled = true
+                            )
                         }
                     )
                 }

@@ -21,7 +21,6 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
@@ -29,7 +28,6 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.automirrored.filled.Assignment
@@ -38,26 +36,16 @@ import androidx.compose.material.icons.filled.CreateNewFolder
 import androidx.compose.material.icons.filled.Folder
 import androidx.compose.material.icons.filled.MoreVert
 import androidx.compose.material.icons.filled.PostAdd
-import androidx.compose.material3.AlertDialog
-import androidx.compose.material3.Button
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
-import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.ModalBottomSheet
-import androidx.compose.material3.SegmentedButton
-import androidx.compose.material3.SegmentedButtonDefaults
-import androidx.compose.material3.SingleChoiceSegmentedButtonRow
 import androidx.compose.material3.SmallFloatingActionButton
 import androidx.compose.material3.Text
-import androidx.compose.material3.TextButton
-import androidx.compose.material3.TextField
-import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -73,8 +61,6 @@ import androidx.compose.ui.draw.rotate
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.text.input.KeyboardType
-import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
@@ -104,7 +90,7 @@ fun SolveLogListScreen(
     val context = LocalContext.current
 
     var pendingExportTarget by rememberSaveable { mutableStateOf<ExportTarget?>(null) }
-    val createDocumentLauncher = rememberLauncherForActivityResult(
+    val exportDocumentLauncher = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.CreateDocument("application/json")
     ) { uri: Uri? ->
         val target = pendingExportTarget ?: return@rememberLauncherForActivityResult
@@ -122,10 +108,26 @@ fun SolveLogListScreen(
         pendingExportTarget = null
     }
 
+    val importDocumentLauncher = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.OpenDocument()
+    ) { uri: Uri? ->
+        if (uri != null) {
+            viewModel.performImport(uri) { success ->
+                if (success) {
+                    Toast.makeText(context, R.string.common_import_success, Toast.LENGTH_SHORT)
+                        .show()
+                } else {
+                    Toast.makeText(context, R.string.common_import_failed, Toast.LENGTH_SHORT)
+                        .show()
+                }
+            }
+        }
+    }
+
     LaunchedEffect(Unit) {
         viewModel.exportTarget.collect { target ->
             pendingExportTarget = target
-            createDocumentLauncher.launch(target.fileName)
+            exportDocumentLauncher.launch(target.fileName)
         }
     }
 
@@ -161,6 +163,19 @@ fun SolveLogListScreen(
                     text = {
                         Text(
                             text = stringResource(R.string.log_list_dropdown_menu_item_all_export),
+                            style = MaterialTheme.typography.titleMedium,
+                            modifier = Modifier
+                        )
+                    }
+                )
+                DropdownMenuItem(
+                    onClick = {
+                        importDocumentLauncher.launch(arrayOf("application/json", "application/octet-stream", "*/*"))
+                        isExpanded = false
+                    },
+                    text = {
+                        Text(
+                            text = stringResource(R.string.log_list_dropdown_menu_item_import),
                             style = MaterialTheme.typography.titleMedium,
                             modifier = Modifier
                         )
@@ -749,442 +764,6 @@ private fun NewActionButtons(
     }
 }
 
-@Composable
-private fun FolderAddDialog(
-    initialName: String = "",
-    titleResId: Int = R.string.log_list_add_new_folder_title,
-    onDismiss: () -> Unit,
-    onConfirm: (String) -> Unit,
-) {
-    var folderTitle by rememberSaveable(initialName) { mutableStateOf(initialName) }
-    AlertDialog(
-        onDismissRequest = onDismiss,
-        title = { Text(stringResource(titleResId)) },
-        text = {
-            FolderAddContent(
-                folderTitle = folderTitle,
-                onValueChanged = {
-                    folderTitle = it
-                }
-            )
-        },
-        confirmButton = {
-            TextButton(
-                enabled = folderTitle.isNotBlank(),
-                onClick = {
-                    onConfirm(folderTitle)
-                }
-            ) {
-                Text(
-                    stringResource(
-                        if (initialName.isEmpty()) {
-                            R.string.common_dialog_add_button
-                        } else {
-                            R.string.common_dialog_update_button
-                        }
-                    )
-                )
-            }
-        },
-        dismissButton = {
-            TextButton(
-                onClick = onDismiss
-            ) {
-                Text(stringResource(R.string.common_dialog_cancel_button))
-            }
-        }
-    )
-}
-
-@Composable
-private fun FolderAddContent(
-    folderTitle: String,
-    onValueChanged: (String) -> Unit,
-) {
-    Column(
-        verticalArrangement = Arrangement.spacedBy(Dimensions.SPACING_SMALL_MEDIUM),
-        horizontalAlignment = Alignment.Start
-    ) {
-        Text(
-            text = stringResource(R.string.log_list_label_folder_name),
-            modifier = Modifier.fillMaxWidth(),
-            textAlign = TextAlign.Start
-        )
-        TextField(
-            value = folderTitle,
-            onValueChange = {
-                onValueChanged(it)
-            },
-            placeholder = { Text(stringResource(R.string.log_list_placeholder_folder_name)) },
-            modifier = Modifier.fillMaxWidth()
-        )
-    }
-}
-
-@OptIn(ExperimentalMaterial3Api::class)
-@Composable
-private fun SolveLogAddBottomSheet(
-    initialName: String = "",
-    initialQuestionQuantity: Int? = null,
-    initialSelectionType: SelectionType = SelectionType.NUMBER,
-    initialSelectionQuantity: SelectionQuantity = SelectionQuantity.FOUR,
-    titleResId: Int = R.string.log_list_add_new_log_title,
-    onDismiss: () -> Unit,
-    onConfirm: (String, Int, SelectionType, SelectionQuantity) -> Unit
-) {
-    val bottomSheetState = rememberModalBottomSheetState(
-        skipPartiallyExpanded = true
-    )
-
-    ModalBottomSheet(
-        onDismissRequest = onDismiss,
-        sheetState = bottomSheetState,
-    ) {
-        SolveLogAddContent(
-            initialName = initialName,
-            initialQuestionQuantity = initialQuestionQuantity,
-            initialSelectionType = initialSelectionType,
-            initialSelectionQuantity = initialSelectionQuantity,
-            titleResId = titleResId,
-            onDismiss = onDismiss,
-            onConfirm = onConfirm
-        )
-    }
-}
-
-
-@Composable
-private fun SolveLogAddContent(
-    initialName: String = "",
-    initialQuestionQuantity: Int? = null,
-    initialSelectionType: SelectionType = SelectionType.NUMBER,
-    initialSelectionQuantity: SelectionQuantity = SelectionQuantity.FOUR,
-    titleResId: Int = R.string.log_list_add_new_log_title,
-    onDismiss: () -> Unit,
-    onConfirm: (String, Int, SelectionType, SelectionQuantity) -> Unit
-) {
-    val listState = rememberLazyListState()
-    val itemKindList = SelectionType.entries.map { it.displayString }
-    val itemQuantityList = SelectionQuantity.entries.map { it.displayString }
-
-    var selectedKind by rememberSaveable(initialSelectionType) { mutableStateOf(initialSelectionType) }
-    var selectedQuantity by rememberSaveable(initialSelectionQuantity) { mutableStateOf(initialSelectionQuantity) }
-
-    val isTrueFalseSelected = selectedKind == SelectionType.CORRECTNESS
-
-    val sectionSpace = Dimensions.SPACING_MEDIUM
-
-    var logTitle by rememberSaveable(initialName) { mutableStateOf(initialName) }
-    var questionQuantity by rememberSaveable(initialQuestionQuantity) {
-        mutableStateOf(
-            initialQuestionQuantity?.toString() ?: ""
-        )
-    }
-
-    LazyColumn(
-        state = listState,
-        modifier = Modifier
-            .fillMaxWidth()
-            .padding(horizontal = Dimensions.PADDING_MEDIUM)
-    ) {
-        item {
-            Text(
-                text = stringResource(titleResId),
-                style = MaterialTheme.typography.titleLarge,
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(vertical = Dimensions.PADDING_MEDIUM),
-                textAlign = TextAlign.Center
-            )
-        }
-
-        item {
-            Column(
-                modifier = Modifier.fillMaxWidth(),
-            ) {
-                Text(
-                    text = stringResource(R.string.log_list_label_log_title),
-                    style = MaterialTheme.typography.titleMedium,
-                )
-                TextField(
-                    value = logTitle,
-                    onValueChange = {
-                        logTitle = it
-                    },
-                    placeholder = { Text(stringResource(R.string.log_list_placeholder_log_title)) },
-                    modifier = Modifier.fillMaxWidth()
-                )
-                Spacer(modifier = Modifier.height(sectionSpace))
-
-                Text(
-                    text = stringResource(R.string.log_list_label_question_quantity),
-                    style = MaterialTheme.typography.titleMedium
-                )
-                TextField(
-                    value = questionQuantity,
-                    onValueChange = {
-                        questionQuantity = it
-                    },
-                    placeholder = { Text(stringResource(R.string.log_list_placeholder_question_quantity)) },
-                    modifier = Modifier.fillMaxWidth(),
-                    keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
-                    singleLine = true
-                )
-                Spacer(modifier = Modifier.height(sectionSpace))
-
-
-                Text(
-                    text = stringResource(R.string.log_list_label_selection_type),
-                    style = MaterialTheme.typography.titleMedium
-                )
-                SingleChoiceSegmentedButton(
-                    modifier = Modifier.fillMaxWidth(),
-                    itemList = itemKindList,
-                    selectedIndex = selectedKind.index,
-                    onSelectedIndexChange = { selectedKind = SelectionType.entries[it] },
-                    isEnabled = true
-                )
-                Spacer(modifier = Modifier.height(sectionSpace))
-
-
-                Text(
-                    text = stringResource(R.string.log_list_label_selection_quantity),
-                    style = MaterialTheme.typography.titleMedium
-                )
-                SingleChoiceSegmentedButton(
-                    modifier = Modifier.fillMaxWidth(),
-                    itemList = itemQuantityList,
-                    selectedIndex = if (isTrueFalseSelected) SelectionQuantity.TWO.index else selectedQuantity.index,
-                    onSelectedIndexChange = { selectedQuantity = SelectionQuantity.entries[it] },
-                    isEnabled = !isTrueFalseSelected
-                )
-            }
-        }
-
-        item {
-            Spacer(modifier = Modifier.height(Dimensions.SPACING_MEDIUM))
-            Button(
-                onClick = {
-                    onConfirm(
-                        logTitle,
-                        questionQuantity.toIntOrZero(),
-                        selectedKind,
-                        if (isTrueFalseSelected) SelectionQuantity.TWO else selectedQuantity
-                    )
-                    onDismiss()
-                },
-                modifier = Modifier.fillMaxWidth(),
-                enabled = isAddButtonEnabled(
-                    logTitle = logTitle,
-                    questionQuantity = questionQuantity
-                )
-            ) {
-                Text(
-                    stringResource(
-                        if (initialName.isEmpty()) {
-                            R.string.common_dialog_add_button
-                        } else {
-                            R.string.common_dialog_update_button
-                        }
-                    )
-                )
-            }
-        }
-
-        item {
-            Spacer(modifier = Modifier.height(Dimensions.SPACING_LARGE))
-        }
-    }
-}
-
-private fun isAddButtonEnabled(logTitle: String, questionQuantity: String): Boolean {
-    return logTitle.isNotBlank() && questionQuantity.isNotBlank() && questionQuantity.toIntOrZero() in 1..1000
-}
-
-private fun String.toIntOrZero(): Int {
-    return toIntOrNull() ?: 0
-}
-
-@Composable
-private fun SingleChoiceSegmentedButton(
-    modifier: Modifier = Modifier,
-    itemList: List<String>,
-    selectedIndex: Int,
-    onSelectedIndexChange: (Int) -> Unit,
-    isEnabled: Boolean
-) {
-    SingleChoiceSegmentedButtonRow(
-        modifier = modifier,
-    ) {
-        itemList.forEachIndexed { index, label ->
-            SegmentedButton(
-                enabled = isEnabled,
-                shape = SegmentedButtonDefaults.itemShape(
-                    index = index,
-                    count = itemList.size
-                ),
-                onClick = { onSelectedIndexChange(index) },
-                selected = index == selectedIndex,
-                label = { Text(label) }
-            )
-        }
-    }
-}
-
-@Composable
-private fun MoveToFolderDialog(
-    allFolders: List<Folder>,
-    excludeFolderId: Int? = null,
-    onDismiss: () -> Unit,
-    onConfirm: (Int?) -> Unit
-) {
-    var currentViewedFolderId by remember { mutableStateOf<Int?>(null) }
-
-    AlertDialog(
-        onDismissRequest = onDismiss,
-        title = { Text(stringResource(R.string.log_list_dialog_move_to_folder_title)) },
-        text = {
-            MoveToFolderContent(
-                allFolders = allFolders,
-                excludeFolderId = excludeFolderId,
-                currentViewedFolderId = currentViewedFolderId,
-                onViewFolder = { currentViewedFolderId = it }
-            )
-        },
-        confirmButton = {
-            TextButton(onClick = { onConfirm(currentViewedFolderId) }) {
-                Text(stringResource(R.string.log_list_dialog_move_here_button))
-            }
-        },
-        dismissButton = {
-            TextButton(onClick = onDismiss) {
-                Text(stringResource(R.string.common_dialog_cancel_button))
-            }
-        }
-    )
-}
-
-@Composable
-private fun MoveToFolderContent(
-    allFolders: List<Folder>,
-    excludeFolderId: Int?,
-    currentViewedFolderId: Int?,
-    onViewFolder: (Int?) -> Unit
-) {
-    val excludedIds = remember(allFolders, excludeFolderId) {
-        val ids = mutableSetOf<Int>()
-        if (excludeFolderId != null) {
-            ids.add(excludeFolderId)
-            var changed = true
-            while (changed) {
-                val count = ids.size
-                allFolders.forEach {
-                    if (it.parentFolderId in ids) {
-                        ids.add(it.id)
-                    }
-                }
-                changed = ids.size > count
-            }
-        }
-        ids
-    }
-
-    val availableFolders = allFolders.filter { it.id !in excludedIds }
-    val foldersToShow = availableFolders.filter { it.parentFolderId == currentViewedFolderId }
-
-    val rootFolderName = stringResource(R.string.log_list_root_folder)
-    val currentViewedFolderPath = remember(currentViewedFolderId, allFolders, rootFolderName) {
-        if (currentViewedFolderId == null) return@remember rootFolderName
-        val path = mutableListOf<String>()
-        val visited = mutableSetOf<Int>()
-        var current: Folder? = allFolders.find { it.id == currentViewedFolderId }
-        while (current != null && visited.add(current.id)) {
-            path.add(0, current.name)
-            current = allFolders.find { it.id == current.parentFolderId }
-        }
-        path.joinToString(" / ")
-    }
-
-    Column(
-        modifier = Modifier
-            .fillMaxWidth()
-            .height(300.dp)
-    ) {
-        // 現在のパス表示と戻るボタン
-        Row(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(vertical = 8.dp),
-            verticalAlignment = Alignment.CenterVertically
-        ) {
-            if (currentViewedFolderId != null) {
-                IconButton(onClick = {
-                    val parentId =
-                        allFolders.find { it.id == currentViewedFolderId }?.parentFolderId
-                    onViewFolder(parentId)
-                }) {
-                    Icon(
-                        Icons.AutoMirrored.Filled.ArrowBack,
-                        contentDescription = stringResource(R.string.log_list_cd_go_up)
-                    )
-                }
-            }
-            Text(
-                text = currentViewedFolderPath,
-                style = MaterialTheme.typography.titleMedium,
-                modifier = Modifier.padding(start = 8.dp)
-            )
-        }
-
-        LazyColumn(
-            modifier = Modifier.weight(1f)
-        ) {
-            items(
-                items = foldersToShow,
-                key = { it.id }
-            ) { folder ->
-                MoveToFolderItem(
-                    name = folder.name,
-                    onClick = { onViewFolder(folder.id) }
-                )
-            }
-
-            if (foldersToShow.isEmpty()) {
-                item {
-                    Text(
-                        text = stringResource(R.string.log_list_no_subfolders),
-                        modifier = Modifier.padding(16.dp),
-                        style = MaterialTheme.typography.bodyMedium,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant
-                    )
-                }
-            }
-        }
-    }
-}
-
-@Composable
-private fun MoveToFolderItem(
-    name: String,
-    onClick: () -> Unit
-) {
-    Row(
-        modifier = Modifier
-            .fillMaxWidth()
-            .clickable { onClick() }
-            .padding(vertical = 12.dp, horizontal = 8.dp),
-        verticalAlignment = Alignment.CenterVertically
-    ) {
-        Icon(
-            Icons.Default.Folder,
-            contentDescription = null,
-            tint = MaterialTheme.colorScheme.secondary
-        )
-        Spacer(modifier = Modifier.width(12.dp))
-        Text(text = name, style = MaterialTheme.typography.bodyLarge)
-    }
-}
-
 @Preview(showBackground = true)
 @Composable
 private fun SolveLogListScreenContentPreview() {
@@ -1220,79 +799,6 @@ private fun SolveLogListScreenContentPreview() {
             onUpdateFolder = { _, _ -> },
             onExportLog = {},
             onExportFolder = {}
-        )
-    }
-}
-
-@Preview(showBackground = true)
-@Composable
-private fun SolveLogAddContentPreview() {
-    SolveLogJetpackComposeTheme {
-        SolveLogAddContent(
-            onDismiss = {},
-            onConfirm = { _, _, _, _ -> }
-        )
-    }
-}
-
-@Preview(showBackground = true)
-@Composable
-private fun FolderAddContentPreview() {
-    SolveLogJetpackComposeTheme {
-        FolderAddContent(
-            folderTitle = "",
-            onValueChanged = {}
-        )
-    }
-}
-
-@Preview(showBackground = true)
-@Composable
-fun MoveToFolderContentPreview() {
-    val createdAt = System.currentTimeMillis()
-    val folders = listOf(
-        Folder(
-            id = 1,
-            name = "フォルダA",
-            createdAt = createdAt,
-            updatedAt = createdAt,
-            parentFolderId = null
-        ),
-        Folder(
-            id = 2,
-            name = "フォルダB",
-            createdAt = createdAt,
-            updatedAt = createdAt,
-            parentFolderId = null
-        ),
-        Folder(
-            id = 3,
-            name = "サブフォルダA-1",
-            createdAt = createdAt,
-            updatedAt = createdAt,
-            parentFolderId = 1
-        ),
-        Folder(
-            id = 4,
-            name = "サブフォルダA-2",
-            createdAt = createdAt,
-            updatedAt = createdAt,
-            parentFolderId = 1
-        ),
-        Folder(
-            id = 5,
-            name = "サブフォルダB-1",
-            createdAt = createdAt,
-            updatedAt = createdAt,
-            parentFolderId = 2
-        )
-    )
-    SolveLogJetpackComposeTheme {
-        MoveToFolderContent(
-            allFolders = folders,
-            excludeFolderId = null,
-            currentViewedFolderId = 3,
-            onViewFolder = {}
         )
     }
 }

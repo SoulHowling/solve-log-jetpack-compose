@@ -124,4 +124,15 @@ object FileUtils {
             false
         }
     }
+
+    fun readTextFromUri(context: Context, uri: Uri): String? {
+        return try {
+            context.contentResolver.openInputStream(uri)?.use { inputStream ->
+                inputStream.bufferedReader().use { it.readText() }
+            }
+        } catch (e: Exception) {
+            LogUtils.e("Failed to read text from Uri: ${e.message}")
+            null
+        }
+    }
 }

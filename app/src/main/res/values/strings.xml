@@ -7,6 +7,8 @@
     <string name="common_dialog_cancel_button">Cancel</string>
     <string name="common_export_success">Exported successfully</string>
     <string name="common_export_failed">Export failed</string>
+    <string name="common_import_success">Imported successfully</string>
+    <string name="common_import_failed">Import failed</string>
 
     <!--  App bar title -->
     <string name="app_bar_title_editor">Log List</string>
@@ -29,6 +31,7 @@
     <string name="log_list_dropdown_menu_item_delete">Delete</string>
     <string name="log_list_dropdown_menu_item_export">Export</string>
     <string name="log_list_dropdown_menu_item_all_export">Export all</string>
+    <string name="log_list_dropdown_menu_item_import">Import here</string>
     <string name="log_list_add_folder_button">Folder</string>
     <string name="log_list_add_log_button">Log</string>
     <string name="log_list_add_new_folder_title">Create New Folder</string>
