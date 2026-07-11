@@ -15,6 +15,8 @@ import com.soulhowling.solvelog_jetpackcompose.feature.solvelog.model.repository
 import com.soulhowling.solvelog_jetpackcompose.feature.solvelog.model.repository.SolveLogRepository
 import com.soulhowling.solvelog_jetpackcompose.utils.FileUtils
 import com.soulhowling.solvelog_jetpackcompose.utils.LogUtils
+import com.soulhowling.solvelog_jetpackcompose.core.database.DBKeys
+import com.soulhowling.solvelog_jetpackcompose.feature.solvelog.model.entity.Question
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -26,6 +28,7 @@ import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
+import org.json.JSONObject
 
 sealed class SolveLogListItem {
     data class FolderItem(val folder: Folder) : SolveLogListItem()
@@ -323,5 +326,153 @@ class SolveLogListViewModel(application: Application) : AndroidViewModel(applica
             }
             onResult(success)
         }
+    }
+    
+    fun performImport(uri: android.net.Uri, onResult: (Boolean) -> Unit) {
+        viewModelScope.launch {
+            val success = withContext(Dispatchers.IO) {
+                try {
+                    val jsonString = FileUtils.readTextFromUri(getApplication(), uri) ?: return@withContext false
+                    val jsonObject = JSONObject(jsonString)
+
+                    database.withTransaction {
+                        when {
+                            jsonObject.has(FileUtils.KEY_FOLDERS) -> {
+                                importAllData(jsonObject, _currentFolderId.value)
+                            }
+                            jsonObject.has(FileUtils.KEY_QUESTIONS) -> {
+                                importSolveLog(jsonObject, _currentFolderId.value)
+                            }
+                            jsonObject.has(FileUtils.KEY_SUBFOLDERS) || jsonObject.has(FileUtils.KEY_SOLVE_LOGS) -> {
+                                importFolder(jsonObject, _currentFolderId.value)
+                            }
+                            else -> false
+                        }
+                    }
+                } catch (e: Exception) {
+                    LogUtils.e("Import failed", e)
+                    false
+                }
+            }
+            onResult(success)
+        }
+    }
+
+    private suspend fun importAllData(jsonObject: JSONObject, targetFolderId: Int?): Boolean {
+        val foldersArray = jsonObject.getJSONArray(FileUtils.KEY_FOLDERS)
+        val logsArray = jsonObject.getJSONArray(FileUtils.KEY_SOLVE_LOGS)
+
+        val oldToNewFolderId = mutableMapOf<Int, Int?>()
+        val foldersToInsert = mutableListOf<JSONObject>()
+        for (i in 0 until foldersArray.length()) {
+            foldersToInsert.add(foldersArray.getJSONObject(i))
+        }
+
+        val importFolderIds = foldersToInsert.map { it.getInt(DBKeys.KEY_ID) }.toSet()
+        val remainingFolders = foldersToInsert.toMutableList()
+        while (remainingFolders.isNotEmpty()) {
+            val it = remainingFolders.iterator()
+            var insertedAny = false
+            while (it.hasNext()) {
+                val folderJson = it.next()
+                val oldId = folderJson.getInt(DBKeys.KEY_ID)
+                val oldParentId = if (folderJson.isNull(DBKeys.KEY_PARENT_FOLDER_ID)) null else folderJson.getInt(DBKeys.KEY_PARENT_FOLDER_ID)
+
+                val isParentAvailable = oldParentId == null
+                        || !importFolderIds.contains(oldParentId)
+                        || oldToNewFolderId.containsKey(oldParentId)
+
+                if (isParentAvailable) {
+                    val newParentId = if (oldParentId == null|| !importFolderIds.contains(oldParentId)) {
+                        targetFolderId
+                    } else {
+                        oldToNewFolderId[oldParentId]
+                    }
+                    val folder = Folder(
+                        name = folderJson.getString(DBKeys.KEY_NAME),
+                        parentFolderId = newParentId,
+                        createdAt = folderJson.optLong(DBKeys.KEY_CREATED_AT, System.currentTimeMillis()),
+                        updatedAt = folderJson.optLong(DBKeys.KEY_UPDATED_AT, System.currentTimeMillis())
+                    )
+                    val newId = folderRepository.insertAndReturnId(folder)
+                    oldToNewFolderId[oldId] = newId.toInt()
+                    it.remove()
+                    insertedAny = true
+                }
+            }
+            if (!insertedAny) {
+                if (remainingFolders.isNotEmpty()) {
+                    throw IllegalArgumentException("Circular folder structure detected in the imported data.")
+                }
+                break
+            }
+        }
+
+        for (i in 0 until logsArray.length()) {
+            val logJson = logsArray.getJSONObject(i)
+            val oldFolderId = if (logJson.isNull(DBKeys.KEY_FOLDER_ID)) null else logJson.getInt(DBKeys.KEY_FOLDER_ID)
+            val newFolderId = if (oldFolderId == null) targetFolderId else oldToNewFolderId[oldFolderId] ?: targetFolderId
+            importSolveLog(logJson, newFolderId)
+        }
+        return true
+    }
+
+    private suspend fun importFolder(folderJson: JSONObject, parentFolderId: Int?): Boolean {
+        val folder = Folder(
+            name = folderJson.getString(DBKeys.KEY_NAME),
+            parentFolderId = parentFolderId,
+            createdAt = folderJson.optLong(DBKeys.KEY_CREATED_AT, System.currentTimeMillis()),
+            updatedAt = folderJson.optLong(DBKeys.KEY_UPDATED_AT, System.currentTimeMillis())
+        )
+        val newFolderId = folderRepository.insertAndReturnId(folder).toInt()
+
+        if (folderJson.has(FileUtils.KEY_SOLVE_LOGS)) {
+            val logsArray = folderJson.getJSONArray(FileUtils.KEY_SOLVE_LOGS)
+            for (i in 0 until logsArray.length()) {
+                importSolveLog(logsArray.getJSONObject(i), newFolderId)
+            }
+        }
+
+        if (folderJson.has(FileUtils.KEY_SUBFOLDERS)) {
+            val subfoldersArray = folderJson.getJSONArray(FileUtils.KEY_SUBFOLDERS)
+            for (i in 0 until subfoldersArray.length()) {
+                importFolder(subfoldersArray.getJSONObject(i), newFolderId)
+            }
+        }
+        return true
+    }
+
+    private suspend fun importSolveLog(logJson: JSONObject, folderId: Int?): Boolean {
+        val solveLog = SolveLog(
+            name = logJson.getString(DBKeys.KEY_NAME),
+            questionQuantity = logJson.getInt(DBKeys.KEY_QUESTION_QUANTITY),
+            selectionType = logJson.getInt(DBKeys.KEY_SELECTION_TYPE),
+            selectionQuantity = logJson.getInt(DBKeys.KEY_SELECTION_QUANTITY),
+            attemptCount = logJson.optInt(DBKeys.KEY_ATTEMPT_COUNT, 1),
+            createdAt = logJson.optLong(DBKeys.KEY_CREATED_AT, System.currentTimeMillis()),
+            updatedAt = logJson.optLong(DBKeys.KEY_UPDATED_AT, System.currentTimeMillis()),
+            folderId = folderId
+        )
+        val solveLogId = solveLogRepository.insertAndReturnId(solveLog)
+
+        if (logJson.has(FileUtils.KEY_QUESTIONS)) {
+            val questionsArray = logJson.getJSONArray(FileUtils.KEY_QUESTIONS)
+            val questions = mutableListOf<Question>()
+            for (i in 0 until questionsArray.length()) {
+                val qJson = questionsArray.getJSONObject(i)
+                questions.add(
+                    Question(
+                        attempt = qJson.getInt(DBKeys.KEY_ATTEMPT),
+                        questionIndex = qJson.getInt(DBKeys.KEY_QUESTION_INDEX),
+                        selectedAnswer = qJson.getInt(DBKeys.KEY_SELECTED_ANSWER),
+                        correctness = qJson.getInt(DBKeys.KEY_CORRECTNESS),
+                        isFlag = qJson.getBoolean(DBKeys.KEY_IS_FLAG),
+                        solveLogId = solveLogId
+                    )
+                )
+            }
+            questionRepository.insertQuestions(questions)
+        }
+        return true
     }
 }

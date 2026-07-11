@@ -26,6 +26,10 @@ class FolderRepository(private val folderDao: FolderDao) {
         folderDao.insert(folder)
     }
 
+    suspend fun insertAndReturnId(folder: Folder): Long {
+        return folderDao.insertAndReturnId(folder)
+    }
+
     suspend fun upsertFolder(folder: Folder) {
         folderDao.upsert(folder)
     }
