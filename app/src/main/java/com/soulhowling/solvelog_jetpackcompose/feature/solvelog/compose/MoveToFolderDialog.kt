@@ -77,15 +77,15 @@ private fun MoveToFolderContent(
         val ids = mutableSetOf<Int>()
         if (excludeFolderId != null) {
             ids.add(excludeFolderId)
-            var changed = true
-            while (changed) {
-                val count = ids.size
-                allFolders.forEach {
-                    if (it.parentFolderId in ids) {
-                        ids.add(it.id)
+            val parentToChildren = allFolders.groupBy { it.parentFolderId }
+            val queue = ArrayDeque<Int>().apply { add(excludeFolderId) }
+            while (queue.isNotEmpty()) {
+                val currentId = queue.removeFirst()
+                parentToChildren[currentId]?.forEach { child ->
+                    if (ids.add(child.id)) {
+                        queue.add(child.id)
                     }
                 }
-                changed = ids.size > count
             }
         }
         ids
