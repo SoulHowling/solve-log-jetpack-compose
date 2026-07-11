@@ -368,6 +368,7 @@ class SolveLogListViewModel(application: Application) : AndroidViewModel(applica
             foldersToInsert.add(foldersArray.getJSONObject(i))
         }
 
+        val importFolderIds = foldersToInsert.map { it.getInt(DBKeys.KEY_ID) }.toSet()
         val remainingFolders = foldersToInsert.toMutableList()
         while (remainingFolders.isNotEmpty()) {
             val it = remainingFolders.iterator()
@@ -377,8 +378,16 @@ class SolveLogListViewModel(application: Application) : AndroidViewModel(applica
                 val oldId = folderJson.getInt(DBKeys.KEY_ID)
                 val oldParentId = if (folderJson.isNull(DBKeys.KEY_PARENT_FOLDER_ID)) null else folderJson.getInt(DBKeys.KEY_PARENT_FOLDER_ID)
 
-                if (oldParentId == null || oldToNewFolderId.containsKey(oldParentId)) {
-                    val newParentId = if (oldParentId == null) targetFolderId else oldToNewFolderId[oldParentId]
+                val isParentAvailable = oldParentId == null
+                        || !importFolderIds.contains(oldParentId)
+                        || oldToNewFolderId.containsKey(oldParentId)
+
+                if (isParentAvailable) {
+                    val newParentId = if (oldParentId == null|| !importFolderIds.contains(oldParentId)) {
+                        targetFolderId
+                    } else {
+                        oldToNewFolderId[oldParentId]
+                    }
                     val folder = Folder(
                         name = folderJson.getString(DBKeys.KEY_NAME),
                         parentFolderId = newParentId,

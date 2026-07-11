@@ -170,7 +170,7 @@ fun SolveLogListScreen(
                 )
                 DropdownMenuItem(
                     onClick = {
-                        importDocumentLauncher.launch(arrayOf("application/json", "application/octet-stream"))
+                        importDocumentLauncher.launch(arrayOf("application/json"))
                         isExpanded = false
                     },
                     text = {
