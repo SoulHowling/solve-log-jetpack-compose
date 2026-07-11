@@ -391,13 +391,18 @@ class SolveLogListViewModel(application: Application) : AndroidViewModel(applica
                     insertedAny = true
                 }
             }
-            if (!insertedAny) break
+            if (!insertedAny) {
+                if (remainingFolders.isNotEmpty()) {
+                    throw IllegalArgumentException("Circular folder structure detected in the imported data.")
+                }
+                break
+            }
         }
 
         for (i in 0 until logsArray.length()) {
             val logJson = logsArray.getJSONObject(i)
             val oldFolderId = if (logJson.isNull(DBKeys.KEY_FOLDER_ID)) null else logJson.getInt(DBKeys.KEY_FOLDER_ID)
-            val newFolderId = if (oldFolderId == null) targetFolderId else oldToNewFolderId[oldFolderId]
+            val newFolderId = if (oldFolderId == null) targetFolderId else oldToNewFolderId[oldFolderId] ?: targetFolderId
             importSolveLog(logJson, newFolderId)
         }
         return true
