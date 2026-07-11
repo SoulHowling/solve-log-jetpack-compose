@@ -176,7 +176,7 @@ private fun SolveLogAddContent(
             Button(
                 onClick = {
                     onConfirm(
-                        logTitle,
+                        logTitle.trim(),
                         questionQuantity.toIntOrZero(),
                         selectedKind,
                         if (isTrueFalseSelected) SelectionQuantity.TWO else selectedQuantity

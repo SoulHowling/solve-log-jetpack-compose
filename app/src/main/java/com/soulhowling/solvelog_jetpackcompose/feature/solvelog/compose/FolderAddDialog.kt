@@ -44,7 +44,7 @@ fun FolderAddDialog(
             TextButton(
                 enabled = folderTitle.isNotBlank(),
                 onClick = {
-                    onConfirm(folderTitle)
+                    onConfirm(folderTitle.trim())
                 }
             ) {
                 Text(
