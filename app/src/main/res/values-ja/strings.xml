@@ -2,6 +2,7 @@
     <string name="app_name">SolveLog</string>
 
     <!-- Common -->
+    <string name="common_dialog_ok_button">OK</string>
     <string name="common_dialog_add_button">追加</string>
     <string name="common_dialog_update_button">更新</string>
     <string name="common_dialog_cancel_button">キャンセル</string>
@@ -97,10 +98,24 @@
     <string name="timer_add_description">セットする時間を入力してください</string>
 
     <!-- Setting -->
-    <string name="setting_notification">通知設定</string>
     <string name="setting_app_theme">アプリのテーマ</string>
     <string name="setting_wipe_data">データ消去</string>
     <string name="setting_about_this_app">このアプリについて</string>
+    <string name="setting_privacy_policy">プライバシーポリシー</string>
+    <string name="setting_software_license">ソフトウェアライセンス</string>
+
+    <!-- Wipe data -->
+    <string name="wipe_data_title">データ消去</string>
+    <string name="wipe_data_all">すべてのデータを消去</string>
+    <string name="wipe_data_logs">すべてのログを消去</string>
+    <string name="wipe_data_timers">すべてのタイマーを消去</string>
+    <string name="wipe_data_description_prefix">以下のデータを消去します。この操作は取り消せません。</string>
+    <string name="wipe_data_all_description">[ログ]\n・フォルダ\n・ログ\n・回答データ\n[タイマー]\n・タイマー設定</string>
+    <string name="wipe_data_logs_description">[ログ]\n・フォルダ\n・ログ\n・回答データ</string>
+    <string name="wipe_data_timers_description">[タイマー]\n・タイマー設定</string>
+    <string name="wipe_data_description_suffix">消去しますか？</string>
+    <string name="wipe_data_success">消去が完了しました</string>
+    <string name="wipe_data_failed">消去に失敗しました</string>
 
     <string name="theme_system">システム</string>
     <string name="theme_light">ライト</string>

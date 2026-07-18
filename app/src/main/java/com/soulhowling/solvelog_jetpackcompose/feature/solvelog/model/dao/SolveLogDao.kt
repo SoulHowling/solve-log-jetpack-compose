@@ -21,4 +21,7 @@ interface SolveLogDao: BaseDao<SolveLog> {
 
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun insertAndReturnId(solveLog: SolveLog): Long
+
+    @Query("DELETE FROM solve_log")
+    override suspend fun deleteAll()
 }

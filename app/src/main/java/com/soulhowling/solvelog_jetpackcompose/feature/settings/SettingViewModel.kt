@@ -14,4 +14,5 @@ class SettingViewModel(application: Application): AndroidViewModel(application) 
     fun setThemeMode(mode: ThemeMode) {
         PreferenceRepository.setThemeMode(application, mode)
     }
+
 }

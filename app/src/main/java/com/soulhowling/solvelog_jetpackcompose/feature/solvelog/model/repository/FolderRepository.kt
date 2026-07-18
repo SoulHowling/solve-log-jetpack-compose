@@ -37,4 +37,8 @@ class FolderRepository(private val folderDao: FolderDao) {
     suspend fun deleteFolder(folder: Folder) {
         folderDao.delete(folder)
     }
+
+    suspend fun deleteAll() {
+        folderDao.deleteAll()
+    }
 }

@@ -2,6 +2,7 @@
     <string name="app_name">SolveLog</string>
 
     <!-- Common -->
+    <string name="common_dialog_ok_button">OK</string>
     <string name="common_dialog_add_button">Add</string>
     <string name="common_dialog_update_button">Update</string>
     <string name="common_dialog_cancel_button">Cancel</string>
@@ -97,10 +98,24 @@
     <string name="timer_add_description">Please enter the time to set</string>
 
     <!-- Setting -->
-    <string name="setting_notification">Notifications</string>
     <string name="setting_app_theme">App theme</string>
     <string name="setting_wipe_data">Wipe data</string>
     <string name="setting_about_this_app">About this app</string>
+    <string name="setting_privacy_policy">Privacy policy</string>
+    <string name="setting_software_license">Software license</string>
+
+    <!-- Wipe data -->
+    <string name="wipe_data_title">Wipe data</string>
+    <string name="wipe_data_all">Wipe all data</string>
+    <string name="wipe_data_logs">Wipe all logs</string>
+    <string name="wipe_data_timers">Wipe all timers</string>
+    <string name="wipe_data_description_prefix">Wipes the following data. This action cannot be undone.</string>
+    <string name="wipe_data_all_description">[Logs]\n・Folders\n・Logs\n・Answer data\n[Timers]\n・Timer settings</string>
+    <string name="wipe_data_logs_description">[Logs]\n・Folders\n・Logs\n・Answer data</string>
+    <string name="wipe_data_timers_description">[Timers]\n・Timer settings</string>
+    <string name="wipe_data_description_suffix">Do you want to wipe?</string>
+    <string name="wipe_data_success">Data wiped successfully</string>
+    <string name="wipe_data_failed">Failed to wipe data</string>
 
     <string name="theme_system">System</string>
     <string name="theme_light">Light</string>

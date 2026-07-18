@@ -2,6 +2,7 @@ package com.soulhowling.solvelog_jetpackcompose.core
 
 import androidx.annotation.StringRes
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material.icons.filled.Preview
 import androidx.compose.material.icons.filled.Settings
@@ -14,6 +15,7 @@ private const val SOLVE_LOG_VIEWER_ROUTE = "solve_log_viewer"
 private const val SOLVE_LOG_EDITOR_ROUTE = "solve_log_editor"
 private const val MEASUREMENT_ROUTE = "measurement"
 private const val SETTING_ROUTE = "setting"
+private const val WIPE_DATA_ROUTE = "wipe_data"
 private const val SLASH = "/"
 
 sealed class Screens(
@@ -51,6 +53,11 @@ sealed class Screens(
         title = R.string.tab_setting,
         icon = Icons.Default.Settings
     )
+    data object WipeData: Screens(
+        route = SETTING_ROUTE + SLASH + WIPE_DATA_ROUTE,
+        title = R.string.wipe_data_title,
+        icon = Icons.Default.Delete
+    )
 
     companion object {
         const val ARG_SOLVE_LOG_ID = "solveLogId"
@@ -61,7 +68,8 @@ sealed class Screens(
             SolveLogViewer,
             SolveLogEditor,
             Measurement,
-            Setting
+            Setting,
+            WipeData
         )
 
         fun getBottomNaviScreens(): List<Screens> = listOf(

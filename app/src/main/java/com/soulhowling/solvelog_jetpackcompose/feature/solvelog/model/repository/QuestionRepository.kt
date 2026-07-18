@@ -79,4 +79,8 @@ class QuestionRepository(private val questionDao: QuestionDao) {
         return questionDao.getQuestionsBySolveLogIds(solveLogIds)
     }
 
+    suspend fun deleteAll() {
+        questionDao.deleteAll()
+    }
+
 }

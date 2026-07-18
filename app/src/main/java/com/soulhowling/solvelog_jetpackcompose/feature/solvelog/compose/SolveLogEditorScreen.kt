@@ -286,7 +286,7 @@ fun SolveLogEditorRowItem(
                                 ) {
                                     Text(
                                         text = selectedAnswer,
-                                        style = MaterialTheme.typography.titleMedium
+                                        style = MaterialTheme.typography.titleLarge
                                     )
                                     Icon(
                                         Icons.Default.ArrowDropDown,
