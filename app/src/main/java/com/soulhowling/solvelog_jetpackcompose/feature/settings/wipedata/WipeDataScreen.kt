@@ -1,4 +1,4 @@
-package com.soulhowling.solvelog_jetpackcompose.feature.settings
+package com.soulhowling.solvelog_jetpackcompose.feature.settings.wipedata
 
 import android.content.res.Configuration
 import android.widget.Toast
@@ -24,11 +24,12 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.soulhowling.solvelog_jetpackcompose.R
+import com.soulhowling.solvelog_jetpackcompose.feature.settings.WipeDataItem
 import com.soulhowling.solvelog_jetpackcompose.ui.theme.SolveLogJetpackComposeTheme
 
 @Composable
 fun WipeDataScreen(
-    viewModel: SettingViewModel = viewModel()
+    viewModel: WipeDataViewModel = viewModel()
 ) {
     val wipeStatus by viewModel.wipeStatus.collectAsState()
 
@@ -41,7 +42,7 @@ fun WipeDataScreen(
 
 @Composable
 fun WipeDataContent(
-    wipeStatus: SettingViewModel.WipeStatus,
+    wipeStatus: WipeDataViewModel.WipeStatus,
     onWipeConfirm: (WipeDataItem) -> Unit,
     onResetWipeStatus: () -> Unit,
 ) {
@@ -57,11 +58,11 @@ fun WipeDataContent(
 
     LaunchedEffect(wipeStatus) {
         when (wipeStatus) {
-            is SettingViewModel.WipeStatus.Success -> {
+            is WipeDataViewModel.WipeStatus.Success -> {
                 Toast.makeText(context, R.string.wipe_data_success, Toast.LENGTH_SHORT).show()
                 onResetWipeStatus()
             }
-            is SettingViewModel.WipeStatus.Error -> {
+            is WipeDataViewModel.WipeStatus.Error -> {
                 Toast.makeText(context, R.string.wipe_data_failed, Toast.LENGTH_SHORT).show()
                 onResetWipeStatus()
             }
@@ -137,7 +138,7 @@ fun WipeDataDialog(
 private fun WipeDataContentPreview() {
     SolveLogJetpackComposeTheme {
         WipeDataContent(
-            wipeStatus = SettingViewModel.WipeStatus.Idle,
+            wipeStatus = WipeDataViewModel.WipeStatus.Idle,
             onWipeConfirm = {},
             onResetWipeStatus = {}
         )
