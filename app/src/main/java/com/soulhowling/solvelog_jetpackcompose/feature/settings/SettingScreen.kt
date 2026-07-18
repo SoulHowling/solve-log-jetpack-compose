@@ -57,7 +57,10 @@ fun SettingScreenContent(
     val themeModeList: List<String> = ThemeMode.entries.map { stringResource(it.labelResId) }
 
     LazyColumn(modifier = Modifier.fillMaxSize()) {
-        items(settingsItems) { item ->
+        items(
+            items = settingsItems,
+            key = { it.titleResId }
+        ) { item ->
             when (item) {
                 is SettingItem.AppTheme -> {
                     ListItem(
@@ -77,7 +80,7 @@ fun SettingScreenContent(
                                 isEnabled = true
                             )
                         },
-                        modifier = Modifier.clickable { item.action?.invoke() }
+                        modifier = Modifier
                     )
                 }
 
@@ -90,7 +93,9 @@ fun SettingScreenContent(
                                 contentDescription = null
                             )
                         },
-                        modifier = Modifier.clickable { item.action?.invoke() }
+                        modifier = item.action?.let { action ->
+                            Modifier.clickable { action() }
+                        } ?: Modifier
                     )
                 }
             }

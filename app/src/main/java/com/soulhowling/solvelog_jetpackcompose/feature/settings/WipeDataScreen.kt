@@ -55,7 +55,10 @@ fun WipeDataContent(
     var selectedItem by remember { mutableStateOf<WipeDataItem?>(null) }
 
     LazyColumn(modifier = Modifier.fillMaxSize()) {
-        items(wipeDataItems) { item ->
+        items(
+            items = wipeDataItems,
+            key = { it.titleResId }
+        ) { item ->
             ListItem(
                 headlineContent = { Text(text = stringResource(id = item.titleResId)) },
                 modifier = Modifier.clickable {
@@ -74,11 +77,11 @@ fun WipeDataContent(
                     stringResource(id = R.string.wipe_data_description_suffix),
             onDismiss = { selectedItem = null },
             onConfirm = {
+                selectedItem = null
                 scope.launch {
                     val success = item.action?.invoke() ?: false
                     val messageResId = if (success) R.string.wipe_data_success else R.string.wipe_data_failed
                     Toast.makeText(context, messageResId, Toast.LENGTH_SHORT).show()
-                    selectedItem = null
                 }
             }
         )
