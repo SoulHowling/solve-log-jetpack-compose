@@ -1,6 +1,5 @@
 package com.soulhowling.solvelog_jetpackcompose.feature.settings
 
-import androidx.annotation.StringRes
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -29,37 +28,40 @@ import com.soulhowling.solvelog_jetpackcompose.utils.compose.SingleChoiceSegment
 
 @Composable
 fun SettingScreen(
-    viewModel: SettingViewModel = viewModel()
+    viewModel: SettingViewModel = viewModel(),
+    onNavigateToWipeData: () -> Unit = {}
 ) {
     val themeMode by viewModel.themeMode.collectAsState()
     SettingScreenContent(
         themeMode = themeMode,
-        onThemeModeChange = { viewModel.setThemeMode(it) }
+        onThemeModeChange = { viewModel.setThemeMode(it) },
+        onWipeData = onNavigateToWipeData
     )
 }
 
 @Composable
 fun SettingScreenContent(
     themeMode: ThemeMode,
-    onThemeModeChange: (ThemeMode) -> Unit
+    onThemeModeChange: (ThemeMode) -> Unit,
+    onWipeData: () -> Unit,
 ) {
-    val settingsOptions = remember {
+    val settingsItems = remember(onWipeData) {
         listOf(
-            SettingItem.Notification,
-            SettingItem.AppTheme,
-            SettingItem.WipeData,
-            SettingItem.AboutThisApp
+            SettingItem.AppTheme(),
+            SettingItem.WipeData(onWipeData),
+            SettingItem.AboutThisApp(),
+            SettingItem.PrivacyPolicy(),
+            SettingItem.SoftwareLicense()
         )
     }
     val themeModeList: List<String> = ThemeMode.entries.map { stringResource(it.labelResId) }
 
     LazyColumn(modifier = Modifier.fillMaxSize()) {
-        items(settingsOptions) { option ->
-            when (option) {
+        items(settingsItems) { item ->
+            when (item) {
                 is SettingItem.AppTheme -> {
-                    SettingItem(
-                        titleResId = option.titleResId,
-                        onClick = { /* nop */ },
+                    ListItem(
+                        headlineContent = { Text(text = stringResource(id = item.titleResId)) },
                         supportingContent = {
                             SingleChoiceSegmentedButton(
                                 modifier = Modifier
@@ -74,22 +76,21 @@ fun SettingScreenContent(
                                 },
                                 isEnabled = true
                             )
-                        }
+                        },
+                        modifier = Modifier.clickable { item.action?.invoke() }
                     )
                 }
 
                 else -> {
-                    SettingItem(
-                        titleResId = option.titleResId,
-                        onClick = {
-                            LogUtils.d("$option がクリックされた")
-                        },
+                    ListItem(
+                        headlineContent = { Text(text = stringResource(id = item.titleResId)) },
                         trailingContent = {
                             Icon(
                                 imageVector = Icons.AutoMirrored.Filled.KeyboardArrowRight,
                                 contentDescription = null
                             )
-                        }
+                        },
+                        modifier = Modifier.clickable { item.action?.invoke() }
                     )
                 }
             }
@@ -98,28 +99,14 @@ fun SettingScreenContent(
     }
 }
 
-@Composable
-fun SettingItem(
-    @StringRes titleResId: Int,
-    onClick: () -> Unit,
-    trailingContent: @Composable (() -> Unit)? = null,
-    supportingContent: @Composable (() -> Unit)? = null
-) {
-    ListItem(
-        headlineContent = { Text(text = stringResource(id = titleResId)) },
-        supportingContent = supportingContent,
-        trailingContent = trailingContent,
-        modifier = Modifier.clickable { onClick() }
-    )
-}
-
 @Preview(showBackground = true)
 @Composable
-fun SettingScreenPreview() {
+private fun SettingScreenPreview() {
     SolveLogJetpackComposeTheme {
         SettingScreenContent(
             themeMode = ThemeMode.SYSTEM,
-            onThemeModeChange = {}
+            onThemeModeChange = {},
+            onWipeData = {}
         )
     }
 }

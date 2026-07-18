@@ -15,14 +15,18 @@ class TimerRepository(private val timerDao: TimerDao) {
     }
 
     suspend fun insertTimer(timerState: TimerState) {
-        timerDao.insertTimerState(timerState)
+        timerDao.insert(timerState)
     }
 
     suspend fun upsertTimer(timerState: TimerState) {
-        timerDao.upsertTimerState(timerState)
+        timerDao.upsert(timerState)
     }
 
     suspend fun deleteTimer(timerId: Int) {
         timerDao.deleteTimerState(timerId)
+    }
+
+    suspend fun deleteAll() {
+        timerDao.deleteAll()
     }
 }

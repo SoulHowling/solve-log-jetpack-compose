@@ -54,4 +54,8 @@ class SolveLogRepository(private val solveLogDao: SolveLogDao) {
     suspend fun deleteSolveLog(solveLog: SolveLog) {
         solveLogDao.delete(solveLog)
     }
+
+    suspend fun deleteAll() {
+        solveLogDao.deleteAll()
+    }
 }

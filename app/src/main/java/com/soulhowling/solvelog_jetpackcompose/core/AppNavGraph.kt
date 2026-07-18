@@ -11,6 +11,7 @@ import androidx.navigation.compose.composable
 import androidx.navigation.navArgument
 import com.soulhowling.solvelog_jetpackcompose.feature.measurement.MeasurementScreen
 import com.soulhowling.solvelog_jetpackcompose.feature.settings.SettingScreen
+import com.soulhowling.solvelog_jetpackcompose.feature.settings.WipeDataScreen
 import com.soulhowling.solvelog_jetpackcompose.feature.solvelog.compose.SolveLogEditorScreen
 import com.soulhowling.solvelog_jetpackcompose.feature.solvelog.compose.SolveLogListScreen
 import com.soulhowling.solvelog_jetpackcompose.feature.solvelog.compose.SolveLogViewerScreen
@@ -57,7 +58,14 @@ fun AppNavGraph(
             MeasurementScreen()
         }
         composable(Screens.Setting.route) {
-            SettingScreen()
+            SettingScreen(
+                onNavigateToWipeData = {
+                    navController.navigate(Screens.WipeData.route)
+                }
+            )
+        }
+        composable(Screens.WipeData.route) {
+            WipeDataScreen()
         }
     }
 }

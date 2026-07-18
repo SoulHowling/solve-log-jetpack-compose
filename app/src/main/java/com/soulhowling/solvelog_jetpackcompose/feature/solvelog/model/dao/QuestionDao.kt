@@ -37,4 +37,7 @@ interface QuestionDao: BaseDao<Question> {
 
     @Query("SELECT * FROM question WHERE solveLogId IN (:solveLogIds)")
     suspend fun getQuestionsBySolveLogIds(solveLogIds: List<Int>): List<Question>
+
+    @Query("DELETE FROM question")
+    override suspend fun deleteAll()
 }
