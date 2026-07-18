@@ -12,10 +12,11 @@ import androidx.compose.material3.ListItem
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
@@ -24,35 +25,49 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.soulhowling.solvelog_jetpackcompose.R
 import com.soulhowling.solvelog_jetpackcompose.ui.theme.SolveLogJetpackComposeTheme
-import kotlinx.coroutines.launch
 
 @Composable
 fun WipeDataScreen(
     viewModel: SettingViewModel = viewModel()
 ) {
+    val wipeStatus by viewModel.wipeStatus.collectAsState()
+
     WipeDataContent(
-        onWipeAllData = viewModel::wipeAllData,
-        onWipeAllLogs = viewModel::wipeAllLogs,
-        onWipeAllTimers = viewModel::wipeAllTimers
+        wipeStatus = wipeStatus,
+        onWipeConfirm = viewModel::onWipeConfirm,
+        onResetWipeStatus = viewModel::resetWipeStatus
     )
 }
 
 @Composable
 fun WipeDataContent(
-    onWipeAllData: suspend () -> Boolean,
-    onWipeAllLogs: suspend () -> Boolean,
-    onWipeAllTimers: suspend () -> Boolean,
+    wipeStatus: SettingViewModel.WipeStatus,
+    onWipeConfirm: (WipeDataItem) -> Unit,
+    onResetWipeStatus: () -> Unit,
 ) {
     val context = LocalContext.current
-    val scope = rememberCoroutineScope()
-    val wipeDataItems = remember(onWipeAllData, onWipeAllLogs, onWipeAllTimers) {
+    val wipeDataItems = remember {
         listOf(
-            WipeDataItem.WipeAllData(onWipeAllData),
-            WipeDataItem.WipeAllLogs(onWipeAllLogs),
-            WipeDataItem.WipeAllTimers(onWipeAllTimers)
+            WipeDataItem.WipeAllData,
+            WipeDataItem.WipeAllLogs,
+            WipeDataItem.WipeAllTimers
         )
     }
     var selectedItem by remember { mutableStateOf<WipeDataItem?>(null) }
+
+    LaunchedEffect(wipeStatus) {
+        when (wipeStatus) {
+            is SettingViewModel.WipeStatus.Success -> {
+                Toast.makeText(context, R.string.wipe_data_success, Toast.LENGTH_SHORT).show()
+                onResetWipeStatus()
+            }
+            is SettingViewModel.WipeStatus.Error -> {
+                Toast.makeText(context, R.string.wipe_data_failed, Toast.LENGTH_SHORT).show()
+                onResetWipeStatus()
+            }
+            else -> {}
+        }
+    }
 
     LazyColumn(modifier = Modifier.fillMaxSize()) {
         items(
@@ -78,11 +93,7 @@ fun WipeDataContent(
             onDismiss = { selectedItem = null },
             onConfirm = {
                 selectedItem = null
-                scope.launch {
-                    val success = item.action?.invoke() ?: false
-                    val messageResId = if (success) R.string.wipe_data_success else R.string.wipe_data_failed
-                    Toast.makeText(context, messageResId, Toast.LENGTH_SHORT).show()
-                }
+                onWipeConfirm(item)
             }
         )
     }
@@ -126,9 +137,9 @@ fun WipeDataDialog(
 private fun WipeDataContentPreview() {
     SolveLogJetpackComposeTheme {
         WipeDataContent(
-            onWipeAllData = { true },
-            onWipeAllLogs = { true },
-            onWipeAllTimers = { true }
+            wipeStatus = SettingViewModel.WipeStatus.Idle,
+            onWipeConfirm = {},
+            onResetWipeStatus = {}
         )
     }
 }

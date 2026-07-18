@@ -3,6 +3,7 @@ package com.soulhowling.solvelog_jetpackcompose.feature.settings
 import android.app.Application
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.application
+import androidx.lifecycle.viewModelScope
 import androidx.room.withTransaction
 import com.soulhowling.solvelog_jetpackcompose.core.SolveLogApplication
 import com.soulhowling.solvelog_jetpackcompose.core.database.SolveLogDatabase
@@ -13,11 +14,24 @@ import com.soulhowling.solvelog_jetpackcompose.feature.solvelog.model.repository
 import com.soulhowling.solvelog_jetpackcompose.feature.solvelog.model.repository.SolveLogRepository
 import com.soulhowling.solvelog_jetpackcompose.ui.theme.ThemeMode
 import com.soulhowling.solvelog_jetpackcompose.utils.LogUtils
+import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.launch
 
 class SettingViewModel(application: Application): AndroidViewModel(application) {
 
+    sealed class WipeStatus {
+        data object Idle : WipeStatus()
+        data object Loading : WipeStatus()
+        data object Success : WipeStatus()
+        data object Error : WipeStatus()
+    }
+
     val themeMode: StateFlow<ThemeMode> = PreferenceRepository.themeMode
+
+    private val _wipeStatus = MutableStateFlow<WipeStatus>(WipeStatus.Idle)
+    val wipeStatus: StateFlow<WipeStatus> = _wipeStatus.asStateFlow()
 
     private val folderRepository: FolderRepository
     private val solveLogRepository: SolveLogRepository
@@ -36,7 +50,23 @@ class SettingViewModel(application: Application): AndroidViewModel(application) 
         PreferenceRepository.setThemeMode(application, mode)
     }
 
-    suspend fun wipeAllData(): Boolean {
+    fun onWipeConfirm(item: WipeDataItem) {
+        viewModelScope.launch {
+            _wipeStatus.value = WipeStatus.Loading
+            val success = when (item) {
+                is WipeDataItem.WipeAllData -> wipeAllData()
+                is WipeDataItem.WipeAllLogs -> wipeAllLogs()
+                is WipeDataItem.WipeAllTimers -> wipeAllTimers()
+            }
+            _wipeStatus.value = if (success) WipeStatus.Success else WipeStatus.Error
+        }
+    }
+
+    fun resetWipeStatus() {
+        _wipeStatus.value = WipeStatus.Idle
+    }
+
+    private suspend fun wipeAllData(): Boolean {
         return try {
             database.withTransaction {
                 questionRepository.deleteAll()
@@ -51,7 +81,7 @@ class SettingViewModel(application: Application): AndroidViewModel(application) 
         }
     }
 
-    suspend fun wipeAllLogs(): Boolean {
+    private suspend fun wipeAllLogs(): Boolean {
         return try {
             database.withTransaction {
                 questionRepository.deleteAll()
@@ -65,7 +95,7 @@ class SettingViewModel(application: Application): AndroidViewModel(application) 
         }
     }
 
-    suspend fun wipeAllTimers(): Boolean {
+    private suspend fun wipeAllTimers(): Boolean {
         return try {
             timerRepository.deleteAll()
             true
