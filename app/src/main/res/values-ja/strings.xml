@@ -8,6 +8,7 @@
     <string name="common_dialog_cancel_button">キャンセル</string>
     <string name="common_export_success">エクスポートに成功しました</string>
     <string name="common_export_failed">エクスポートに失敗しました</string>
+    <string name="common_not_implemented">未実装</string>
     <string name="common_import_success">インポートに成功しました</string>
     <string name="common_import_failed">インポートに失敗しました</string>
 
@@ -103,6 +104,10 @@
     <string name="setting_about_this_app">このアプリについて</string>
     <string name="setting_privacy_policy">プライバシーポリシー</string>
     <string name="setting_software_license">ソフトウェアライセンス</string>
+
+    <!-- About this app -->
+    <string name="about_this_app_help_button">ヘルプ</string>
+    <string name="about_this_app_version">Version %1$s</string>
 
     <!-- Wipe data -->
     <string name="wipe_data_title">データ消去</string>

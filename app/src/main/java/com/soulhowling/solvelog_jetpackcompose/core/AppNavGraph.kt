@@ -13,6 +13,7 @@ import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.navArgument
 import com.soulhowling.solvelog_jetpackcompose.feature.measurement.MeasurementScreen
 import com.soulhowling.solvelog_jetpackcompose.feature.settings.SettingScreen
+import com.soulhowling.solvelog_jetpackcompose.feature.settings.aboutthisapp.AboutThisAppScreen
 import com.soulhowling.solvelog_jetpackcompose.feature.settings.wipedata.WipeDataScreen
 import com.soulhowling.solvelog_jetpackcompose.feature.solvelog.compose.SolveLogEditorScreen
 import com.soulhowling.solvelog_jetpackcompose.feature.solvelog.compose.SolveLogListScreen
@@ -75,6 +76,9 @@ fun AppNavGraph(
                 SettingScreen(
                     onNavigateToWipeData = {
                         navController.navigate(Screens.WipeData.route)
+                    },
+                    onNavigateToAboutThisApp = {
+                        navController.navigate(Screens.AboutThisApp.route)
                     }
                 )
             }
@@ -82,6 +86,11 @@ fun AppNavGraph(
         composable(Screens.WipeData.route) { backStackEntry ->
             LifecycleTouchGuard(isTargetScreen = backStackEntry == currentNavBackStackEntry) {
                 WipeDataScreen()
+            }
+        }
+        composable(Screens.AboutThisApp.route) { backStackEntry ->
+            LifecycleTouchGuard(isTargetScreen = backStackEntry == currentNavBackStackEntry) {
+                AboutThisAppScreen()
             }
         }
     }

@@ -16,6 +16,7 @@ private const val SOLVE_LOG_EDITOR_ROUTE = "solve_log_editor"
 private const val MEASUREMENT_ROUTE = "measurement"
 private const val SETTING_ROUTE = "setting"
 private const val WIPE_DATA_ROUTE = "wipe_data"
+private const val ABOUT_THIS_APP_ROUTE = "about_this_app"
 private const val SLASH = "/"
 
 sealed class Screens(
@@ -58,6 +59,11 @@ sealed class Screens(
         title = R.string.wipe_data_title,
         icon = Icons.Default.Delete
     )
+    data object AboutThisApp: Screens(
+        route = SETTING_ROUTE + SLASH + ABOUT_THIS_APP_ROUTE,
+        title = R.string.setting_about_this_app,
+        icon = Icons.Default.Settings
+    )
 
     companion object {
         const val ARG_SOLVE_LOG_ID = "solveLogId"
@@ -69,7 +75,8 @@ sealed class Screens(
             SolveLogEditor,
             Measurement,
             Setting,
-            WipeData
+            WipeData,
+            AboutThisApp
         )
 
         fun getBottomNaviScreens(): List<Screens> = listOf(
