@@ -1,4 +1,4 @@
-package com.soulhowling.solvelog_jetpackcompose.feature.settings
+package com.soulhowling.solvelog_jetpackcompose.feature.settings.wipedata
 
 import androidx.annotation.StringRes
 import com.soulhowling.solvelog_jetpackcompose.R
