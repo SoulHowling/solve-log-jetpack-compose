@@ -87,7 +87,7 @@ class SettingScreenTest {
         composeTestRule.setContent {
             SolveLogJetpackComposeTheme {
                 SettingScreenContent(
-                    themeMode = ThemeMode.SYSTEM,
+                    themeMode = selectedMode.value,
                     onThemeModeChange = { selectedMode.value = it },
                     onWipeData = {},
                     onAboutThisApp = {}
