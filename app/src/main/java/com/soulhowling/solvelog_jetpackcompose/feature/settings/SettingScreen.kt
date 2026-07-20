@@ -53,8 +53,8 @@ fun SettingScreenContent(
 ) {
     val context = LocalContext.current
     val notImplementedMessage = stringResource(id = R.string.common_not_implemented)
-    val notYetImplementedAction = { Toast.makeText(context, notImplementedMessage, Toast.LENGTH_SHORT).show() }
-    val settingsItems = remember(onWipeData, onAboutThisApp) {
+    val settingsItems = remember(onWipeData, onAboutThisApp, context) {
+        val notYetImplementedAction = { Toast.makeText(context, notImplementedMessage, Toast.LENGTH_SHORT).show() }
         listOf(
             SettingItem.AppTheme(),
             SettingItem.WipeData(onWipeData),

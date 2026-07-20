@@ -107,6 +107,7 @@
 
     <!-- About this app -->
     <string name="about_this_app_help_button">ヘルプ</string>
+    <string name="about_this_app_version">Version %1$s</string>
 
     <!-- Wipe data -->
     <string name="wipe_data_title">データ消去</string>

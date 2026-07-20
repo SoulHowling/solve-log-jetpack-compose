@@ -74,7 +74,7 @@ fun AboutThisAppContent() {
         Spacer(modifier = Modifier.height(8.dp))
 
         Text(
-            text = "Version ${BuildConfig.VERSION_NAME}",
+            text = stringResource(id = R.string.about_this_app_version, BuildConfig.VERSION_NAME),
             style = MaterialTheme.typography.bodyLarge
         )
 
