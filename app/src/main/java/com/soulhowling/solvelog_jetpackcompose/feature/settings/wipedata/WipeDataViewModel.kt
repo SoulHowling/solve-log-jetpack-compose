@@ -7,7 +7,6 @@ import androidx.room.withTransaction
 import com.soulhowling.solvelog_jetpackcompose.core.SolveLogApplication
 import com.soulhowling.solvelog_jetpackcompose.core.database.SolveLogDatabase
 import com.soulhowling.solvelog_jetpackcompose.feature.measurement.timer.TimerRepository
-import com.soulhowling.solvelog_jetpackcompose.feature.settings.WipeDataItem
 import com.soulhowling.solvelog_jetpackcompose.feature.solvelog.model.repository.FolderRepository
 import com.soulhowling.solvelog_jetpackcompose.feature.solvelog.model.repository.QuestionRepository
 import com.soulhowling.solvelog_jetpackcompose.feature.solvelog.model.repository.SolveLogRepository
