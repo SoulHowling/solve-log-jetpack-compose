@@ -14,6 +14,7 @@ import androidx.navigation.navArgument
 import com.soulhowling.solvelog_jetpackcompose.feature.measurement.MeasurementScreen
 import com.soulhowling.solvelog_jetpackcompose.feature.settings.SettingScreen
 import com.soulhowling.solvelog_jetpackcompose.feature.settings.aboutthisapp.AboutThisAppScreen
+import com.soulhowling.solvelog_jetpackcompose.feature.settings.privacypolicy.PrivacyPolicyScreen
 import com.soulhowling.solvelog_jetpackcompose.feature.settings.wipedata.WipeDataScreen
 import com.soulhowling.solvelog_jetpackcompose.feature.solvelog.compose.SolveLogEditorScreen
 import com.soulhowling.solvelog_jetpackcompose.feature.solvelog.compose.SolveLogListScreen
@@ -79,6 +80,9 @@ fun AppNavGraph(
                     },
                     onNavigateToAboutThisApp = {
                         navController.navigate(Screens.AboutThisApp.route)
+                    },
+                    onPrivacyPolicy = {
+                        navController.navigate(Screens.PrivacyPolicy.route)
                     }
                 )
             }
@@ -91,6 +95,11 @@ fun AppNavGraph(
         composable(Screens.AboutThisApp.route) { backStackEntry ->
             LifecycleTouchGuard(isTargetScreen = backStackEntry == currentNavBackStackEntry) {
                 AboutThisAppScreen()
+            }
+        }
+        composable(Screens.PrivacyPolicy.route) { backStackEntry ->
+            LifecycleTouchGuard(isTargetScreen = backStackEntry == currentNavBackStackEntry) {
+                PrivacyPolicyScreen()
             }
         }
     }

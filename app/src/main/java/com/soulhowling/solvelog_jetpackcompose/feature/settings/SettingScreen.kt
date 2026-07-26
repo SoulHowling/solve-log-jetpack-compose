@@ -33,14 +33,16 @@ import com.soulhowling.solvelog_jetpackcompose.utils.compose.SingleChoiceSegment
 fun SettingScreen(
     viewModel: SettingViewModel = viewModel(),
     onNavigateToWipeData: () -> Unit = {},
-    onNavigateToAboutThisApp: () -> Unit = {}
+    onNavigateToAboutThisApp: () -> Unit = {},
+    onPrivacyPolicy: () -> Unit,
 ) {
     val themeMode by viewModel.themeMode.collectAsState()
     SettingScreenContent(
         themeMode = themeMode,
         onThemeModeChange = { viewModel.setThemeMode(it) },
         onWipeData = onNavigateToWipeData,
-        onAboutThisApp = onNavigateToAboutThisApp
+        onAboutThisApp = onNavigateToAboutThisApp,
+        onPrivacyPolicy = onPrivacyPolicy
     )
 }
 
@@ -50,16 +52,17 @@ fun SettingScreenContent(
     onThemeModeChange: (ThemeMode) -> Unit,
     onWipeData: () -> Unit,
     onAboutThisApp: () -> Unit,
+    onPrivacyPolicy: () -> Unit,
 ) {
     val context = LocalContext.current
     val notImplementedMessage = stringResource(id = R.string.common_not_implemented)
-    val settingsItems = remember(onWipeData, onAboutThisApp, context) {
+    val settingsItems = remember(onWipeData, onAboutThisApp, onPrivacyPolicy, context) {
         val notYetImplementedAction = { Toast.makeText(context, notImplementedMessage, Toast.LENGTH_SHORT).show() }
         listOf(
             SettingItem.AppTheme(),
             SettingItem.WipeData(onWipeData),
             SettingItem.AboutThisApp(onAboutThisApp),
-            SettingItem.PrivacyPolicy(notYetImplementedAction),
+            SettingItem.PrivacyPolicy(onPrivacyPolicy),
             SettingItem.SoftwareLicense(notYetImplementedAction)
         )
     }
@@ -121,7 +124,8 @@ private fun SettingScreenPreview() {
             themeMode = ThemeMode.SYSTEM,
             onThemeModeChange = {},
             onWipeData = {},
-            onAboutThisApp = {}
+            onAboutThisApp = {},
+            onPrivacyPolicy = {}
         )
     }
 }
