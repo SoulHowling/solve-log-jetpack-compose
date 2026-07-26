@@ -30,12 +30,12 @@ class SettingScreenTest {
                     themeMode = ThemeMode.SYSTEM,
                     onThemeModeChange = {},
                     onWipeData = {},
-                    onAboutThisApp = {}
+                    onAboutThisApp = {},
+                    onPrivacyPolicy = {}
                 )
             }
         }
 
-        // 各項目が表示されているか確認
         composeTestRule.onNodeWithText(context.getString(R.string.setting_app_theme)).assertIsDisplayed()
         composeTestRule.onNodeWithText(context.getString(R.string.setting_wipe_data)).assertIsDisplayed()
         composeTestRule.onNodeWithText(context.getString(R.string.setting_about_this_app)).assertIsDisplayed()
@@ -53,7 +53,8 @@ class SettingScreenTest {
                     themeMode = ThemeMode.SYSTEM,
                     onThemeModeChange = {},
                     onWipeData = { clicked = AtomicBoolean(true) },
-                    onAboutThisApp = {}
+                    onAboutThisApp = {},
+                    onPrivacyPolicy = {}
                 )
             }
         }
@@ -72,7 +73,8 @@ class SettingScreenTest {
                     themeMode = ThemeMode.SYSTEM,
                     onThemeModeChange = {},
                     onWipeData = {},
-                    onAboutThisApp = { clicked = AtomicBoolean(true) }
+                    onAboutThisApp = { clicked = AtomicBoolean(true) },
+                    onPrivacyPolicy = {}
                 )
             }
         }
@@ -90,20 +92,18 @@ class SettingScreenTest {
                     themeMode = selectedMode.value,
                     onThemeModeChange = { selectedMode.value = it },
                     onWipeData = {},
-                    onAboutThisApp = {}
+                    onAboutThisApp = {},
+                    onPrivacyPolicy = {}
                 )
             }
         }
 
-        // 「ライト」モードを選択
         composeTestRule.onNodeWithText(context.getString(R.string.theme_light)).performClick()
         assertEquals(ThemeMode.LIGHT, selectedMode.value)
 
-        // 「ダーク」モードを選択
         composeTestRule.onNodeWithText(context.getString(R.string.theme_dark)).performClick()
         assertEquals(ThemeMode.DARK, selectedMode.value)
 
-        // 「システム設定」を選択
         composeTestRule.onNodeWithText(context.getString(R.string.theme_system)).performClick()
         assertEquals(ThemeMode.SYSTEM, selectedMode.value)
     }

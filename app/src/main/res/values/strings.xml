@@ -128,6 +128,19 @@
 
     <string name="error">Error</string>
 
+    <!-- Privacy Policy -->
+    <string name="privacy_policy_content">This application treats your privacy with the utmost importance.
+\n\n1. Information Collection
+\nThis application does not collect any personal information. All data you enter (study logs, timers, settings, etc.) is stored only on your device.
+\n\n2. Data Management
+\nSince the data is stored locally on your device, we cannot access, recover, or delete it. You can delete all your data at any time from the \"Wipe Data\" menu in the settings.
+\n\n3. External Services
+\nThis application does not use any third-party advertising or analytics services that collect personal data.
+\n\n4. Changes to This Policy
+\nWe may update our Privacy Policy from time to time. You are advised to review this page periodically for any changes.
+\n\n5. Contact Us
+\nIf you have any questions about this Privacy Policy, please contact the developer.</string>
+
     <!-- content description -->
     <!-- Editor -->
     <string name="talkback_new_log_button">Add new log</string>
