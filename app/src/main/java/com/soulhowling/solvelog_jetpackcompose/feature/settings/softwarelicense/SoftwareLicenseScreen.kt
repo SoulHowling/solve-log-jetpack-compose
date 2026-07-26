@@ -18,19 +18,18 @@ import com.soulhowling.solvelog_jetpackcompose.ui.theme.SolveLogJetpackComposeTh
 
 @Composable
 fun SoftwareLicenseScreen() {
-    SoftwareLicenseScreenContent()
-}
-
-@Composable
-fun SoftwareLicenseScreenContent() {
-    CustomAppBarEffect(
-        title = stringResource(id = R.string.setting_software_license)
-    )
-
     val context = LocalContext.current
     val libraries = remember {
         Libs.Builder().withContext(context).build()
     }
+    SoftwareLicenseScreenContent(libraries = libraries)
+}
+
+@Composable
+fun SoftwareLicenseScreenContent(libraries: Libs?) {
+    CustomAppBarEffect(
+        title = stringResource(id = R.string.setting_software_license)
+    )
 
     Surface(
         modifier = Modifier.fillMaxSize(),
@@ -47,6 +46,6 @@ fun SoftwareLicenseScreenContent() {
 @Composable
 fun SoftwareLicenseScreenPreview() {
     SolveLogJetpackComposeTheme {
-        SoftwareLicenseScreenContent()
+        SoftwareLicenseScreenContent(null)
     }
 }

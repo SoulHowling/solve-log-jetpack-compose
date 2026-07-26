@@ -1,5 +1,6 @@
 package com.soulhowling.solvelog_jetpackcompose.feature.settings.softwarelicense
 
+import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.ui.test.junit4.v2.createComposeRule
@@ -31,14 +32,14 @@ class SoftwareLicenseScreenTest {
             override fun setTitle(title: String?) {
                 appBarTitle.value = title
             }
-            override fun setActions(actions: (@androidx.compose.runtime.Composable () -> Unit)?) {}
+            override fun setActions(actions: (@Composable () -> Unit)?) {}
             override fun setBottomBarVisible(visible: Boolean) {}
         }
 
         composeTestRule.setContent {
             CompositionLocalProvider(LocalAppBarController provides mockController) {
                 SolveLogJetpackComposeTheme {
-                    SoftwareLicenseScreenContent()
+                    SoftwareLicenseScreenContent(null)
                 }
             }
         }
@@ -52,11 +53,10 @@ class SoftwareLicenseScreenTest {
     fun softwareLicenseScreen_contentDoesNotCrash() {
         composeTestRule.setContent {
             SolveLogJetpackComposeTheme {
-                SoftwareLicenseScreenContent()
+                SoftwareLicenseScreenContent(null)
             }
         }
 
-        // 描画が完了するまで待機
         composeTestRule.waitForIdle()
     }
 }
