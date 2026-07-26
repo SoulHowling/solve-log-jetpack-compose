@@ -1,6 +1,5 @@
 package com.soulhowling.solvelog_jetpackcompose.feature.settings
 
-import android.widget.Toast
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -35,6 +34,7 @@ fun SettingScreen(
     onNavigateToWipeData: () -> Unit = {},
     onNavigateToAboutThisApp: () -> Unit = {},
     onPrivacyPolicy: () -> Unit,
+    onSoftwareLicense: () -> Unit,
 ) {
     val themeMode by viewModel.themeMode.collectAsState()
     SettingScreenContent(
@@ -42,7 +42,8 @@ fun SettingScreen(
         onThemeModeChange = { viewModel.setThemeMode(it) },
         onWipeData = onNavigateToWipeData,
         onAboutThisApp = onNavigateToAboutThisApp,
-        onPrivacyPolicy = onPrivacyPolicy
+        onPrivacyPolicy = onPrivacyPolicy,
+        onSoftwareLicense = onSoftwareLicense
     )
 }
 
@@ -53,17 +54,15 @@ fun SettingScreenContent(
     onWipeData: () -> Unit,
     onAboutThisApp: () -> Unit,
     onPrivacyPolicy: () -> Unit,
+    onSoftwareLicense: () -> Unit,
 ) {
-    val context = LocalContext.current
-    val notImplementedMessage = stringResource(id = R.string.common_not_implemented)
-    val settingsItems = remember(onWipeData, onAboutThisApp, onPrivacyPolicy, context) {
-        val notYetImplementedAction = { Toast.makeText(context, notImplementedMessage, Toast.LENGTH_SHORT).show() }
+    val settingsItems = remember(onWipeData, onAboutThisApp, onPrivacyPolicy, onSoftwareLicense) {
         listOf(
             SettingItem.AppTheme(),
             SettingItem.WipeData(onWipeData),
             SettingItem.AboutThisApp(onAboutThisApp),
             SettingItem.PrivacyPolicy(onPrivacyPolicy),
-            SettingItem.SoftwareLicense(notYetImplementedAction)
+            SettingItem.SoftwareLicense(onSoftwareLicense)
         )
     }
     val themeModeList: List<String> = ThemeMode.entries.map { stringResource(it.labelResId) }
@@ -125,7 +124,8 @@ private fun SettingScreenPreview() {
             onThemeModeChange = {},
             onWipeData = {},
             onAboutThisApp = {},
-            onPrivacyPolicy = {}
+            onPrivacyPolicy = {},
+            onSoftwareLicense = {}
         )
     }
 }

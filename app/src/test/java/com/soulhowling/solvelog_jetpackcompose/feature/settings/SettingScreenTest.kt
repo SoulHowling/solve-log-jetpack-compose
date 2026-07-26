@@ -36,7 +36,8 @@ class SettingScreenTest {
                     onThemeModeChange = {},
                     onWipeData = {},
                     onAboutThisApp = {},
-                    onPrivacyPolicy = {}
+                    onPrivacyPolicy = {},
+                    onSoftwareLicense = {}
                 )
             }
         }
@@ -59,7 +60,8 @@ class SettingScreenTest {
                     onThemeModeChange = {},
                     onWipeData = { clicked = AtomicBoolean(true) },
                     onAboutThisApp = {},
-                    onPrivacyPolicy = {}
+                    onPrivacyPolicy = {},
+                    onSoftwareLicense = {}
                 )
             }
         }
@@ -79,7 +81,8 @@ class SettingScreenTest {
                     onThemeModeChange = {},
                     onWipeData = {},
                     onAboutThisApp = { clicked = AtomicBoolean(true) },
-                    onPrivacyPolicy = {}
+                    onPrivacyPolicy = {},
+                    onSoftwareLicense = {}
                 )
             }
         }
@@ -98,7 +101,8 @@ class SettingScreenTest {
                     onThemeModeChange = { selectedMode.value = it },
                     onWipeData = {},
                     onAboutThisApp = {},
-                    onPrivacyPolicy = {}
+                    onPrivacyPolicy = {},
+                    onSoftwareLicense = {}
                 )
             }
         }

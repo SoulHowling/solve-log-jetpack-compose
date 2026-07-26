@@ -18,6 +18,7 @@ private const val SETTING_ROUTE = "setting"
 private const val WIPE_DATA_ROUTE = "wipe_data"
 private const val ABOUT_THIS_APP_ROUTE = "about_this_app"
 private const val PRIVACY_POLICY_ROUTE = "privacy_policy"
+private const val SOFTWARE_LICENSE_ROUTE = "software_license"
 private const val SLASH = "/"
 
 sealed class Screens(
@@ -72,6 +73,12 @@ sealed class Screens(
         icon = Icons.Default.Settings
     )
 
+    data object SoftwareLicense: Screens(
+        route = SETTING_ROUTE + SLASH + SOFTWARE_LICENSE_ROUTE,
+        title = R.string.setting_software_license,
+        icon = Icons.Default.Settings
+    )
+
     companion object {
         const val ARG_SOLVE_LOG_ID = "solveLogId"
         const val ARG_ATTEMPT = "attempt"
@@ -84,7 +91,8 @@ sealed class Screens(
             Setting,
             WipeData,
             AboutThisApp,
-            PrivacyPolicy
+            PrivacyPolicy,
+            SoftwareLicense
         )
 
         fun getBottomNaviScreens(): List<Screens> = listOf(
