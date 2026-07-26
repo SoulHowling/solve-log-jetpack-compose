@@ -15,6 +15,7 @@ import com.soulhowling.solvelog_jetpackcompose.feature.measurement.MeasurementSc
 import com.soulhowling.solvelog_jetpackcompose.feature.settings.SettingScreen
 import com.soulhowling.solvelog_jetpackcompose.feature.settings.aboutthisapp.AboutThisAppScreen
 import com.soulhowling.solvelog_jetpackcompose.feature.settings.privacypolicy.PrivacyPolicyScreen
+import com.soulhowling.solvelog_jetpackcompose.feature.settings.softwarelicense.SoftwareLicenseScreen
 import com.soulhowling.solvelog_jetpackcompose.feature.settings.wipedata.WipeDataScreen
 import com.soulhowling.solvelog_jetpackcompose.feature.solvelog.compose.SolveLogEditorScreen
 import com.soulhowling.solvelog_jetpackcompose.feature.solvelog.compose.SolveLogListScreen
@@ -83,6 +84,9 @@ fun AppNavGraph(
                     },
                     onPrivacyPolicy = {
                         navController.navigate(Screens.PrivacyPolicy.route)
+                    },
+                    onSoftwareLicense = {
+                        navController.navigate(Screens.SoftwareLicense.route)
                     }
                 )
             }
@@ -100,6 +104,11 @@ fun AppNavGraph(
         composable(Screens.PrivacyPolicy.route) { backStackEntry ->
             LifecycleTouchGuard(isTargetScreen = backStackEntry == currentNavBackStackEntry) {
                 PrivacyPolicyScreen()
+            }
+        }
+        composable(Screens.SoftwareLicense.route) { backStackEntry ->
+            LifecycleTouchGuard(isTargetScreen = backStackEntry == currentNavBackStackEntry) {
+                SoftwareLicenseScreen()
             }
         }
     }
