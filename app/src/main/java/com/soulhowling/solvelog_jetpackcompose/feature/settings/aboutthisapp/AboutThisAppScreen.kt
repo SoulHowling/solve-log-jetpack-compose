@@ -28,6 +28,7 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.soulhowling.solvelog_jetpackcompose.BuildConfig
 import com.soulhowling.solvelog_jetpackcompose.R
+import com.soulhowling.solvelog_jetpackcompose.core.CustomAppBarEffect
 import com.soulhowling.solvelog_jetpackcompose.ui.theme.SolveLogJetpackComposeTheme
 
 @Composable
@@ -37,6 +38,10 @@ fun AboutThisAppScreen() {
 
 @Composable
 fun AboutThisAppContent() {
+    CustomAppBarEffect(
+        title = stringResource(id = R.string.setting_about_this_app)
+    )
+
     val context = LocalContext.current
     val scrollState = rememberScrollState()
 
