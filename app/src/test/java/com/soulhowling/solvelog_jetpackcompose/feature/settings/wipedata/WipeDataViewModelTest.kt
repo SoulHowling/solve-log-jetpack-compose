@@ -11,6 +11,7 @@ import kotlinx.coroutines.test.StandardTestDispatcher
 import kotlinx.coroutines.test.resetMain
 import kotlinx.coroutines.test.runTest
 import kotlinx.coroutines.test.setMain
+import kotlinx.coroutines.withContext
 import org.junit.After
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertTrue
@@ -29,9 +30,15 @@ class WipeDataViewModelTest {
     private val testDispatcher = StandardTestDispatcher()
 
     @Before
-    fun setup() {
+    fun setup() = runTest(testDispatcher) {
         Dispatchers.setMain(testDispatcher)
         application = ApplicationProvider.getApplicationContext()
+        
+        // Ensure a clean state before each test
+        withContext(Dispatchers.IO) {
+            application.database.clearAllTables()
+        }
+        
         viewModel = WipeDataViewModel(application)
     }
 
