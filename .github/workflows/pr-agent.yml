@@ -4,9 +4,11 @@ on:
     types: [opened, reopened, ready_for_review]
   issue_comment:
     types: [created]
+  pull_request_review_comment:
+    types: [created]
 jobs:
   pr_agent_job:
-    if: ${{ github.event.sender.type != 'Bot' && (!github.event.comment.body || startsWith(github.event.comment.body, '/')) }}
+    if: ${{ github.event.sender.type != 'Bot' && (github.event_name == 'pull_request' || (github.event.comment && startsWith(github.event.comment.body, '/'))) }}
     runs-on: ubuntu-latest
     permissions:
       issues: write
@@ -25,6 +27,9 @@ jobs:
           PR_REVIEWER.NUM_CODE_SUGGESTIONS: 5
           PR_REVIEWER.INLINE_CODE_COMMENTS: true
           PR_IMPROVE.INLINE_CODE_COMMENTS: true
+          GITHUB_ACTION_CONFIG.ENABLE_INTERACTION: "true"
+          GITHUB.PUBLISH_AS_CHECK_RUN: "false"
+          PR_CODE_SUGGESTIONS.COMMITABLE_CODE_SUGGESTIONS: "true"
           PR_CODE_SUGGESTIONS.EXTRA_INSTRUCTIONS: "必ず日本語で回答してください。解説や指摘文に英語を混ぜないでください。"
           PR_REVIEWER.EXTRA_INSTRUCTIONS: "必ず日本語で回答してください。"
           PR_DESCRIPTION.EXTRA_INSTRUCTIONS: "必ず日本語で回答してください。"
