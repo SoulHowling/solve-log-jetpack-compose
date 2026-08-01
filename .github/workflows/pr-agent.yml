@@ -8,7 +8,7 @@ on:
     types: [created]
 jobs:
   pr_agent_job:
-    if: ${{ github.event.sender.type != 'Bot' && (github.event_name == 'pull_request' || (github.event.comment && startWith(github.event.comment.body, '/'))) }}
+    if: ${{ github.event.sender.type != 'Bot' && (github.event_name == 'pull_request' || (github.event.comment && startsWith(github.event.comment.body, '/'))) }}
     runs-on: ubuntu-latest
     permissions:
       issues: write
