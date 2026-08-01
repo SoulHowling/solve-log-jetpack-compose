@@ -7,6 +7,7 @@ import com.soulhowling.solvelog_jetpackcompose.feature.measurement.timer.TimerSt
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.test.StandardTestDispatcher
 import kotlinx.coroutines.test.resetMain
 import kotlinx.coroutines.test.runTest
@@ -30,13 +31,15 @@ class WipeDataViewModelTest {
     private val testDispatcher = StandardTestDispatcher()
 
     @Before
-    fun setup() = runTest(testDispatcher) {
+    fun setup() {
         Dispatchers.setMain(testDispatcher)
         application = ApplicationProvider.getApplicationContext()
         
         // Ensure a clean state before each test
-        withContext(Dispatchers.IO) {
-            application.database.clearAllTables()
+        runBlocking {
+            withContext(Dispatchers.IO) {
+                application.database.clearAllTables()
+            }
         }
         
         viewModel = WipeDataViewModel(application)
