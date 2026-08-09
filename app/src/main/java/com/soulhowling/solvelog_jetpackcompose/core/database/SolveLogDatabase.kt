@@ -4,9 +4,10 @@ import android.content.Context
 import androidx.room.Database
 import androidx.room.Room
 import androidx.room.RoomDatabase
+import androidx.room.TypeConverters
 import androidx.sqlite.db.SupportSQLiteDatabase
-import com.soulhowling.solvelog_jetpackcompose.feature.measurement.timer.TimerDao
-import com.soulhowling.solvelog_jetpackcompose.feature.measurement.timer.TimerState
+import com.soulhowling.solvelog_jetpackcompose.feature.measurement.timer.model.TimerDao
+import com.soulhowling.solvelog_jetpackcompose.feature.measurement.timer.model.TimerState
 import com.soulhowling.solvelog_jetpackcompose.feature.solvelog.model.dao.FolderDao
 import com.soulhowling.solvelog_jetpackcompose.feature.solvelog.model.dao.QuestionDao
 import com.soulhowling.solvelog_jetpackcompose.feature.solvelog.model.dao.SolveLogDao
@@ -19,8 +20,9 @@ import kotlinx.coroutines.launch
 
 @Database(
     entities = [TimerState::class, SolveLog::class, Folder::class, Question::class],
-    version = 1
+    version = 3
 )
+@TypeConverters(Converters::class)
 abstract class SolveLogDatabase : RoomDatabase() {
     abstract fun folderDao(): FolderDao
     abstract fun solveLogDao(): SolveLogDao
@@ -30,7 +32,7 @@ abstract class SolveLogDatabase : RoomDatabase() {
 
     companion object {
         private const val DATABASE_NAME = "solve_log_database"
-        private const val SQL_DEFAULT_TIMER = "INSERT INTO timer_state (initialSeconds, remainingSeconds, isRunning, lastModified) VALUES (60, 60, 0, 0);"
+        private const val SQL_DEFAULT_TIMER = "INSERT INTO timer_state (title, workSet, workSeconds, breakSeconds, phase, initialSeconds, remainingSeconds, isRunning, lastModified) VALUES ('タイマー', 4, 1500, 300, 'WORK', 1500, 1500, 0, 0);"
         @Volatile
         private var instance: SolveLogDatabase? = null
 

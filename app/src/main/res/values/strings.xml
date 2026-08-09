@@ -84,9 +84,10 @@
 
     <!-- Measurement -->
     <string name="measurement_stopwatch_title">Stopwatch</string>
-    <string name="measurement_timer_title">Timer</string>
+    <string name="measurement_timer_title">Repeat timer</string>
     <string name="measurement_start_button">Start</string>
     <string name="measurement_resume_button">Resume</string>
+    <string name="measurement_restart_button">Restart</string>
     <string name="measurement_stop_button">Stop</string>
     <string name="measurement_reset_button">Reset</string>
 
@@ -95,8 +96,25 @@
     <string name="stopwatch_notification_channel_description">Shows elapsed time of the stopwatch</string>
 
     <!-- Timer -->
-    <string name="timer_add_title">Add Timer</string>
-    <string name="timer_add_description">Please enter the time to set</string>
+    <string name="timer_dialog_add_title">Add Timer</string>
+    <string name="timer_dialog_edit_title">Edit Timer</string>
+    <string name="timer_dialog_label_name">Name</string>
+    <string name="timer_dialog_label_sets">Sets</string>
+    <string name="timer_dialog_label_work">Work Time</string>
+    <string name="timer_dialog_label_break">Break Time</string>
+    <string name="timer_dialog_unit_sets">Sets</string>
+    <string name="timer_dialog_unit_minutes">min</string>
+    <string name="timer_dialog_unit_seconds">sec</string>
+    <string name="timer_list_work_time">Work Time</string>
+    <string name="timer_list_break_time">Break Time</string>
+    <string name="timer_list_running">Running</string>
+    <string name="timer_list_sets_display">%1$d Sets</string>
+    <string name="timer_page_phase_work">Work</string>
+    <string name="timer_page_phase_break">Break</string>
+    <string name="timer_page_phase_complete">Complete</string>
+    <string name="timer_page_work_set_format">Set %1$d/%2$d</string>
+    <string name="timer_dialog_overwrite_title">Switch Timer</string>
+    <string name="timer_dialog_overwrite_message">Do you want to stop the current timer and start a new one?</string>
 
     <!-- Setting -->
     <string name="setting_app_theme">App theme</string>

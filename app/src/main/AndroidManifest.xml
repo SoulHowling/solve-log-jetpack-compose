@@ -37,6 +37,16 @@
                 android:name="android.app.PROPERTY_SPECIAL_USE_FGS_SUBTYPE"
                 android:value="Stopwatch service to track time in background" />
         </service>
+
+        <service
+            android:name=".feature.measurement.timer.model.TimerService"
+            android:enabled="true"
+            android:exported="false"
+            android:foregroundServiceType="specialUse">
+            <property
+                android:name="android.app.PROPERTY_SPECIAL_USE_FGS_SUBTYPE"
+                android:value="Timer service to track time in background" />
+        </service>
     </application>
 
 </manifest>
