@@ -27,7 +27,6 @@ import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
-import org.jetbrains.annotations.VisibleForTesting
 import java.util.Locale
 import kotlin.time.Duration.Companion.milliseconds
 
@@ -49,16 +48,7 @@ class TimerService : Service() {
 
         private val _initialWorkSet = MutableStateFlow(0)
         val initialWorkSet: StateFlow<Int> = _initialWorkSet.asStateFlow()
-
-        @VisibleForTesting
-        fun resetStateForTesting() {
-            _timerState.value = null
-            _initialWorkSet.value = 0
-        }
     }
-
-    @VisibleForTesting
-    var repositoryForTesting: TimerRepository? = null
 
     private lateinit var repository: TimerRepository
     private val serviceScope = CoroutineScope(SupervisorJob() + Dispatchers.Main)
@@ -69,7 +59,7 @@ class TimerService : Service() {
     override fun onCreate() {
         super.onCreate()
         val solveLogApp = application as SolveLogApplication
-        repository = repositoryForTesting ?: TimerRepository(solveLogApp.database.timerDao())
+        repository = TimerRepository(solveLogApp.database.timerDao())
     }
 
     override fun onBind(intent: Intent?): IBinder? = null
@@ -201,15 +191,14 @@ class TimerService : Service() {
             try {
                 val notification = RingtoneManager.getDefaultUri(RingtoneManager.TYPE_NOTIFICATION)
                 val r = RingtoneManager.getRingtone(applicationContext, notification)
-                
-                if (r != null) {
-                    val attributes = AudioAttributes.Builder()
-                        .setUsage(AudioAttributes.USAGE_MEDIA)
-                        .setContentType(AudioAttributes.CONTENT_TYPE_SONIFICATION)
-                        .build()
-                    r.audioAttributes = attributes
-                    r.play()
-                }
+
+                val attributes = AudioAttributes.Builder()
+                    .setUsage(AudioAttributes.USAGE_MEDIA)
+                    .setContentType(AudioAttributes.CONTENT_TYPE_SONIFICATION)
+                    .build()
+                r.audioAttributes = attributes
+
+                r.play()
             } catch (e: Exception) {
                 e.printStackTrace()
             }
