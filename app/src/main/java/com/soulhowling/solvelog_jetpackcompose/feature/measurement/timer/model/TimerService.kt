@@ -12,6 +12,7 @@ import android.media.RingtoneManager
 import android.media.ToneGenerator
 import android.os.Build
 import android.os.IBinder
+import android.os.SystemClock
 import com.soulhowling.solvelog_jetpackcompose.R
 import com.soulhowling.solvelog_jetpackcompose.core.SolveLogApplication
 import com.soulhowling.solvelog_jetpackcompose.utils.LogUtils
@@ -48,6 +49,9 @@ class TimerService : Service() {
     private var timerJob: Job? = null
 
     private var toneGenerator: ToneGenerator? = null
+
+    private var tickStartTime = 0L
+    private var tickStartRemaining = 0
 
     override fun onCreate() {
         super.onCreate()
@@ -155,41 +159,54 @@ class TimerService : Service() {
     }
 
     private fun startTicking() {
+        val currentState = timerManager.timerState.value ?: return
+        tickStartTime = SystemClock.elapsedRealtime()
+        tickStartRemaining = currentState.remainingSeconds
+
         timerJob?.cancel()
         timerJob = serviceScope.launch {
             while (isActive) {
-                delay(1000L.milliseconds)
-                val currentState = timerManager.timerState.value ?: break
-                if (!currentState.isRunning) break
+                delay(500L.milliseconds)
+                val current = timerManager.timerState.value ?: break
+                if (!current.isRunning) break
 
-                val tickedState = currentState.tick()
+                val elapsedMillis = SystemClock.elapsedRealtime() - tickStartTime
+                val elapsedSeconds = (elapsedMillis / 1000).toInt()
+                val newRemaining = (tickStartRemaining - elapsedSeconds).coerceAtLeast(0)
 
-                if (tickedState.remainingSeconds in 1..3) {
-                    launch(Dispatchers.Default) {
-                        try {
-                            toneGenerator?.startTone(ToneGenerator.TONE_PROP_BEEP2, 150)
-                        } catch (e: Exception) {
-                            LogUtils.e("Failed to startTone", e)
+                if (newRemaining != current.remainingSeconds) {
+                    val tickedState = current.copy(remainingSeconds = newRemaining)
+
+                    if (newRemaining in 1..3) {
+                        launch(Dispatchers.Default) {
+                            try {
+                                toneGenerator?.startTone(ToneGenerator.TONE_PROP_BEEP2, 150)
+                            } catch (e: Exception) {
+                                LogUtils.e("Failed to startTone", e)
+                            }
                         }
                     }
-                }
 
-                if (tickedState.remainingSeconds <= 0) {
-                    launch(Dispatchers.Default) {
-                        playNotificationSound()
+                    if (newRemaining <= 0) {
+                        launch(Dispatchers.Default) {
+                            playNotificationSound()
+                        }
+
+                        val nextState = tickedState.nextPhase()
+                        timerManager.updateTimerState(nextState)
+                        updateNotification()
+
+                        if (nextState.isRunning) {
+                            tickStartTime = SystemClock.elapsedRealtime()
+                            tickStartRemaining = nextState.remainingSeconds
+                        } else {
+                            timerJob = null
+                            break
+                        }
+                    } else {
+                        timerManager.updateTimerState(tickedState)
+                        updateNotification()
                     }
-
-                    val nextState = tickedState.nextPhase()
-                    timerManager.updateTimerState(nextState)
-                    updateNotification()
-
-                    if (!nextState.isRunning) {
-                        timerJob = null
-                        break
-                    }
-                } else {
-                    timerManager.updateTimerState(tickedState)
-                    updateNotification()
                 }
             }
         }
