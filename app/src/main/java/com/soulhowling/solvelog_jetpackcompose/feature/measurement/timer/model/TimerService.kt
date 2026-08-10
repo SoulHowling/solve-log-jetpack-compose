@@ -14,6 +14,7 @@ import android.os.Build
 import android.os.IBinder
 import com.soulhowling.solvelog_jetpackcompose.R
 import com.soulhowling.solvelog_jetpackcompose.core.SolveLogApplication
+import com.soulhowling.solvelog_jetpackcompose.utils.LogUtils
 import com.soulhowling.solvelog_jetpackcompose.utils.NotificationUtils
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -161,7 +162,11 @@ class TimerService : Service() {
 
                 if (tickedState.remainingSeconds in 1..3) {
                     launch(Dispatchers.Default) {
-                        toneGenerator.startTone(ToneGenerator.TONE_PROP_BEEP2, 150)
+                        try {
+                            toneGenerator.startTone(ToneGenerator.TONE_PROP_BEEP2, 150)
+                        } catch (e: Exception) {
+                            LogUtils.e("Failed to startTone", e)
+                        }
                     }
                 }
 
@@ -200,7 +205,7 @@ class TimerService : Service() {
 
                 r.play()
             } catch (e: Exception) {
-                e.printStackTrace()
+                LogUtils.e("Failed to play notification sound", e)
             }
         }
     }

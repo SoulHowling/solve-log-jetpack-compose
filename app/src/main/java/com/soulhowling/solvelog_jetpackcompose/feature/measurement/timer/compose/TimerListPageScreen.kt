@@ -50,6 +50,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.Alignment
@@ -455,16 +456,16 @@ fun TimerAddDialog(
     onDismiss: () -> Unit,
     onConfirm: (title: String, sets: Int, workMin: Int, workSec: Int, breakMin: Int, breakSec: Int) -> Unit
 ) {
-    val title = remember { mutableStateOf(initialTimer?.title ?: "") }
-    val sets = remember { mutableIntStateOf(initialTimer?.workSet ?: 4) }
+    val title = rememberSaveable { mutableStateOf(initialTimer?.title ?: "") }
+    val sets = rememberSaveable { mutableIntStateOf(initialTimer?.workSet ?: 4) }
     val workMinutes =
-        remember { mutableIntStateOf(initialTimer?.workSeconds?.let { it / 60 } ?: 25) }
+        rememberSaveable { mutableIntStateOf(initialTimer?.workSeconds?.let { it / 60 } ?: 25) }
     val workSeconds =
-        remember { mutableIntStateOf(initialTimer?.workSeconds?.let { it % 60 } ?: 0) }
+        rememberSaveable { mutableIntStateOf(initialTimer?.workSeconds?.let { it % 60 } ?: 0) }
     val breakMinutes =
-        remember { mutableIntStateOf(initialTimer?.breakSeconds?.let { it / 60 } ?: 5) }
+        rememberSaveable { mutableIntStateOf(initialTimer?.breakSeconds?.let { it / 60 } ?: 5) }
     val breakSeconds =
-        remember { mutableIntStateOf(initialTimer?.breakSeconds?.let { it % 60 } ?: 0) }
+        rememberSaveable { mutableIntStateOf(initialTimer?.breakSeconds?.let { it % 60 } ?: 0) }
 
     AlertDialog(
         onDismissRequest = onDismiss,
@@ -619,6 +620,13 @@ fun NumberPicker(
         initialPage = numbers.indexOf(value).coerceAtLeast(0),
         pageCount = { numbers.size }
     )
+
+    LaunchedEffect(value) {
+        val targetPage = numbers.indexOf(value).coerceAtLeast(0)
+        if (pagerState.currentPage != targetPage) {
+            pagerState.scrollToPage(targetPage)
+        }
+    }
 
     LaunchedEffect(pagerState.currentPage) {
         onValueChange(numbers[pagerState.currentPage])
