@@ -20,7 +20,7 @@ import kotlinx.coroutines.launch
 
 @Database(
     entities = [TimerState::class, SolveLog::class, Folder::class, Question::class],
-    version = 3
+    version = 2
 )
 @TypeConverters(Converters::class)
 abstract class SolveLogDatabase : RoomDatabase() {
