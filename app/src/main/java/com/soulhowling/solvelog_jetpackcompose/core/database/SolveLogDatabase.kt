@@ -5,6 +5,7 @@ import androidx.room.Database
 import androidx.room.Room
 import androidx.room.RoomDatabase
 import androidx.room.TypeConverters
+import androidx.room.migration.Migration
 import androidx.sqlite.db.SupportSQLiteDatabase
 import com.soulhowling.solvelog_jetpackcompose.feature.measurement.timer.model.TimerDao
 import com.soulhowling.solvelog_jetpackcompose.feature.measurement.timer.model.TimerState
@@ -33,13 +34,25 @@ abstract class SolveLogDatabase : RoomDatabase() {
     companion object {
         private const val DATABASE_NAME = "solve_log_database"
         private const val SQL_DEFAULT_TIMER = "INSERT INTO timer_state (title, workSet, workSeconds, breakSeconds, phase, initialSeconds, remainingSeconds, isRunning, lastModified) VALUES ('タイマー', 4, 1500, 300, 'WORK', 1500, 1500, 0, 0);"
+
+        private val MIGRATION_1_2 = object : Migration(1, 2) {
+            override fun migrate(db: SupportSQLiteDatabase) {
+                // timer_stateテーブルに不足しているカラムを追加
+                db.execSQL("ALTER TABLE timer_state ADD COLUMN phase TEXT NOT NULL DEFAULT 'WORK'")
+                db.execSQL("ALTER TABLE timer_state ADD COLUMN initialSeconds INTEGER NOT NULL DEFAULT 0")
+                db.execSQL("ALTER TABLE timer_state ADD COLUMN remainingSeconds INTEGER NOT NULL DEFAULT 0")
+                db.execSQL("ALTER TABLE timer_state ADD COLUMN isRunning INTEGER NOT NULL DEFAULT 0")
+                db.execSQL("ALTER TABLE timer_state ADD COLUMN lastModified INTEGER NOT NULL DEFAULT 0")
+            }
+        }
+
         @Volatile
         private var instance: SolveLogDatabase? = null
 
         fun getDatabase(context: Context, scope: CoroutineScope): SolveLogDatabase {
             return instance ?: synchronized(this) {
                 Room.databaseBuilder(context, SolveLogDatabase::class.java, DATABASE_NAME)
-                    .fallbackToDestructiveMigration(true)
+                    .addMigrations(MIGRATION_1_2)
                     .addCallback(object: Callback() {
                         override fun onCreate(db: SupportSQLiteDatabase) {
                             super.onCreate(db)
