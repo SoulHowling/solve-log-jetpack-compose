@@ -1,6 +1,7 @@
 package com.soulhowling.solvelog_jetpackcompose.feature.measurement.timer.model
 
 import androidx.room.Entity
+import androidx.room.Ignore
 import androidx.room.PrimaryKey
 
 enum class TimerPhase {
@@ -16,17 +17,46 @@ data class TimerState(
     val workSeconds: Int,
     val breakSeconds: Int,
     val phase: TimerPhase = TimerPhase.WORK,
-    val initialSeconds: Int,
-    val remainingSeconds: Int,
-    val isRunning: Boolean = false,
-    val lastModified: Long = System.currentTimeMillis()
+    val createdAt: Long = System.currentTimeMillis(),
+    val updatedAt: Long = System.currentTimeMillis(),
+    @Ignore
+    val initialSeconds: Int = 0,
+    @Ignore
+    val remainingSeconds: Int = 0,
+    @Ignore
+    val isRunning: Boolean = false
 ) {
+    /**
+     * Roomがデータベースから読み込む際に使用するコンストラクタ。
+     * @Ignoreが付いたフィールドを除いた引数構成にする必要があります。
+     */
+    constructor(
+        id: Int,
+        title: String,
+        workSet: Int,
+        workSeconds: Int,
+        breakSeconds: Int,
+        phase: TimerPhase,
+        createdAt: Long,
+        updatedAt: Long
+    ) : this(
+        id = id,
+        title = title,
+        workSet = workSet,
+        workSeconds = workSeconds,
+        breakSeconds = breakSeconds,
+        phase = phase,
+        createdAt = createdAt,
+        updatedAt = updatedAt,
+        initialSeconds = workSeconds, // 読み込み時は設定値を初期値としてセット
+        remainingSeconds = workSeconds,
+        isRunning = false
+    )
 
     fun tick(): TimerState {
         return if (remainingSeconds > 0) {
             this.copy(
-                remainingSeconds = remainingSeconds - 1,
-                lastModified = System.currentTimeMillis()
+                remainingSeconds = remainingSeconds - 1
             )
         } else {
             this
@@ -43,16 +73,14 @@ data class TimerState(
                         workSet = remainingWork,
                         initialSeconds = breakSeconds,
                         remainingSeconds = breakSeconds,
-                        isRunning = true,
-                        lastModified = System.currentTimeMillis()
+                        isRunning = true
                     )
                 } else {
                     this.copy(
                         phase = TimerPhase.COMPLETE,
                         workSet = 0,
                         remainingSeconds = 0,
-                        isRunning = false,
-                        lastModified = System.currentTimeMillis()
+                        isRunning = false
                     )
                 }
             }
@@ -61,8 +89,7 @@ data class TimerState(
                     phase = TimerPhase.WORK,
                     initialSeconds = workSeconds,
                     remainingSeconds = workSeconds,
-                    isRunning = true,
-                    lastModified = System.currentTimeMillis()
+                    isRunning = true
                 )
             }
             TimerPhase.COMPLETE -> {

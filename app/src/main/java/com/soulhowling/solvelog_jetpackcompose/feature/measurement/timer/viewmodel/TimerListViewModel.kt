@@ -95,7 +95,7 @@ class TimerListViewModel(application: Application): AndroidViewModel(application
                 remainingSeconds = totalWorkSeconds,
                 phase = TimerPhase.WORK,
                 isRunning = false,
-                lastModified = System.currentTimeMillis()
+                updatedAt = System.currentTimeMillis()
             )
             repository.upsertTimer(updatedTimer)
         }

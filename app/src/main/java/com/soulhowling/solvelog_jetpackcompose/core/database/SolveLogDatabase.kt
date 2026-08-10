@@ -33,15 +33,17 @@ abstract class SolveLogDatabase : RoomDatabase() {
 
     companion object {
         private const val DATABASE_NAME = "solve_log_database"
-        private const val SQL_DEFAULT_TIMER = "INSERT INTO timer_state (title, workSet, workSeconds, breakSeconds, phase, initialSeconds, remainingSeconds, isRunning, lastModified) VALUES ('タイマー', 4, 1500, 300, 'WORK', 1500, 1500, 0, 0);"
+        private val SQL_DEFAULT_TIMER = "INSERT INTO timer_state (title, workSet, workSeconds, breakSeconds, phase, createdAt, updatedAt) VALUES ('タイマー', 4, 1500, 300, 'WORK', ${System.currentTimeMillis()}, ${System.currentTimeMillis()});"
 
         private val MIGRATION_1_2 = object : Migration(1, 2) {
             override fun migrate(db: SupportSQLiteDatabase) {
+                db.execSQL("ALTER TABLE timer_state ADD COLUMN title TEXT NOT NULL DEFAULT ''")
+                db.execSQL("ALTER TABLE timer_state ADD COLUMN workSet INTEGER NOT NULL DEFAULT 0")
+                db.execSQL("ALTER TABLE timer_state ADD COLUMN workSeconds INTEGER NOT NULL DEFAULT 0")
+                db.execSQL("ALTER TABLE timer_state ADD COLUMN breakSeconds INTEGER NOT NULL DEFAULT 0")
                 db.execSQL("ALTER TABLE timer_state ADD COLUMN phase TEXT NOT NULL DEFAULT 'WORK'")
-                db.execSQL("ALTER TABLE timer_state ADD COLUMN initialSeconds INTEGER NOT NULL DEFAULT 0")
-                db.execSQL("ALTER TABLE timer_state ADD COLUMN remainingSeconds INTEGER NOT NULL DEFAULT 0")
-                db.execSQL("ALTER TABLE timer_state ADD COLUMN isRunning INTEGER NOT NULL DEFAULT 0")
-                db.execSQL("ALTER TABLE timer_state ADD COLUMN lastModified INTEGER NOT NULL DEFAULT 0")
+                db.execSQL("ALTER TABLE timer_state ADD COLUMN createdAt INTEGER NOT NULL DEFAULT 0")
+                db.execSQL("ALTER TABLE timer_state ADD COLUMN updatedAt INTEGER NOT NULL DEFAULT 0")
             }
         }
 

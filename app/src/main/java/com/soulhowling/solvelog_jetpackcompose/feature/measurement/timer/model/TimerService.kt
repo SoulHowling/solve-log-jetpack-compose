@@ -54,6 +54,13 @@ class TimerService : Service() {
         val solveLogApp = application as SolveLogApplication
         repository = TimerRepository(solveLogApp.database.timerDao())
         timerManager = solveLogApp.timerManager
+
+        NotificationUtils.createNotificationChannel(
+            this,
+            NotificationUtils.TIMER_CHANNEL_ID,
+            getString(R.string.measurement_timer_title)
+        )
+
         try {
             toneGenerator = ToneGenerator(AudioManager.STREAM_MUSIC, 80)
         } catch (e: Exception) {
@@ -86,16 +93,9 @@ class TimerService : Service() {
         serviceScope.launch {
             val state = repository.getTimerBy(timerId).first()
             if (state != null) {
-                val newState = state.copy(isRunning = true, lastModified = System.currentTimeMillis())
+                val newState = state.copy(isRunning = true)
                 timerManager.updateTimerState(newState)
                 timerManager.updateInitialWorkSet(state.workSet)
-
-                NotificationUtils.createNotificationChannel(
-                    this@TimerService,
-                    NotificationUtils.TIMER_CHANNEL_ID,
-                    getString(R.string.measurement_timer_title),
-                    ""
-                )
 
                 updateNotification()
                 startTicking()
@@ -110,7 +110,7 @@ class TimerService : Service() {
         val current = timerManager.timerState.value ?: return
         if (current.isRunning) return
 
-        timerManager.updateTimerState(current.copy(isRunning = true, lastModified = System.currentTimeMillis()))
+        timerManager.updateTimerState(current.copy(isRunning = true))
         updateNotification()
         startTicking()
     }
@@ -119,7 +119,7 @@ class TimerService : Service() {
         val current = timerManager.timerState.value ?: return
         if (!current.isRunning) return
 
-        timerManager.updateTimerState(current.copy(isRunning = false, lastModified = System.currentTimeMillis()))
+        timerManager.updateTimerState(current.copy(isRunning = false))
         timerJob?.cancel()
         timerJob = null
         updateNotification()
@@ -132,8 +132,7 @@ class TimerService : Service() {
             phase = TimerPhase.WORK,
             initialSeconds = current.workSeconds,
             remainingSeconds = current.workSeconds,
-            isRunning = false,
-            lastModified = System.currentTimeMillis()
+            isRunning = false
         ))
         timerJob?.cancel()
         timerJob = null
@@ -148,8 +147,7 @@ class TimerService : Service() {
             phase = TimerPhase.WORK,
             initialSeconds = current.workSeconds,
             remainingSeconds = current.workSeconds,
-            isRunning = true,
-            lastModified = System.currentTimeMillis()
+            isRunning = true
         ))
         timerJob?.cancel()
         startTicking()
