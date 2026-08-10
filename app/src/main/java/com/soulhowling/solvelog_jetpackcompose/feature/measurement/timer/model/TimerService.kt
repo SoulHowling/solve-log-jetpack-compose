@@ -55,19 +55,28 @@ class TimerService : Service() {
     private val serviceScope = CoroutineScope(SupervisorJob() + Dispatchers.Main)
     private var timerJob: Job? = null
 
-    private val toneGenerator = ToneGenerator(AudioManager.STREAM_MUSIC, 80)
+    private var toneGenerator: ToneGenerator? = null
 
     override fun onCreate() {
         super.onCreate()
         val solveLogApp = application as SolveLogApplication
         repository = TimerRepository(solveLogApp.database.timerDao())
+        try {
+            toneGenerator = ToneGenerator(AudioManager.STREAM_MUSIC, 80)
+        } catch (e: Exception) {
+            LogUtils.e("Failed to create ToneGenerator", e)
+        }
     }
 
     override fun onBind(intent: Intent?): IBinder? = null
 
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
-        val timerId = intent?.getIntExtra(EXTRA_TIMER_ID, -1) ?: -1
+        val action = intent?.action
+        if (action != ACTION_RESET) {
+            promptToForeground()
+        }
 
+        val timerId = intent?.getIntExtra(EXTRA_TIMER_ID, -1) ?: -1
         when (intent?.action) {
             ACTION_START -> {
                 if (timerId != -1) startTimer(timerId)
@@ -94,8 +103,11 @@ class TimerService : Service() {
                     ""
                 )
 
-                promptToForeground()
+                updateNotification()
                 startTicking()
+            } else {
+                stopForeground(STOP_FOREGROUND_REMOVE)
+                stopSelf()
             }
         }
     }
@@ -105,7 +117,7 @@ class TimerService : Service() {
         if (current.isRunning) return
 
         _timerState.value = current.copy(isRunning = true, lastModified = System.currentTimeMillis())
-        promptToForeground()
+        updateNotification()
         startTicking()
     }
 
@@ -116,7 +128,7 @@ class TimerService : Service() {
         _timerState.value = current.copy(isRunning = false, lastModified = System.currentTimeMillis())
         timerJob?.cancel()
         timerJob = null
-        promptToForeground()
+        updateNotification()
     }
 
     private fun resetTimer() {
@@ -147,7 +159,7 @@ class TimerService : Service() {
         )
         timerJob?.cancel()
         startTicking()
-        promptToForeground()
+        updateNotification()
     }
 
     private fun startTicking() {
@@ -163,7 +175,7 @@ class TimerService : Service() {
                 if (tickedState.remainingSeconds in 1..3) {
                     launch(Dispatchers.Default) {
                         try {
-                            toneGenerator.startTone(ToneGenerator.TONE_PROP_BEEP2, 150)
+                            toneGenerator?.startTone(ToneGenerator.TONE_PROP_BEEP2, 150)
                         } catch (e: Exception) {
                             LogUtils.e("Failed to startTone", e)
                         }
@@ -299,7 +311,8 @@ class TimerService : Service() {
 
     override fun onDestroy() {
         timerJob?.cancel()
-        toneGenerator.release()
+        toneGenerator?.release()
+        toneGenerator = null
         _timerState.value = null
         _initialWorkSet.value = 0
         super.onDestroy()

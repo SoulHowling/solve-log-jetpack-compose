@@ -142,6 +142,7 @@ fun TimerListPageScreenContent(
 
     Box(modifier = Modifier.fillMaxSize()) {
         LazyColumn(
+            state = listState,
             modifier = Modifier.fillMaxSize(),
             contentPadding = PaddingValues(
                 start = Dimensions.PADDING_MEDIUM,
