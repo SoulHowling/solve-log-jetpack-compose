@@ -4,7 +4,6 @@ import android.app.Application
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
 import com.soulhowling.solvelog_jetpackcompose.core.SolveLogApplication
-import com.soulhowling.solvelog_jetpackcompose.feature.measurement.timer.model.TimerService
 import com.soulhowling.solvelog_jetpackcompose.feature.measurement.timer.model.TimerPhase
 import com.soulhowling.solvelog_jetpackcompose.feature.measurement.timer.model.TimerRepository
 import com.soulhowling.solvelog_jetpackcompose.feature.measurement.timer.model.TimerState
@@ -17,11 +16,12 @@ import kotlinx.coroutines.launch
 
 class TimerListViewModel(application: Application): AndroidViewModel(application) {
     private val repository: TimerRepository
+    private val timerManager = (application as SolveLogApplication).timerManager
     private val timers: StateFlow<List<TimerState>>
     
     val displayTimers: StateFlow<List<TimerState>>
 
-    val activeTimerId: StateFlow<Int?> = TimerService.timerState.map { it?.id }
+    val activeTimerId: StateFlow<Int?> = timerManager.timerState.map { it?.id }
         .stateIn(
             scope = viewModelScope,
             started = SharingStarted.WhileSubscribed(5000),
@@ -41,7 +41,7 @@ class TimerListViewModel(application: Application): AndroidViewModel(application
         
         displayTimers = combine(
             timers,
-            TimerService.timerState
+            timerManager.timerState
         ) { dbTimers, serviceTimer ->
             dbTimers.map { dbTimer ->
                 if (serviceTimer != null && serviceTimer.id == dbTimer.id) {

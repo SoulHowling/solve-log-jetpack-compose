@@ -37,7 +37,6 @@ abstract class SolveLogDatabase : RoomDatabase() {
 
         private val MIGRATION_1_2 = object : Migration(1, 2) {
             override fun migrate(db: SupportSQLiteDatabase) {
-                // timer_stateテーブルに不足しているカラムを追加
                 db.execSQL("ALTER TABLE timer_state ADD COLUMN phase TEXT NOT NULL DEFAULT 'WORK'")
                 db.execSQL("ALTER TABLE timer_state ADD COLUMN initialSeconds INTEGER NOT NULL DEFAULT 0")
                 db.execSQL("ALTER TABLE timer_state ADD COLUMN remainingSeconds INTEGER NOT NULL DEFAULT 0")

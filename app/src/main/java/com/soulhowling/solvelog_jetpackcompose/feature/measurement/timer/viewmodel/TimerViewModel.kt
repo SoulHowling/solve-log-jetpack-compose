@@ -28,13 +28,14 @@ class TimerViewModel(
     savedStateHandle: SavedStateHandle
 ): AndroidViewModel(application) {
     private val repository: TimerRepository
+    private val timerManager = (application as SolveLogApplication).timerManager
     private val timerStateId: Int = checkNotNull(savedStateHandle[Screens.ARG_TIMER_STATE_ID])
     
     private val _dbTimer = MutableStateFlow<TimerState?>(null)
     
     val displayedTimer: StateFlow<TimerState?> = combine(
         _dbTimer,
-        TimerService.timerState
+        timerManager.timerState
     ) { dbTimer, serviceTimer ->
         if (serviceTimer != null && serviceTimer.id == timerStateId) {
             serviceTimer
@@ -49,8 +50,8 @@ class TimerViewModel(
 
     val totalSets: StateFlow<Int> = combine(
         _dbTimer,
-        TimerService.initialWorkSet,
-        TimerService.timerState
+        timerManager.initialWorkSet,
+        timerManager.timerState
     ) { dbTimer, serviceInitialSet, serviceTimer ->
         if (serviceTimer != null && serviceTimer.id == timerStateId) {
             serviceInitialSet
@@ -86,7 +87,7 @@ class TimerViewModel(
 
     private fun startTimer() {
         val context = getApplication<Application>()
-        val serviceTimer = TimerService.timerState.value
+        val serviceTimer = timerManager.timerState.value
         
         if (serviceTimer != null && serviceTimer.id == timerStateId) {
             // Already running/paused this timer

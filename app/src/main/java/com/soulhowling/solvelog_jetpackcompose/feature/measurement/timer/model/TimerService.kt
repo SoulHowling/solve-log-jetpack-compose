@@ -21,9 +21,6 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.delay
-import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
@@ -43,15 +40,10 @@ class TimerService : Service() {
         const val EXTRA_TIMER_ID = "EXTRA_TIMER_ID"
 
         private const val NOTIFICATION_ID = 1002
-
-        private val _timerState = MutableStateFlow<TimerState?>(null)
-        val timerState: StateFlow<TimerState?> = _timerState.asStateFlow()
-
-        private val _initialWorkSet = MutableStateFlow(0)
-        val initialWorkSet: StateFlow<Int> = _initialWorkSet.asStateFlow()
     }
 
     private lateinit var repository: TimerRepository
+    private lateinit var timerManager: TimerManager
     private val serviceScope = CoroutineScope(SupervisorJob() + Dispatchers.Main)
     private var timerJob: Job? = null
 
@@ -61,6 +53,7 @@ class TimerService : Service() {
         super.onCreate()
         val solveLogApp = application as SolveLogApplication
         repository = TimerRepository(solveLogApp.database.timerDao())
+        timerManager = solveLogApp.timerManager
         try {
             toneGenerator = ToneGenerator(AudioManager.STREAM_MUSIC, 80)
         } catch (e: Exception) {
@@ -93,8 +86,9 @@ class TimerService : Service() {
         serviceScope.launch {
             val state = repository.getTimerBy(timerId).first()
             if (state != null) {
-                _timerState.value = state.copy(isRunning = true, lastModified = System.currentTimeMillis())
-                _initialWorkSet.value = state.workSet
+                val newState = state.copy(isRunning = true, lastModified = System.currentTimeMillis())
+                timerManager.updateTimerState(newState)
+                timerManager.updateInitialWorkSet(state.workSet)
 
                 NotificationUtils.createNotificationChannel(
                     this@TimerService,
@@ -113,34 +107,34 @@ class TimerService : Service() {
     }
 
     private fun resumeTimer() {
-        val current = _timerState.value ?: return
+        val current = timerManager.timerState.value ?: return
         if (current.isRunning) return
 
-        _timerState.value = current.copy(isRunning = true, lastModified = System.currentTimeMillis())
+        timerManager.updateTimerState(current.copy(isRunning = true, lastModified = System.currentTimeMillis()))
         updateNotification()
         startTicking()
     }
 
     private fun pauseTimer() {
-        val current = _timerState.value ?: return
+        val current = timerManager.timerState.value ?: return
         if (!current.isRunning) return
 
-        _timerState.value = current.copy(isRunning = false, lastModified = System.currentTimeMillis())
+        timerManager.updateTimerState(current.copy(isRunning = false, lastModified = System.currentTimeMillis()))
         timerJob?.cancel()
         timerJob = null
         updateNotification()
     }
 
     private fun resetTimer() {
-        val current = _timerState.value ?: return
-        _timerState.value = current.copy(
-            workSet = _initialWorkSet.value,
+        val current = timerManager.timerState.value ?: return
+        timerManager.updateTimerState(current.copy(
+            workSet = timerManager.initialWorkSet.value,
             phase = TimerPhase.WORK,
             initialSeconds = current.workSeconds,
             remainingSeconds = current.workSeconds,
             isRunning = false,
             lastModified = System.currentTimeMillis()
-        )
+        ))
         timerJob?.cancel()
         timerJob = null
         stopForeground(STOP_FOREGROUND_REMOVE)
@@ -148,15 +142,15 @@ class TimerService : Service() {
     }
 
     private fun restartTimer() {
-        val current = _timerState.value ?: return
-        _timerState.value = current.copy(
-            workSet = _initialWorkSet.value,
+        val current = timerManager.timerState.value ?: return
+        timerManager.updateTimerState(current.copy(
+            workSet = timerManager.initialWorkSet.value,
             phase = TimerPhase.WORK,
             initialSeconds = current.workSeconds,
             remainingSeconds = current.workSeconds,
             isRunning = true,
             lastModified = System.currentTimeMillis()
-        )
+        ))
         timerJob?.cancel()
         startTicking()
         updateNotification()
@@ -167,7 +161,7 @@ class TimerService : Service() {
         timerJob = serviceScope.launch {
             while (isActive) {
                 delay(1000L.milliseconds)
-                val currentState = _timerState.value ?: break
+                val currentState = timerManager.timerState.value ?: break
                 if (!currentState.isRunning) break
 
                 val tickedState = currentState.tick()
@@ -188,7 +182,7 @@ class TimerService : Service() {
                     }
 
                     val nextState = tickedState.nextPhase()
-                    _timerState.value = nextState
+                    timerManager.updateTimerState(nextState)
                     updateNotification()
 
                     if (!nextState.isRunning) {
@@ -196,7 +190,7 @@ class TimerService : Service() {
                         break
                     }
                 } else {
-                    _timerState.value = tickedState
+                    timerManager.updateTimerState(tickedState)
                     updateNotification()
                 }
             }
@@ -236,7 +230,7 @@ class TimerService : Service() {
     }
 
     private fun createNotification(): Notification {
-        val state = _timerState.value
+        val state = timerManager.timerState.value
         val isRunning = state?.isRunning == true
         val phaseText = when (state?.phase) {
             TimerPhase.WORK -> getString(R.string.timer_page_phase_work)
@@ -246,7 +240,7 @@ class TimerService : Service() {
         }
 
         val content = if (state != null) {
-            val total = _initialWorkSet.value
+            val total = timerManager.initialWorkSet.value
             val current = if (state.phase == TimerPhase.WORK) {
                 (total - state.workSet + 1).coerceAtLeast(1)
             } else {
@@ -313,8 +307,8 @@ class TimerService : Service() {
         timerJob?.cancel()
         toneGenerator?.release()
         toneGenerator = null
-        _timerState.value = null
-        _initialWorkSet.value = 0
+        timerManager.updateTimerState(null)
+        timerManager.updateInitialWorkSet(0)
         super.onDestroy()
     }
 }
