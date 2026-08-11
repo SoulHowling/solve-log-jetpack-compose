@@ -21,6 +21,7 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.SupervisorJob
+import kotlinx.coroutines.cancel
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.isActive
@@ -180,9 +181,9 @@ class TimerService : Service() {
                     if (newRemaining in 1..3) {
                         val currentGenerator = toneGenerator
                         if (currentGenerator != null) {
-                            launch(Dispatchers.Default) {
+                            launch {
                                 try {
-                                    currentGenerator?.startTone(ToneGenerator.TONE_PROP_BEEP2, 150)
+                                    currentGenerator.startTone(ToneGenerator.TONE_PROP_BEEP2, 150)
                                 } catch (e: Exception) {
                                     LogUtils.e("Failed to startTone", e)
                                 }
@@ -191,7 +192,7 @@ class TimerService : Service() {
                     }
 
                     if (newRemaining <= 0) {
-                        launch(Dispatchers.Default) {
+                        launch {
                             playNotificationSound()
                         }
 
@@ -322,11 +323,11 @@ class TimerService : Service() {
     }
 
     override fun onDestroy() {
-        timerJob?.cancel()
         toneGenerator?.release()
         toneGenerator = null
         timerManager.updateTimerState(null)
         timerManager.updateInitialWorkSet(0)
+        serviceScope.cancel()
         super.onDestroy()
     }
 }
