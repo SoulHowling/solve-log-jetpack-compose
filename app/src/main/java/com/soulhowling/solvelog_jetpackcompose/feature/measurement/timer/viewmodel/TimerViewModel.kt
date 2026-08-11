@@ -7,6 +7,7 @@ import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.viewModelScope
 import com.soulhowling.solvelog_jetpackcompose.core.Screens
 import com.soulhowling.solvelog_jetpackcompose.core.SolveLogApplication
+import com.soulhowling.solvelog_jetpackcompose.feature.measurement.timer.model.ActiveTimer
 import com.soulhowling.solvelog_jetpackcompose.feature.measurement.timer.model.TimerService
 import com.soulhowling.solvelog_jetpackcompose.feature.measurement.timer.model.TimerService.Companion.ACTION_PAUSE
 import com.soulhowling.solvelog_jetpackcompose.feature.measurement.timer.model.TimerService.Companion.ACTION_RESET
@@ -33,14 +34,21 @@ class TimerViewModel(
     
     private val _dbTimer = MutableStateFlow<TimerState?>(null)
     
-    val displayedTimer: StateFlow<TimerState?> = combine(
+    val displayedTimer: StateFlow<ActiveTimer?> = combine(
         _dbTimer,
-        timerManager.timerState
+        timerManager.timer
     ) { dbTimer, serviceTimer ->
         if (serviceTimer != null && serviceTimer.id == timerStateId) {
             serviceTimer
+        } else if (dbTimer != null) {
+            ActiveTimer(
+                state = dbTimer,
+                remainingSeconds = dbTimer.workSeconds,
+                initialSeconds = dbTimer.workSeconds,
+                isRunning = false
+            )
         } else {
-            dbTimer
+            null
         }
     }.stateIn(
         scope = viewModelScope,
@@ -51,7 +59,7 @@ class TimerViewModel(
     val totalSets: StateFlow<Int> = combine(
         _dbTimer,
         timerManager.initialWorkSet,
-        timerManager.timerState
+        timerManager.timer
     ) { dbTimer, serviceInitialSet, serviceTimer ->
         if (serviceTimer != null && serviceTimer.id == timerStateId) {
             serviceInitialSet
@@ -87,7 +95,7 @@ class TimerViewModel(
 
     private fun startTimer() {
         val context = getApplication<Application>()
-        val serviceTimer = timerManager.timerState.value
+        val serviceTimer = timerManager.timer.value
         
         if (serviceTimer != null && serviceTimer.id == timerStateId) {
             // Already running/paused this timer

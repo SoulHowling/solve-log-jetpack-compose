@@ -6,14 +6,14 @@ import kotlinx.coroutines.flow.asStateFlow
 
 
 class TimerManager {
-    private val _timerState = MutableStateFlow<TimerState?>(null)
-    val timerState: StateFlow<TimerState?> = _timerState.asStateFlow()
+    private val _timer = MutableStateFlow<ActiveTimer?>(null)
+    val timer: StateFlow<ActiveTimer?> = _timer.asStateFlow()
 
     private val _initialWorkSet = MutableStateFlow(0)
     val initialWorkSet: StateFlow<Int> = _initialWorkSet.asStateFlow()
 
-    fun updateTimerState(state: TimerState?) {
-        _timerState.value = state
+    fun updateTimer(timer: ActiveTimer?) {
+        _timer.value = timer
     }
 
     fun updateInitialWorkSet(sets: Int) {

@@ -39,6 +39,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.text.style.TextAlign
+import com.soulhowling.solvelog_jetpackcompose.feature.measurement.timer.model.ActiveTimer
 import com.soulhowling.solvelog_jetpackcompose.feature.measurement.timer.model.TimerPhase
 import com.soulhowling.solvelog_jetpackcompose.feature.measurement.timer.model.TimerState
 import com.soulhowling.solvelog_jetpackcompose.feature.measurement.timer.viewmodel.TimerViewModel
@@ -60,8 +61,6 @@ fun TimerPageScreen(
             onStart = { viewModel.toggleTimer() },
             onReset = { viewModel.resetTimer() },
             onRestart = { viewModel.restartTimer() },
-            isRunning = it.isRunning,
-            isPaused = !it.isRunning && it.remainingSeconds < it.initialSeconds,
             isVertical = isVertical
         )
     }
@@ -70,17 +69,18 @@ fun TimerPageScreen(
 
 @Composable
 fun TimerPageScreenContent(
-    timer: TimerState,
+    timer: ActiveTimer,
     totalSets: Int,
     onStart: () -> Unit,
     onReset: () -> Unit,
     onRestart: () -> Unit,
-    isRunning: Boolean,
-    isPaused: Boolean,
     isVertical: Boolean,
 ) {
     val onStartClick = rememberNotificationPermissionHandler(onPermissionGranted = onStart)
     val onRestartClick = rememberNotificationPermissionHandler(onPermissionGranted = onRestart)
+    
+    val isRunning = timer.isRunning
+    val isPaused = !timer.isRunning && timer.remainingSeconds < timer.initialSeconds
 
     var backgroundColor: Color
     var foregroundColor: Color
@@ -282,13 +282,15 @@ fun TimerPageScreenContent(
 fun TimerPageScreenVerticalContentPreview() {
     SolveLogJetpackComposeTheme {
         TimerPageScreenContent(
-            timer = TimerState(
-                id = 1,
-                title = "テスト",
-                workSet = 4,
-                workSeconds = 1500,
-                breakSeconds = 300,
-                phase = TimerPhase.WORK,
+            timer = ActiveTimer(
+                state = TimerState(
+                    id = 1,
+                    title = "テスト",
+                    workSet = 4,
+                    workSeconds = 1500,
+                    breakSeconds = 300,
+                    phase = TimerPhase.WORK,
+                ),
                 initialSeconds = 1500,
                 remainingSeconds = 1500,
                 isRunning = false
@@ -297,8 +299,6 @@ fun TimerPageScreenVerticalContentPreview() {
             onStart = {},
             onReset = {},
             onRestart = {},
-            isRunning = false,
-            isPaused = false,
             isVertical = true,
         )
     }
@@ -312,13 +312,15 @@ fun TimerPageScreenVerticalContentPreview() {
 fun TimerPageScreenHorizontalContentPreview() {
     SolveLogJetpackComposeTheme {
         TimerPageScreenContent(
-            timer = TimerState(
-                id = 1,
-                title = "テスト",
-                workSet = 4,
-                workSeconds = 1500,
-                breakSeconds = 300,
-                phase = TimerPhase.WORK,
+            timer = ActiveTimer(
+                state = TimerState(
+                    id = 1,
+                    title = "テスト",
+                    workSet = 4,
+                    workSeconds = 1500,
+                    breakSeconds = 300,
+                    phase = TimerPhase.WORK,
+                ),
                 initialSeconds = 1500,
                 remainingSeconds = 1500,
                 isRunning = false
@@ -327,8 +329,6 @@ fun TimerPageScreenHorizontalContentPreview() {
             onStart = {},
             onReset = {},
             onRestart = {},
-            isRunning = false,
-            isPaused = false,
             isVertical = false,
         )
     }

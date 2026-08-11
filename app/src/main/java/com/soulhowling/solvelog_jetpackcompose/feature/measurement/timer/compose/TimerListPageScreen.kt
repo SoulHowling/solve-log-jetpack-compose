@@ -69,6 +69,7 @@ import com.soulhowling.solvelog_jetpackcompose.core.CustomAppBarEffect
 import com.soulhowling.solvelog_jetpackcompose.core.LocalAppBarController
 import com.soulhowling.solvelog_jetpackcompose.core.LocalBottomBarVisibility
 import com.soulhowling.solvelog_jetpackcompose.feature.measurement.timer.viewmodel.TimerListViewModel
+import com.soulhowling.solvelog_jetpackcompose.feature.measurement.timer.model.ActiveTimer
 import com.soulhowling.solvelog_jetpackcompose.feature.measurement.timer.model.TimerPhase
 import com.soulhowling.solvelog_jetpackcompose.feature.measurement.timer.model.TimerState
 import com.soulhowling.solvelog_jetpackcompose.ui.theme.Dimensions
@@ -109,7 +110,7 @@ fun TimerListPageScreen(
 
 @Composable
 fun TimerListPageScreenContent(
-    timers: List<TimerState>,
+    timers: List<ActiveTimer>,
     activeTimerId: Int?,
     onAddTimer: (String, Int, Int, Int, Int, Int) -> Unit,
     onUpdateTimer: (TimerState, String, Int, Int, Int, Int, Int) -> Unit,
@@ -164,7 +165,7 @@ fun TimerListPageScreenContent(
                     timer = timer,
                     isAnyTimerActive = isAnyTimerActive,
                     activeTimerId = activeTimerId,
-                    onEdit = { editingTimer = timer },
+                    onEdit = { editingTimer = timer.state },
                     onDelete = { onDeleteTimer(timer.id) },
                     onClicked = {
                         if (isAnyTimerActive && timer.id != activeTimerId) {
@@ -248,7 +249,7 @@ fun TimerListPageScreenContent(
 @Composable
 fun TimerItemCard(
     modifier: Modifier = Modifier,
-    timer: TimerState,
+    timer: ActiveTimer,
     isAnyTimerActive: Boolean,
     activeTimerId: Int?,
     onEdit: () -> Unit,
@@ -461,16 +462,16 @@ fun TimerAddDialog(
     onDismiss: () -> Unit,
     onConfirm: (title: String, sets: Int, workMin: Int, workSec: Int, breakMin: Int, breakSec: Int) -> Unit
 ) {
-    val title = rememberSaveable { mutableStateOf(initialTimer?.title ?: "") }
-    val sets = rememberSaveable { mutableIntStateOf(initialTimer?.workSet ?: 4) }
+    val title = rememberSaveable(initialTimer) { mutableStateOf(initialTimer?.title ?: "") }
+    val sets = rememberSaveable(initialTimer) { mutableIntStateOf(initialTimer?.workSet ?: 4) }
     val workMinutes =
-        rememberSaveable { mutableIntStateOf(initialTimer?.workSeconds?.let { it / 60 } ?: 25) }
+        rememberSaveable(initialTimer) { mutableIntStateOf(initialTimer?.workSeconds?.let { it / 60 } ?: 25) }
     val workSeconds =
-        rememberSaveable { mutableIntStateOf(initialTimer?.workSeconds?.let { it % 60 } ?: 0) }
+        rememberSaveable(initialTimer) { mutableIntStateOf(initialTimer?.workSeconds?.let { it % 60 } ?: 0) }
     val breakMinutes =
-        rememberSaveable { mutableIntStateOf(initialTimer?.breakSeconds?.let { it / 60 } ?: 5) }
+        rememberSaveable(initialTimer) { mutableIntStateOf(initialTimer?.breakSeconds?.let { it / 60 } ?: 5) }
     val breakSeconds =
-        rememberSaveable { mutableIntStateOf(initialTimer?.breakSeconds?.let { it % 60 } ?: 0) }
+        rememberSaveable(initialTimer) { mutableIntStateOf(initialTimer?.breakSeconds?.let { it % 60 } ?: 0) }
 
     AlertDialog(
         onDismissRequest = onDismiss,
@@ -635,10 +636,12 @@ fun NumberPicker(
         pageCount = { numbers.size }
     )
 
-    LaunchedEffect(value) {
-        val targetPage = numbers.indexOf(value).coerceAtLeast(0)
-        if (pagerState.currentPage != targetPage) {
-            pagerState.scrollToPage(targetPage)
+    LaunchedEffect(value, pagerState.isScrollInProgress) {
+        if (!pagerState.isScrollInProgress) {
+            val targetPage = numbers.indexOf(value).coerceAtLeast(0)
+            if (pagerState.currentPage != targetPage) {
+                pagerState.scrollToPage(targetPage)
+            }
         }
     }
 
@@ -682,24 +685,28 @@ fun TimerListPageScreenContentPreview() {
     SolveLogJetpackComposeTheme {
         TimerListPageScreenContent(
             timers = listOf(
-                TimerState(
-                    id = 0,
-                    title = "テスト",
-                    workSet = 4,
-                    workSeconds = 1500,
-                    breakSeconds = 300,
-                    phase = TimerPhase.WORK,
+                ActiveTimer(
+                    state = TimerState(
+                        id = 0,
+                        title = "テスト",
+                        workSet = 4,
+                        workSeconds = 1500,
+                        breakSeconds = 300,
+                        phase = TimerPhase.WORK,
+                    ),
                     initialSeconds = 1500,
                     remainingSeconds = 1500,
                     isRunning = false
                 ),
-                TimerState(
-                    id = 1,
-                    title = "テスト",
-                    workSet = 4,
-                    workSeconds = 1500,
-                    breakSeconds = 300,
-                    phase = TimerPhase.BREAK,
+                ActiveTimer(
+                    state = TimerState(
+                        id = 1,
+                        title = "テスト",
+                        workSet = 4,
+                        workSeconds = 1500,
+                        breakSeconds = 300,
+                        phase = TimerPhase.BREAK,
+                    ),
                     initialSeconds = 300,
                     remainingSeconds = 120,
                     isRunning = true

@@ -4,6 +4,7 @@ import android.app.Application
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
 import com.soulhowling.solvelog_jetpackcompose.core.SolveLogApplication
+import com.soulhowling.solvelog_jetpackcompose.feature.measurement.timer.model.ActiveTimer
 import com.soulhowling.solvelog_jetpackcompose.feature.measurement.timer.model.TimerPhase
 import com.soulhowling.solvelog_jetpackcompose.feature.measurement.timer.model.TimerRepository
 import com.soulhowling.solvelog_jetpackcompose.feature.measurement.timer.model.TimerState
@@ -19,9 +20,9 @@ class TimerListViewModel(application: Application): AndroidViewModel(application
     private val timerManager = (application as SolveLogApplication).timerManager
     private val timers: StateFlow<List<TimerState>>
     
-    val displayTimers: StateFlow<List<TimerState>>
+    val displayTimers: StateFlow<List<ActiveTimer>>
 
-    val activeTimerId: StateFlow<Int?> = timerManager.timerState.map { it?.id }
+    val activeTimerId: StateFlow<Int?> = timerManager.timer.map { it?.id }
         .stateIn(
             scope = viewModelScope,
             started = SharingStarted.WhileSubscribed(5000),
@@ -41,13 +42,18 @@ class TimerListViewModel(application: Application): AndroidViewModel(application
         
         displayTimers = combine(
             timers,
-            timerManager.timerState
+            timerManager.timer
         ) { dbTimers, serviceTimer ->
             dbTimers.map { dbTimer ->
                 if (serviceTimer != null && serviceTimer.id == dbTimer.id) {
                     serviceTimer
                 } else {
-                    dbTimer
+                    ActiveTimer(
+                        state = dbTimer,
+                        remainingSeconds = dbTimer.workSeconds,
+                        initialSeconds = dbTimer.workSeconds,
+                        isRunning = false
+                    )
                 }
             }
         }.stateIn(
@@ -91,10 +97,7 @@ class TimerListViewModel(application: Application): AndroidViewModel(application
                 workSet = sets,
                 workSeconds = totalWorkSeconds,
                 breakSeconds = totalBreakSeconds,
-                initialSeconds = totalWorkSeconds,
-                remainingSeconds = totalWorkSeconds,
                 phase = TimerPhase.WORK,
-                isRunning = false,
                 updatedAt = System.currentTimeMillis()
             )
             repository.upsertTimer(updatedTimer)

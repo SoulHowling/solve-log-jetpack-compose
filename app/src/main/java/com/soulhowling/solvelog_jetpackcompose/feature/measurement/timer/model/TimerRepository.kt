@@ -18,9 +18,6 @@ class TimerRepository(private val timerDao: TimerDao) {
             workSeconds = trainingSeconds,
             breakSeconds = breakingSeconds,
             phase = TimerPhase.WORK,
-            initialSeconds = trainingSeconds,
-            remainingSeconds = trainingSeconds,
-            isRunning = false
         )
     }
 
