@@ -21,7 +21,8 @@ import kotlinx.coroutines.launch
 
 @Database(
     entities = [TimerState::class, SolveLog::class, Folder::class, Question::class],
-    version = 2
+    version = 2,
+    exportSchema = true
 )
 @TypeConverters(Converters::class)
 abstract class SolveLogDatabase : RoomDatabase() {
@@ -37,13 +38,27 @@ abstract class SolveLogDatabase : RoomDatabase() {
 
         private val MIGRATION_1_2 = object : Migration(1, 2) {
             override fun migrate(db: SupportSQLiteDatabase) {
-                db.execSQL("ALTER TABLE timer_state ADD COLUMN title TEXT NOT NULL DEFAULT ''")
-                db.execSQL("ALTER TABLE timer_state ADD COLUMN workSet INTEGER NOT NULL DEFAULT 0")
-                db.execSQL("ALTER TABLE timer_state ADD COLUMN workSeconds INTEGER NOT NULL DEFAULT 0")
-                db.execSQL("ALTER TABLE timer_state ADD COLUMN breakSeconds INTEGER NOT NULL DEFAULT 0")
-                db.execSQL("ALTER TABLE timer_state ADD COLUMN phase TEXT NOT NULL DEFAULT 'WORK'")
-                db.execSQL("ALTER TABLE timer_state ADD COLUMN createdAt INTEGER NOT NULL DEFAULT 0")
-                db.execSQL("ALTER TABLE timer_state ADD COLUMN updatedAt INTEGER NOT NULL DEFAULT 0")
+                db.execSQL("""
+                    CREATE TABLE IF NOT EXISTS timer_state_new (
+                        id INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,
+                        title TEXT NOT NULL,
+                        workSet INTEGER NOT NULL,
+                        workSeconds INTEGER NOT NULL,
+                        breakSeconds INTEGER NOT NULL,
+                        phase TEXT NOT NULL,
+                        createdAt INTEGER NOT NULL,
+                        updatedAt INTEGER NOT NULL
+                    )
+                """.trimIndent())
+
+                db.execSQL("""
+                    INSERT INTO timer_state_new (id, title, workSet, workSeconds, breakSeconds, phase, createdAt, updatedAt)
+                    SELECT id, 'タイマー', 4, 1500, 300, 'WORK', ${System.currentTimeMillis()}, ${System.currentTimeMillis()}
+                    FROM timer_state
+                """.trimIndent())
+
+                db.execSQL("DROP TABLE timer_state")
+                db.execSQL("ALTER TABLE timer_state_new RENAME TO timer_state")
             }
         }
 

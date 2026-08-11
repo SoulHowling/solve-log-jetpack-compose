@@ -3,12 +3,13 @@ package com.soulhowling.solvelog_jetpackcompose.feature.measurement.timer.model
 import androidx.room.Entity
 import androidx.room.Ignore
 import androidx.room.PrimaryKey
+import com.soulhowling.solvelog_jetpackcompose.core.database.DBKeys
 
 enum class TimerPhase {
     WORK, BREAK, COMPLETE
 }
 
-@Entity(tableName = "timer_state")
+@Entity(tableName = DBKeys.TABLE_TIMER)
 data class TimerState(
     @PrimaryKey(autoGenerate = true)
     val id: Int = 0,
@@ -26,10 +27,6 @@ data class TimerState(
     @Ignore
     val isRunning: Boolean = false
 ) {
-    /**
-     * Roomがデータベースから読み込む際に使用するコンストラクタ。
-     * @Ignoreが付いたフィールドを除いた引数構成にする必要があります。
-     */
     constructor(
         id: Int,
         title: String,
@@ -48,20 +45,10 @@ data class TimerState(
         phase = phase,
         createdAt = createdAt,
         updatedAt = updatedAt,
-        initialSeconds = workSeconds, // 読み込み時は設定値を初期値としてセット
+        initialSeconds = workSeconds,
         remainingSeconds = workSeconds,
         isRunning = false
     )
-
-    fun tick(): TimerState {
-        return if (remainingSeconds > 0) {
-            this.copy(
-                remainingSeconds = remainingSeconds - 1
-            )
-        } else {
-            this
-        }
-    }
 
     fun nextPhase(): TimerState {
         return when (phase) {
