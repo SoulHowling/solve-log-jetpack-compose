@@ -129,6 +129,7 @@ class TimerService : Service() {
         timerManager.updateTimerState(current.copy(isRunning = false))
         timerJob?.cancel()
         timerJob = null
+        stopSounds()
         updateNotification()
     }
 
@@ -143,6 +144,7 @@ class TimerService : Service() {
         ))
         timerJob?.cancel()
         timerJob = null
+        stopSounds()
         stopForeground(STOP_FOREGROUND_REMOVE)
         stopSelf()
     }
@@ -157,6 +159,7 @@ class TimerService : Service() {
             isRunning = true
         ))
         timerJob?.cancel()
+        stopSounds()
         startTicking()
         updateNotification()
     }
@@ -183,7 +186,7 @@ class TimerService : Service() {
                     if (newRemaining in 1..3) {
                         val currentGenerator = toneGenerator
                         if (currentGenerator != null) {
-                            launch {
+                            launch(Dispatchers.Main) {
                                 try {
                                     currentGenerator.startTone(ToneGenerator.TONE_PROP_BEEP2, 150)
                                 } catch (e: Exception) {
@@ -219,23 +222,24 @@ class TimerService : Service() {
     }
 
     private suspend fun playNotificationSound() {
-        withContext(Dispatchers.IO) {
+        val localRingtone = withContext(Dispatchers.IO) {
             try {
-                ringtone?.stop()
                 val notification = RingtoneManager.getDefaultUri(RingtoneManager.TYPE_NOTIFICATION)
-                val localRingtone = RingtoneManager.getRingtone(applicationContext, notification)
-
-                val attributes = AudioAttributes.Builder()
-                    .setUsage(AudioAttributes.USAGE_MEDIA)
-                    .setContentType(AudioAttributes.CONTENT_TYPE_SONIFICATION)
-                    .build()
-                localRingtone.audioAttributes = attributes
-
-                localRingtone.play()
-                ringtone = localRingtone
+                RingtoneManager.getRingtone(applicationContext, notification).apply {
+                    audioAttributes = AudioAttributes.Builder()
+                        .setUsage(AudioAttributes.USAGE_MEDIA)
+                        .setContentType(AudioAttributes.CONTENT_TYPE_SONIFICATION)
+                        .build()
+                }
             } catch (e: Exception) {
                 LogUtils.e("Failed to play notification sound", e)
+                null
             }
+        } ?: return
+        withContext(Dispatchers.Main) {
+            ringtone?.stop()
+            ringtone = localRingtone
+            ringtone?.play()
         }
     }
 
@@ -327,13 +331,17 @@ class TimerService : Service() {
     }
 
     override fun onDestroy() {
+        serviceScope.cancel()
         toneGenerator?.release()
         toneGenerator = null
-        ringtone?.stop()
-        ringtone = null
+        stopSounds()
         timerManager.updateTimerState(null)
         timerManager.updateInitialWorkSet(0)
-        serviceScope.cancel()
         super.onDestroy()
+    }
+
+    private fun stopSounds() {
+        ringtone?.stop()
+        ringtone = null
     }
 }
