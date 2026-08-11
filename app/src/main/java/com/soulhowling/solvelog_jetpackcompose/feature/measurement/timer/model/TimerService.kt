@@ -8,6 +8,7 @@ import android.content.Intent
 import android.content.pm.ServiceInfo
 import android.media.AudioAttributes
 import android.media.AudioManager
+import android.media.Ringtone
 import android.media.RingtoneManager
 import android.media.ToneGenerator
 import android.os.Build
@@ -49,6 +50,7 @@ class TimerService : Service() {
     private val serviceScope = CoroutineScope(SupervisorJob() + Dispatchers.Main)
     private var timerJob: Job? = null
 
+    private var ringtone: Ringtone? = null
     private var toneGenerator: ToneGenerator? = null
 
     private var tickStartTime = 0L
@@ -219,16 +221,18 @@ class TimerService : Service() {
     private suspend fun playNotificationSound() {
         withContext(Dispatchers.IO) {
             try {
+                ringtone?.stop()
                 val notification = RingtoneManager.getDefaultUri(RingtoneManager.TYPE_NOTIFICATION)
-                val r = RingtoneManager.getRingtone(applicationContext, notification)
+                val localRingtone = RingtoneManager.getRingtone(applicationContext, notification)
 
                 val attributes = AudioAttributes.Builder()
                     .setUsage(AudioAttributes.USAGE_MEDIA)
                     .setContentType(AudioAttributes.CONTENT_TYPE_SONIFICATION)
                     .build()
-                r.audioAttributes = attributes
+                localRingtone.audioAttributes = attributes
 
-                r.play()
+                localRingtone.play()
+                ringtone = localRingtone
             } catch (e: Exception) {
                 LogUtils.e("Failed to play notification sound", e)
             }
@@ -325,6 +329,8 @@ class TimerService : Service() {
     override fun onDestroy() {
         toneGenerator?.release()
         toneGenerator = null
+        ringtone?.stop()
+        ringtone = null
         timerManager.updateTimerState(null)
         timerManager.updateInitialWorkSet(0)
         serviceScope.cancel()

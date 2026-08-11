@@ -643,7 +643,10 @@ fun NumberPicker(
     }
 
     LaunchedEffect(pagerState.settledPage) {
-        onValueChange(numbers[pagerState.settledPage])
+        val newValue = numbers[pagerState.settledPage]
+        if (newValue != value) {
+            onValueChange(newValue)
+        }
     }
 
     VerticalPager(
