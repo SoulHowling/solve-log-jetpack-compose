@@ -109,6 +109,7 @@
     <string name="timer_list_break_time">休憩時間</string>
     <string name="timer_list_running">実行中</string>
     <string name="timer_list_sets_display">%1$dセット</string>
+    <string name="timer_list_none">なし</string>
     <string name="timer_page_phase_work">作業中</string>
     <string name="timer_page_phase_break">休憩中</string>
     <string name="timer_page_phase_complete">完了</string>

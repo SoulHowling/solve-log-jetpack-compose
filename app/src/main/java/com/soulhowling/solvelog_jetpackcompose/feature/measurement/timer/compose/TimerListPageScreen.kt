@@ -348,16 +348,24 @@ fun TimerItemCard(
                     else MaterialTheme.colorScheme.onSurface
                 )
 
+                val hasBreak = timer.workSet > 1 && timer.breakSeconds > 0
                 InfoBlock(
                     modifier = Modifier.weight(1f),
                     label = stringResource(R.string.timer_list_break_time),
-                    time = String.format(
-                        Locale.ROOT,
-                        "%2d:%02d",
-                        timer.breakSeconds / 60,
-                        timer.breakSeconds % 60
-                    ),
-                    subText = stringResource(R.string.timer_list_sets_display, breakSet),
+                    time = if (hasBreak) {
+                        String.format(
+                            Locale.ROOT,
+                            "%2d:%02d",
+                            timer.breakSeconds / 60,
+                            timer.breakSeconds % 60
+                        )
+                    } else {
+                        stringResource(R.string.timer_list_none)
+                    },
+                    subText = if (hasBreak) stringResource(
+                        R.string.timer_list_sets_display,
+                        breakSet
+                    ) else null,
                     containerColor = if (isCurrentlyManaged) MaterialTheme.colorScheme.primary.copy(
                         alpha = 0.1f
                     )
@@ -401,6 +409,8 @@ private fun InfoBlock(
                     style = MaterialTheme.typography.labelSmall,
                     color = contentColor.copy(alpha = 0.7f)
                 )
+            } ?: run {
+                Spacer(modifier = Modifier.height(13.dp))
             }
         }
     }
@@ -532,6 +542,8 @@ fun TimerAlertDialogContent(
     breakMinutes: MutableIntState,
     breakSeconds: MutableIntState
 ) {
+    val isEnabledBreakTime = sets.intValue > 1
+
     Column(
         modifier = Modifier.verticalScroll(rememberScrollState()),
         verticalArrangement = Arrangement.spacedBy(Dimensions.SPACING_SMALL_MEDIUM),
@@ -596,28 +608,33 @@ fun TimerAlertDialogContent(
 
         Text(
             stringResource(R.string.timer_dialog_label_break),
-            style = MaterialTheme.typography.titleSmall
+            style = MaterialTheme.typography.titleSmall,
+            color = if (isEnabledBreakTime) MaterialTheme.colorScheme.onSurface else MaterialTheme.colorScheme.onSurface.copy(alpha = 0.38f)
         )
         Row(verticalAlignment = Alignment.CenterVertically) {
             NumberPicker(
                 value = breakMinutes.intValue,
                 range = 0..99,
                 onValueChange = { breakMinutes.intValue = it },
+                enabled = isEnabledBreakTime,
                 modifier = Modifier.weight(1f)
             )
             Text(
                 stringResource(R.string.timer_dialog_unit_minutes),
-                modifier = Modifier.padding(horizontal = 4.dp)
+                modifier = Modifier.padding(horizontal = 4.dp),
+                color = if (isEnabledBreakTime) MaterialTheme.colorScheme.onSurface else MaterialTheme.colorScheme.onSurface.copy(alpha = 0.38f)
             )
             NumberPicker(
                 value = breakSeconds.intValue,
                 range = 0..59,
                 onValueChange = { breakSeconds.intValue = it },
+                enabled = isEnabledBreakTime,
                 modifier = Modifier.weight(1f)
             )
             Text(
                 stringResource(R.string.timer_dialog_unit_seconds),
-                modifier = Modifier.padding(start = 4.dp)
+                modifier = Modifier.padding(start = 4.dp),
+                color = if (isEnabledBreakTime) MaterialTheme.colorScheme.onSurface else MaterialTheme.colorScheme.onSurface.copy(alpha = 0.38f)
             )
         }
     }
@@ -628,7 +645,8 @@ fun NumberPicker(
     value: Int,
     range: Iterable<Int>,
     onValueChange: (Int) -> Unit,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
+    enabled: Boolean = true
 ) {
     val numbers = remember(range) { range.toList() }
     val pagerState = rememberPagerState(
@@ -655,13 +673,19 @@ fun NumberPicker(
     VerticalPager(
         state = pagerState,
         modifier = modifier.height(100.dp),
-        contentPadding = PaddingValues(vertical = 30.dp)
+        contentPadding = PaddingValues(vertical = 30.dp),
+        userScrollEnabled = enabled
     ) { page ->
         val isSelected = pagerState.currentPage == page
         Box(
             modifier = Modifier.fillMaxSize(),
             contentAlignment = Alignment.Center
         ) {
+            val baseColor = if (isSelected) {
+                MaterialTheme.colorScheme.primary
+            } else {
+                MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.5f)
+            }
             Text(
                 text = String.format(Locale.ROOT, "%02d", numbers[page]),
                 style = if (isSelected) {
@@ -669,11 +693,7 @@ fun NumberPicker(
                 } else {
                     MaterialTheme.typography.bodyMedium
                 },
-                color = if (isSelected) {
-                    MaterialTheme.colorScheme.primary
-                } else {
-                    MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.5f)
-                }
+                color = if (enabled) baseColor else baseColor.copy(alpha = 0.38f)
             )
         }
     }

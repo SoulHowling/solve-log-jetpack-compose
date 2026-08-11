@@ -16,41 +16,61 @@ data class ActiveTimer(
     fun nextPhase(): ActiveTimer {
         return when (phase) {
             TimerPhase.WORK -> {
-                val remainingWork = workSet - 1
-                if (remainingWork > 0) {
-                    copy(
-                        state = state.copy(
-                            phase = TimerPhase.BREAK,
-                            workSet = remainingWork
-                        ),
-                        initialSeconds = breakSeconds,
-                        remainingSeconds = breakSeconds,
-                        isRunning = true
-                    )
-                } else {
-                    copy(
-                        state = state.copy(
-                            phase = TimerPhase.COMPLETE,
-                            workSet = 0
-                        ),
-                        remainingSeconds = 0,
-                        isRunning = false
-                    )
-                }
+                onWork()
             }
             TimerPhase.BREAK -> {
-                copy(
+                onBreak()
+            }
+            TimerPhase.COMPLETE -> {
+                this
+            }
+        }
+    }
+
+    private fun onWork(): ActiveTimer {
+        val remainingWorkSet = workSet - 1
+        if (remainingWorkSet > 0) {
+            if (breakSeconds > 0) {
+                return copy(
                     state = state.copy(
-                        phase = TimerPhase.WORK
+                        phase = TimerPhase.BREAK,
+                        workSet = remainingWorkSet
+                    ),
+                    initialSeconds = breakSeconds,
+                    remainingSeconds = breakSeconds,
+                    isRunning = true
+                )
+            } else {
+                return copy(
+                    state = state.copy(
+                        phase = TimerPhase.WORK,
+                        workSet = remainingWorkSet
                     ),
                     initialSeconds = workSeconds,
                     remainingSeconds = workSeconds,
                     isRunning = true
                 )
             }
-            TimerPhase.COMPLETE -> {
-                this
-            }
+        } else {
+            return copy(
+                state = state.copy(
+                    phase = TimerPhase.COMPLETE,
+                    workSet = 0
+                ),
+                remainingSeconds = 0,
+                isRunning = false
+            )
         }
+    }
+
+    private fun onBreak(): ActiveTimer {
+        return copy(
+            state = state.copy(
+                phase = TimerPhase.WORK
+            ),
+            initialSeconds = workSeconds,
+            remainingSeconds = workSeconds,
+            isRunning = true
+        )
     }
 }
