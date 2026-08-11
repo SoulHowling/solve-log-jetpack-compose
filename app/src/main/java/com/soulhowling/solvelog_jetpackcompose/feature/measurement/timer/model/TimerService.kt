@@ -178,11 +178,14 @@ class TimerService : Service() {
                     val tickedState = current.copy(remainingSeconds = newRemaining)
 
                     if (newRemaining in 1..3) {
-                        launch(Dispatchers.Default) {
-                            try {
-                                toneGenerator?.startTone(ToneGenerator.TONE_PROP_BEEP2, 150)
-                            } catch (e: Exception) {
-                                LogUtils.e("Failed to startTone", e)
+                        val currentGenerator = toneGenerator
+                        if (currentGenerator != null) {
+                            launch(Dispatchers.Default) {
+                                try {
+                                    toneGenerator?.startTone(ToneGenerator.TONE_PROP_BEEP2, 150)
+                                } catch (e: Exception) {
+                                    LogUtils.e("Failed to startTone", e)
+                                }
                             }
                         }
                     }

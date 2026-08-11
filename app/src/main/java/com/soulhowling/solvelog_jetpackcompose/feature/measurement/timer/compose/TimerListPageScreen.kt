@@ -166,7 +166,7 @@ fun TimerListPageScreenContent(
                     activeTimerId = activeTimerId,
                     onEdit = { editingTimer = timer },
                     onDelete = { onDeleteTimer(timer.id) },
-                    onClicked = { 
+                    onClicked = {
                         if (isAnyTimerActive && timer.id != activeTimerId) {
                             timerIdToStartAfterConfirm = timer.id
                         } else {
@@ -256,7 +256,7 @@ fun TimerItemCard(
     onClicked: () -> Unit,
 ) {
     val breakSet = timer.workSet - 1
-    
+
     val isCurrentlyManaged = timer.id == activeTimerId || timer.isRunning
 
     Card(
@@ -271,7 +271,7 @@ fun TimerItemCard(
         shape = MaterialTheme.shapes.large,
         colors = CardDefaults.cardColors(
             containerColor = if (isCurrentlyManaged) MaterialTheme.colorScheme.primaryContainer
-                             else MaterialTheme.colorScheme.surfaceVariant
+            else MaterialTheme.colorScheme.surfaceVariant
         )
     ) {
         Column(modifier = Modifier.padding(Dimensions.PADDING_MEDIUM)) {
@@ -284,10 +284,10 @@ fun TimerItemCard(
                     modifier = Modifier.fillMaxSize(),
                     colors = ListItemDefaults.colors(
                         containerColor = Color.Transparent,
-                        headlineColor = if (isCurrentlyManaged) MaterialTheme.colorScheme.onPrimaryContainer 
-                                        else MaterialTheme.colorScheme.onSurfaceVariant,
-                        supportingColor = if (isCurrentlyManaged) MaterialTheme.colorScheme.onPrimaryContainer 
-                                         else MaterialTheme.colorScheme.onSurfaceVariant,
+                        headlineColor = if (isCurrentlyManaged) MaterialTheme.colorScheme.onPrimaryContainer
+                        else MaterialTheme.colorScheme.onSurfaceVariant,
+                        supportingColor = if (isCurrentlyManaged) MaterialTheme.colorScheme.onPrimaryContainer
+                        else MaterialTheme.colorScheme.onSurfaceVariant,
                     ),
                     headlineContent = {
                         Text(
@@ -339,10 +339,12 @@ fun TimerItemCard(
                         timer.workSeconds % 60
                     ),
                     subText = stringResource(R.string.timer_list_sets_display, timer.workSet),
-                    containerColor = if (isCurrentlyManaged) MaterialTheme.colorScheme.primary.copy(alpha = 0.1f)
-                                     else MaterialTheme.colorScheme.surface,
+                    containerColor = if (isCurrentlyManaged) MaterialTheme.colorScheme.primary.copy(
+                        alpha = 0.1f
+                    )
+                    else MaterialTheme.colorScheme.surface,
                     contentColor = if (isCurrentlyManaged) MaterialTheme.colorScheme.onPrimaryContainer
-                                   else MaterialTheme.colorScheme.onSurface
+                    else MaterialTheme.colorScheme.onSurface
                 )
 
                 InfoBlock(
@@ -355,10 +357,12 @@ fun TimerItemCard(
                         timer.breakSeconds % 60
                     ),
                     subText = stringResource(R.string.timer_list_sets_display, breakSet),
-                    containerColor = if (isCurrentlyManaged) MaterialTheme.colorScheme.primary.copy(alpha = 0.1f)
-                                     else MaterialTheme.colorScheme.surface,
+                    containerColor = if (isCurrentlyManaged) MaterialTheme.colorScheme.primary.copy(
+                        alpha = 0.1f
+                    )
+                    else MaterialTheme.colorScheme.surface,
                     contentColor = if (isCurrentlyManaged) MaterialTheme.colorScheme.onPrimaryContainer
-                                   else MaterialTheme.colorScheme.onSurface
+                    else MaterialTheme.colorScheme.onSurface
                 )
             }
         }
@@ -532,13 +536,19 @@ fun TimerAlertDialogContent(
         verticalArrangement = Arrangement.spacedBy(Dimensions.SPACING_SMALL_MEDIUM),
         horizontalAlignment = Alignment.Start
     ) {
-        Text(stringResource(R.string.timer_dialog_label_name), style = MaterialTheme.typography.titleSmall)
+        Text(
+            stringResource(R.string.timer_dialog_label_name),
+            style = MaterialTheme.typography.titleSmall
+        )
         TextField(
             value = title.value,
             onValueChange = { title.value = it },
             modifier = Modifier.fillMaxWidth()
         )
-        Text(stringResource(R.string.timer_dialog_label_sets), style = MaterialTheme.typography.titleSmall)
+        Text(
+            stringResource(R.string.timer_dialog_label_sets),
+            style = MaterialTheme.typography.titleSmall
+        )
         Row(verticalAlignment = Alignment.CenterVertically) {
             NumberPicker(
                 value = sets.intValue,
@@ -554,7 +564,10 @@ fun TimerAlertDialogContent(
 
         HorizontalDivider(modifier = Modifier.padding(vertical = 4.dp))
 
-        Text(stringResource(R.string.timer_dialog_label_work), style = MaterialTheme.typography.titleSmall)
+        Text(
+            stringResource(R.string.timer_dialog_label_work),
+            style = MaterialTheme.typography.titleSmall
+        )
         Row(verticalAlignment = Alignment.CenterVertically) {
             NumberPicker(
                 value = workMinutes.intValue,
@@ -629,8 +642,8 @@ fun NumberPicker(
         }
     }
 
-    LaunchedEffect(pagerState.currentPage) {
-        onValueChange(numbers[pagerState.currentPage])
+    LaunchedEffect(pagerState.settledPage) {
+        onValueChange(numbers[pagerState.settledPage])
     }
 
     VerticalPager(
