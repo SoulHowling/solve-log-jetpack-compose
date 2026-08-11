@@ -182,7 +182,7 @@ class TimerService : Service() {
                         if (currentGenerator != null) {
                             launch(Dispatchers.Default) {
                                 try {
-                                    toneGenerator?.startTone(ToneGenerator.TONE_PROP_BEEP2, 150)
+                                    currentGenerator?.startTone(ToneGenerator.TONE_PROP_BEEP2, 150)
                                 } catch (e: Exception) {
                                     LogUtils.e("Failed to startTone", e)
                                 }
