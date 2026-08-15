@@ -472,16 +472,16 @@ fun TimerAddDialog(
     onDismiss: () -> Unit,
     onConfirm: (title: String, sets: Int, workMin: Int, workSec: Int, breakMin: Int, breakSec: Int) -> Unit
 ) {
-    val title = rememberSaveable(initialTimer) { mutableStateOf(initialTimer?.title ?: "") }
-    val sets = rememberSaveable(initialTimer) { mutableIntStateOf(initialTimer?.workSet ?: 4) }
+    val title = rememberSaveable { mutableStateOf(initialTimer?.title ?: "") }
+    val sets = rememberSaveable { mutableIntStateOf(initialTimer?.workSet ?: 4) }
     val workMinutes =
-        rememberSaveable(initialTimer) { mutableIntStateOf(initialTimer?.workSeconds?.let { it / 60 } ?: 25) }
+        rememberSaveable { mutableIntStateOf(initialTimer?.workSeconds?.let { it / 60 } ?: 25) }
     val workSeconds =
-        rememberSaveable(initialTimer) { mutableIntStateOf(initialTimer?.workSeconds?.let { it % 60 } ?: 0) }
+        rememberSaveable { mutableIntStateOf(initialTimer?.workSeconds?.let { it % 60 } ?: 0) }
     val breakMinutes =
-        rememberSaveable(initialTimer) { mutableIntStateOf(initialTimer?.breakSeconds?.let { it / 60 } ?: 5) }
+        rememberSaveable { mutableIntStateOf(initialTimer?.breakSeconds?.let { it / 60 } ?: 5) }
     val breakSeconds =
-        rememberSaveable(initialTimer) { mutableIntStateOf(initialTimer?.breakSeconds?.let { it % 60 } ?: 0) }
+        rememberSaveable { mutableIntStateOf(initialTimer?.breakSeconds?.let { it % 60 } ?: 0) }
 
     AlertDialog(
         onDismissRequest = onDismiss,
