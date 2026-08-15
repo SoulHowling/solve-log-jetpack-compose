@@ -84,9 +84,10 @@
 
     <!-- Measurement -->
     <string name="measurement_stopwatch_title">ストップウォッチ</string>
-    <string name="measurement_timer_title">タイマー</string>
+    <string name="measurement_timer_title">リピートタイマー</string>
     <string name="measurement_start_button">開始</string>
     <string name="measurement_resume_button">再開</string>
+    <string name="measurement_restart_button">リスタート</string>
     <string name="measurement_stop_button">停止</string>
     <string name="measurement_reset_button">リセット</string>
 
@@ -95,8 +96,26 @@
     <string name="stopwatch_notification_channel_description">ストップウォッチの経過時間を表示します</string>
 
     <!-- Timer -->
-    <string name="timer_add_title">タイマーを追加</string>
-    <string name="timer_add_description">セットする時間を入力してください</string>
+    <string name="timer_dialog_add_title">タイマーを追加</string>
+    <string name="timer_dialog_edit_title">タイマーを編集</string>
+    <string name="timer_dialog_label_name">タイマー名</string>
+    <string name="timer_dialog_label_sets">セット数</string>
+    <string name="timer_dialog_label_work">作業時間</string>
+    <string name="timer_dialog_label_break">休憩時間</string>
+    <string name="timer_dialog_unit_sets">セット</string>
+    <string name="timer_dialog_unit_minutes">分</string>
+    <string name="timer_dialog_unit_seconds">秒</string>
+    <string name="timer_list_work_time">作業時間</string>
+    <string name="timer_list_break_time">休憩時間</string>
+    <string name="timer_list_running">実行中</string>
+    <string name="timer_list_sets_display">%1$dセット</string>
+    <string name="timer_list_none">なし</string>
+    <string name="timer_page_phase_work">作業中</string>
+    <string name="timer_page_phase_break">休憩中</string>
+    <string name="timer_page_phase_complete">完了</string>
+    <string name="timer_page_work_set_format">%1$d/%2$dセット</string>
+    <string name="timer_dialog_overwrite_title">タイマーの切り替え</string>
+    <string name="timer_dialog_overwrite_message">現在アクティブなタイマーを終了して、新しいタイマーを開始しますか？</string>
 
     <!-- Setting -->
     <string name="setting_app_theme">アプリのテーマ</string>

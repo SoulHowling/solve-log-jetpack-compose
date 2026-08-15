@@ -1,4 +1,4 @@
-package com.soulhowling.solvelog_jetpackcompose.feature.measurement.timer
+package com.soulhowling.solvelog_jetpackcompose.feature.measurement.timer.model
 
 import androidx.room.Dao
 import androidx.room.Query

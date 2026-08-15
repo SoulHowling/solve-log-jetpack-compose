@@ -4,9 +4,11 @@ import android.content.Context
 import androidx.room.Database
 import androidx.room.Room
 import androidx.room.RoomDatabase
+import androidx.room.TypeConverters
+import androidx.room.migration.Migration
 import androidx.sqlite.db.SupportSQLiteDatabase
-import com.soulhowling.solvelog_jetpackcompose.feature.measurement.timer.TimerDao
-import com.soulhowling.solvelog_jetpackcompose.feature.measurement.timer.TimerState
+import com.soulhowling.solvelog_jetpackcompose.feature.measurement.timer.model.TimerDao
+import com.soulhowling.solvelog_jetpackcompose.feature.measurement.timer.model.TimerState
 import com.soulhowling.solvelog_jetpackcompose.feature.solvelog.model.dao.FolderDao
 import com.soulhowling.solvelog_jetpackcompose.feature.solvelog.model.dao.QuestionDao
 import com.soulhowling.solvelog_jetpackcompose.feature.solvelog.model.dao.SolveLogDao
@@ -19,8 +21,10 @@ import kotlinx.coroutines.launch
 
 @Database(
     entities = [TimerState::class, SolveLog::class, Folder::class, Question::class],
-    version = 1
+    version = 2,
+    exportSchema = true
 )
+@TypeConverters(Converters::class)
 abstract class SolveLogDatabase : RoomDatabase() {
     abstract fun folderDao(): FolderDao
     abstract fun solveLogDao(): SolveLogDao
@@ -30,14 +34,41 @@ abstract class SolveLogDatabase : RoomDatabase() {
 
     companion object {
         private const val DATABASE_NAME = "solve_log_database"
-        private const val SQL_DEFAULT_TIMER = "INSERT INTO timer_state (initialSeconds, remainingSeconds, isRunning, lastModified) VALUES (60, 60, 0, 0);"
+        private val SQL_DEFAULT_TIMER = "INSERT INTO timer_state (title, workSet, workSeconds, breakSeconds, phase, createdAt, updatedAt) VALUES ('タイマー', 4, 1500, 300, 'WORK', ${System.currentTimeMillis()}, ${System.currentTimeMillis()});"
+
+        private val MIGRATION_1_2 = object : Migration(1, 2) {
+            override fun migrate(db: SupportSQLiteDatabase) {
+                db.execSQL("""
+                    CREATE TABLE IF NOT EXISTS timer_state_new (
+                        id INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,
+                        title TEXT NOT NULL,
+                        workSet INTEGER NOT NULL,
+                        workSeconds INTEGER NOT NULL,
+                        breakSeconds INTEGER NOT NULL,
+                        phase TEXT NOT NULL,
+                        createdAt INTEGER NOT NULL,
+                        updatedAt INTEGER NOT NULL
+                    )
+                """.trimIndent())
+
+                db.execSQL("""
+                    INSERT INTO timer_state_new (id, title, workSet, workSeconds, breakSeconds, phase, createdAt, updatedAt)
+                    SELECT id, 'タイマー', 4, 1500, 300, 'WORK', ${System.currentTimeMillis()}, ${System.currentTimeMillis()}
+                    FROM timer_state
+                """.trimIndent())
+
+                db.execSQL("DROP TABLE timer_state")
+                db.execSQL("ALTER TABLE timer_state_new RENAME TO timer_state")
+            }
+        }
+
         @Volatile
         private var instance: SolveLogDatabase? = null
 
         fun getDatabase(context: Context, scope: CoroutineScope): SolveLogDatabase {
             return instance ?: synchronized(this) {
                 Room.databaseBuilder(context, SolveLogDatabase::class.java, DATABASE_NAME)
-                    .fallbackToDestructiveMigration(true)
+                    .addMigrations(MIGRATION_1_2)
                     .addCallback(object: Callback() {
                         override fun onCreate(db: SupportSQLiteDatabase) {
                             super.onCreate(db)

@@ -12,6 +12,7 @@ import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.navArgument
 import com.soulhowling.solvelog_jetpackcompose.feature.measurement.MeasurementScreen
+import com.soulhowling.solvelog_jetpackcompose.feature.measurement.timer.compose.TimerPageScreen
 import com.soulhowling.solvelog_jetpackcompose.feature.settings.SettingScreen
 import com.soulhowling.solvelog_jetpackcompose.feature.settings.aboutthisapp.AboutThisAppScreen
 import com.soulhowling.solvelog_jetpackcompose.feature.settings.privacypolicy.PrivacyPolicyScreen
@@ -52,7 +53,12 @@ fun AppNavGraph(
             LifecycleTouchGuard(isTargetScreen = backStackEntry == currentNavBackStackEntry) {
                 SolveLogViewerScreen(
                     onNavigateToEditor = { attempt ->
-                        navController.navigate(Screens.SolveLogEditor.createRoute(solveLogId, attempt))
+                        navController.navigate(
+                            Screens.SolveLogEditor.createRoute(
+                                solveLogId,
+                                attempt
+                            )
+                        )
                     }
                 )
             }
@@ -70,7 +76,19 @@ fun AppNavGraph(
         }
         composable(Screens.Measurement.route) { backStackEntry ->
             LifecycleTouchGuard(isTargetScreen = backStackEntry == currentNavBackStackEntry) {
-                MeasurementScreen()
+                MeasurementScreen(
+                    onNavigateToTimerPageScreen = { timerStateId ->
+                        navController.navigate(Screens.TimerPage.createRoute(timerStateId))
+                    }
+                )
+            }
+        }
+        composable(
+            route = Screens.TimerPage.route,
+            arguments = listOf(navArgument(Screens.ARG_TIMER_STATE_ID) { type = NavType.IntType })
+        ) { backStackEntry ->
+            LifecycleTouchGuard(isTargetScreen = backStackEntry == currentNavBackStackEntry) {
+                TimerPageScreen()
             }
         }
         composable(Screens.Setting.route) { backStackEntry ->

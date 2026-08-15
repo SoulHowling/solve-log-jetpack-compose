@@ -1,16 +1,23 @@
-package com.soulhowling.solvelog_jetpackcompose.feature.measurement.timer
+package com.soulhowling.solvelog_jetpackcompose.feature.measurement.timer.model
 
 import kotlinx.coroutines.flow.Flow
 
 class TimerRepository(private val timerDao: TimerDao) {
     val allTimers: Flow<List<TimerState>> = timerDao.getAllTimerStates()
 
-    fun createTimer(totalSeconds: Int): TimerState {
+    fun createTimer(
+        title: String,
+        trainingSet: Int,
+        trainingSeconds: Int,
+        breakingSeconds: Int
+    ): TimerState {
         return TimerState(
             id = 0,
-            initialSeconds = totalSeconds,
-            remainingSeconds = totalSeconds,
-            isRunning = false
+            title = title,
+            workSet = trainingSet,
+            workSeconds = trainingSeconds,
+            breakSeconds = breakingSeconds,
+            phase = TimerPhase.WORK,
         )
     }
 
@@ -28,5 +35,9 @@ class TimerRepository(private val timerDao: TimerDao) {
 
     suspend fun deleteAll() {
         timerDao.deleteAll()
+    }
+
+    fun getTimerBy(timerStateId: Int): Flow<TimerState?> {
+        return timerDao.getTimerState(timerStateId)
     }
 }

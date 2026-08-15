@@ -3,7 +3,7 @@ package com.soulhowling.solvelog_jetpackcompose.feature.settings.wipedata
 import androidx.test.core.app.ApplicationProvider
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import com.soulhowling.solvelog_jetpackcompose.core.SolveLogApplication
-import com.soulhowling.solvelog_jetpackcompose.feature.measurement.timer.TimerState
+import com.soulhowling.solvelog_jetpackcompose.feature.measurement.timer.model.TimerState
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.first
@@ -71,7 +71,14 @@ class WipeDataViewModelTest {
         val timerDao = db.timerDao()
         
         // Insert a timer
-        timerDao.insert(TimerState(initialSeconds = 60, remainingSeconds = 60))
+        timerDao.insert(
+            TimerState(
+                title = "Test Timer",
+                workSet = 0,
+                workSeconds = 60,
+                breakSeconds = 30,
+            )
+        )
         var timers = timerDao.getAllTimerStates().first()
         assertTrue(timers.isNotEmpty())
         

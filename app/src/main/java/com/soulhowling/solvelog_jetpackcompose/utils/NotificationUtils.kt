@@ -12,6 +12,7 @@ import com.soulhowling.solvelog_jetpackcompose.core.MainActivity
 object NotificationUtils {
 
     const val STOPWATCH_CHANNEL_ID = "stopwatch_channel"
+    const val TIMER_CHANNEL_ID = "timer_channel"
     private const val DEFAULT_CHANNEL_ID = "default_channel"
 
     /**

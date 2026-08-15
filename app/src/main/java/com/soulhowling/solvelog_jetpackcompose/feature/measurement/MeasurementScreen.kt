@@ -14,12 +14,14 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.res.stringResource
 import com.soulhowling.solvelog_jetpackcompose.R
 import com.soulhowling.solvelog_jetpackcompose.feature.measurement.stopwatch.StopwatchPageScreen
-import com.soulhowling.solvelog_jetpackcompose.feature.measurement.timer.TimerPageScreen
+import com.soulhowling.solvelog_jetpackcompose.feature.measurement.timer.compose.TimerListPageScreen
 import com.soulhowling.solvelog_jetpackcompose.ui.theme.SolveLogJetpackComposeTheme
 import kotlinx.coroutines.launch
 
 @Composable
-fun MeasurementScreen() {
+fun MeasurementScreen(
+    onNavigateToTimerPageScreen: (Int) -> Unit,
+) {
     val pagerState = rememberPagerState(pageCount = { 2 })
     val scope = rememberCoroutineScope()
 
@@ -48,7 +50,7 @@ fun MeasurementScreen() {
         ) { page ->
             when (page) {
                 0 -> StopwatchPageScreen()
-                1 -> TimerPageScreen()
+                1 -> TimerListPageScreen(onNavigateToTimerPageScreen = onNavigateToTimerPageScreen)
             }
         }
     }
@@ -58,6 +60,6 @@ fun MeasurementScreen() {
 @Composable
 fun MeasurementScreenPreview() {
     SolveLogJetpackComposeTheme {
-        MeasurementScreen()
+        MeasurementScreen(onNavigateToTimerPageScreen = {})
     }
 }
