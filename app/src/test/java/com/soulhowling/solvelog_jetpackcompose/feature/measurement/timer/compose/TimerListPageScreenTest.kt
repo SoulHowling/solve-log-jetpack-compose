@@ -1,12 +1,12 @@
 package com.soulhowling.solvelog_jetpackcompose.feature.measurement.timer.compose
 
 import androidx.compose.ui.test.assertIsDisplayed
-import androidx.compose.ui.test.junit4.createComposeRule
+import androidx.compose.ui.test.junit4.v2.createComposeRule
 import androidx.compose.ui.test.onNodeWithContentDescription
 import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
 import androidx.test.ext.junit.runners.AndroidJUnit4
-import com.soulhowling.solvelog_jetpackcompose.feature.measurement.timer.model.TimerPhase
+import com.soulhowling.solvelog_jetpackcompose.feature.measurement.timer.model.ActiveTimer
 import com.soulhowling.solvelog_jetpackcompose.feature.measurement.timer.model.TimerState
 import com.soulhowling.solvelog_jetpackcompose.ui.theme.SolveLogJetpackComposeTheme
 import org.junit.Assert.assertEquals
@@ -25,8 +25,14 @@ class TimerListPageScreenTest {
     @Test
     fun `TimerListPageScreenContent should display list of timers`() {
         val timers = listOf(
-            TimerState(id = 1, title = "Timer 1", workSet = 4, workSeconds = 60, breakSeconds = 30, initialSeconds = 60, remainingSeconds = 60),
-            TimerState(id = 2, title = "Timer 2", workSet = 8, workSeconds = 20, breakSeconds = 10, initialSeconds = 20, remainingSeconds = 20)
+            ActiveTimer(
+                state = TimerState(id = 1, title = "Timer 1", workSet = 4, workSeconds = 60, breakSeconds = 30),
+                remainingSeconds = 60
+            ),
+            ActiveTimer(
+                state = TimerState(id = 2, title = "Timer 2", workSet = 8, workSeconds = 20, breakSeconds = 10),
+                remainingSeconds = 20
+            )
         )
 
         composeTestRule.setContent {
@@ -50,7 +56,10 @@ class TimerListPageScreenTest {
     fun `TimerListPageScreenContent should call onClicked when item is clicked`() {
         var clickedId = -1
         val timers = listOf(
-            TimerState(id = 1, title = "Timer 1", workSet = 4, workSeconds = 60, breakSeconds = 30, initialSeconds = 60, remainingSeconds = 60)
+            ActiveTimer(
+                state = TimerState(id = 1, title = "Timer 1", workSet = 4, workSeconds = 60, breakSeconds = 30),
+                remainingSeconds = 60
+            )
         )
 
         composeTestRule.setContent {

@@ -42,7 +42,9 @@ class TimerServiceTest {
         fakeDao = FakeTimerDao()
         repository = TimerRepository(fakeDao)
         
-        TimerService.resetStateForTesting()
+        // Reset timer manager state
+        application.timerManager.updateTimer(null)
+        application.timerManager.updateInitialWorkSet(0)
         
         runBlocking {
             fakeDao.insert(
@@ -51,9 +53,7 @@ class TimerServiceTest {
                     title = "Test Timer",
                     workSet = 4,
                     workSeconds = 60,
-                    breakSeconds = 30,
-                    initialSeconds = 60,
-                    remainingSeconds = 60
+                    breakSeconds = 30
                 )
             )
         }
@@ -61,7 +61,8 @@ class TimerServiceTest {
 
     @After
     fun tearDown() {
-        TimerService.resetStateForTesting()
+        application.timerManager.updateTimer(null)
+        application.timerManager.updateInitialWorkSet(0)
         Dispatchers.resetMain()
     }
 
@@ -79,10 +80,10 @@ class TimerServiceTest {
         
         service.onStartCommand(intent, 0, 1)
         
-        val state = TimerService.timerState.value
-        assertNotNull("Timer state should not be null", state)
-        assertEquals("Test Timer", state?.title)
-        assertTrue(state!!.isRunning)
+        val timer = application.timerManager.timer.value
+        assertNotNull("Timer should not be null", timer)
+        assertEquals("Test Timer", timer?.title)
+        assertTrue(timer!!.isRunning)
         
         serviceController.destroy()
     }
@@ -105,9 +106,9 @@ class TimerServiceTest {
         }
         service.onStartCommand(pauseIntent, 0, 2)
         
-        val state = TimerService.timerState.value
-        assertNotNull(state)
-        assertFalse(state!!.isRunning)
+        val timer = application.timerManager.timer.value
+        assertNotNull(timer)
+        assertFalse(timer!!.isRunning)
         
         serviceController.destroy()
     }
@@ -132,7 +133,7 @@ class TimerServiceTest {
         }
         service.onStartCommand(resumeIntent, 0, 3)
         
-        assertTrue(TimerService.timerState.value!!.isRunning)
+        assertTrue(application.timerManager.timer.value!!.isRunning)
         
         serviceController.destroy()
     }
@@ -159,7 +160,7 @@ class TimerServiceTest {
         // triggering lifecycle completion if it doesn't happen automatically.
         serviceController.destroy()
         
-        val state = TimerService.timerState.value
-        assertNull(state)
+        val timer = application.timerManager.timer.value
+        assertNull(timer)
     }
 }

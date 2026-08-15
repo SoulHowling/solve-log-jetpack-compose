@@ -1,9 +1,10 @@
 package com.soulhowling.solvelog_jetpackcompose.feature.measurement.timer.compose
 
 import androidx.compose.ui.test.assertIsDisplayed
-import androidx.compose.ui.test.junit4.createComposeRule
+import androidx.compose.ui.test.junit4.v2.createComposeRule
 import androidx.compose.ui.test.onNodeWithText
 import androidx.test.ext.junit.runners.AndroidJUnit4
+import com.soulhowling.solvelog_jetpackcompose.feature.measurement.timer.model.ActiveTimer
 import com.soulhowling.solvelog_jetpackcompose.feature.measurement.timer.model.TimerPhase
 import com.soulhowling.solvelog_jetpackcompose.feature.measurement.timer.model.TimerState
 import com.soulhowling.solvelog_jetpackcompose.ui.theme.SolveLogJetpackComposeTheme
@@ -21,15 +22,19 @@ class TimerPageScreenTest {
 
     @Test
     fun `TimerPageScreenContent should display correct initial work state`() {
-        val timer = TimerState(
+        val timerState = TimerState(
             id = 1,
             title = "Test Workout",
             workSet = 4,
             workSeconds = 60,
             breakSeconds = 30,
-            phase = TimerPhase.WORK,
+            phase = TimerPhase.WORK
+        )
+        val timer = ActiveTimer(
+            state = timerState,
             initialSeconds = 60,
-            remainingSeconds = 60
+            remainingSeconds = 60,
+            isRunning = false
         )
 
         composeTestRule.setContent {
@@ -40,8 +45,6 @@ class TimerPageScreenTest {
                     onStart = {},
                     onReset = {},
                     onRestart = {},
-                    isRunning = false,
-                    isPaused = false,
                     isVertical = true
                 )
             }
@@ -54,20 +57,24 @@ class TimerPageScreenTest {
         composeTestRule.onNodeWithText("01:00").assertIsDisplayed()
         
         // Verify set text (Set 1/4)
-        composeTestRule.onNodeWithText("Set 1/4", substring = true).assertIsDisplayed()
+        composeTestRule.onNodeWithText("1/4", substring = true).assertIsDisplayed()
     }
 
     @Test
     fun `TimerPageScreenContent should display correct break state`() {
-        val timer = TimerState(
+        val timerState = TimerState(
             id = 1,
             title = "Test Workout",
             workSet = 2,
             workSeconds = 60,
             breakSeconds = 30,
-            phase = TimerPhase.BREAK,
+            phase = TimerPhase.BREAK
+        )
+        val timer = ActiveTimer(
+            state = timerState,
             initialSeconds = 30,
-            remainingSeconds = 15
+            remainingSeconds = 15,
+            isRunning = true
         )
 
         composeTestRule.setContent {
@@ -78,8 +85,6 @@ class TimerPageScreenTest {
                     onStart = {},
                     onReset = {},
                     onRestart = {},
-                    isRunning = true,
-                    isPaused = false,
                     isVertical = true
                 )
             }

@@ -50,9 +50,7 @@ class TimerViewModelTest {
                         title = "Test Timer",
                         workSet = 4,
                         workSeconds = 60,
-                        breakSeconds = 30,
-                        initialSeconds = 60,
-                        remainingSeconds = 60
+                        breakSeconds = 30
                     )
                 )
             }

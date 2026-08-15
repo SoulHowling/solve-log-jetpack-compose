@@ -32,7 +32,7 @@ class TimerRepositoryTest {
 
     @Test
     fun `insertTimer should call dao`() = runBlocking {
-        val timer = TimerState(title = "Test", workSet = 4, workSeconds = 60, breakSeconds = 30, initialSeconds = 60, remainingSeconds = 60)
+        val timer = TimerState(title = "Test", workSet = 4, workSeconds = 60, breakSeconds = 30)
         repository.insertTimer(timer)
         
         val all = repository.allTimers.first()
@@ -42,7 +42,7 @@ class TimerRepositoryTest {
 
     @Test
     fun `deleteTimer should call dao`() = runBlocking {
-        val timer = TimerState(id = 1, title = "Test", workSet = 4, workSeconds = 60, breakSeconds = 30, initialSeconds = 60, remainingSeconds = 60)
+        val timer = TimerState(id = 1, title = "Test", workSet = 4, workSeconds = 60, breakSeconds = 30)
         fakeDao.insert(timer)
         
         repository.deleteTimer(1)

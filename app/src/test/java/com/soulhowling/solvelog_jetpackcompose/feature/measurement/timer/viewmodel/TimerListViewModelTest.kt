@@ -85,7 +85,7 @@ class TimerListViewModelTest {
         val timers = viewModel.displayTimers.first { it.isNotEmpty() }
         val originalTimer = timers[0]
         
-        viewModel.updateTimer(originalTimer, "Updated", 8, 10, 0, 2, 0)
+        viewModel.updateTimer(originalTimer.state, "Updated", 8, 10, 0, 2, 0)
         
         val updatedTimers =
             viewModel.displayTimers.first { it.isNotEmpty() && it[0].title == "Updated" }

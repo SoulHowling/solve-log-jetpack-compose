@@ -63,7 +63,7 @@ class TimerService : Service() {
     override fun onCreate() {
         super.onCreate()
         val solveLogApp = application as SolveLogApplication
-        repository = TimerRepository(solveLogApp.database.timerDao())
+        repository = repositoryForTesting ?: TimerRepository(solveLogApp.database.timerDao())
         timerManager = solveLogApp.timerManager
 
         NotificationUtils.createNotificationChannel(
