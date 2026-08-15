@@ -28,6 +28,7 @@ import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
+import org.jetbrains.annotations.VisibleForTesting
 import java.util.Locale
 import kotlin.time.Duration.Companion.milliseconds
 
@@ -45,6 +46,9 @@ class TimerService : Service() {
         private const val NOTIFICATION_ID = 1002
     }
 
+    @VisibleForTesting
+    var repositoryForTesting: TimerRepository? = null
+
     private lateinit var repository: TimerRepository
     private lateinit var timerManager: TimerManager
     private val serviceScope = CoroutineScope(SupervisorJob() + Dispatchers.Main)
@@ -59,7 +63,7 @@ class TimerService : Service() {
     override fun onCreate() {
         super.onCreate()
         val solveLogApp = application as SolveLogApplication
-        repository = TimerRepository(solveLogApp.database.timerDao())
+        repository = repositoryForTesting ?: TimerRepository(solveLogApp.database.timerDao())
         timerManager = solveLogApp.timerManager
 
         NotificationUtils.createNotificationChannel(
