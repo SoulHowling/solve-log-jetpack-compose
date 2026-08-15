@@ -156,7 +156,7 @@ fun SolveLogListScreen(
             ) {
                 Icon(
                     imageVector = if (isCardView) Icons.AutoMirrored.Filled.ViewList else Icons.Default.ViewAgenda,
-                    contentDescription = null,
+                    contentDescription = stringResource(R.string.log_list_cd_toggle_view),
                     tint = MaterialTheme.colorScheme.onPrimary
                 )
             }
@@ -165,7 +165,7 @@ fun SolveLogListScreen(
             ) {
                 Icon(
                     imageVector = Icons.Default.MoreVert,
-                    contentDescription = null,
+                    contentDescription = stringResource(R.string.log_list_cd_more_options),
                     tint = MaterialTheme.colorScheme.onPrimary
                 )
             }
@@ -372,12 +372,12 @@ private fun SolveLogListScreenContent(
                                     title = item.log.name,
                                     questionQuantity = item.log.questionQuantity,
                                     attemptCount = item.log.attemptCount,
-                                    selectionType = item.log.selectionType,
-                                    selectionQuantity = item.log.selectionQuantity,
+                                    selectionTypeIndex = item.log.selectionType,
+                                    selectionQuantityIndex = item.log.selectionQuantity,
                                     onClick = { onNavigateToViewer(item.log.id) },
                                     onDelete = { onDeleteSolveLog(item.log) },
                                     onMove = { movingLog = item.log },
-                                    onExportLog = { onExportLog(item.log) },
+                                    onExport = { onExportLog(item.log) },
                                     onEdit = { editingLog = item.log }
                                 )
                             }
@@ -391,8 +391,7 @@ private fun SolveLogListScreenContent(
                                     onClick = { onSelectFolder(item.folder.id) },
                                     onDelete = { onDeleteFolder(item.folder) },
                                     onMove = { movingFolder = item.folder },
-                                    onExportLog = {},
-                                    onExportFolder = { onExportFolder(item.folder) },
+                                    onExport = { onExportFolder(item.folder) },
                                     onEdit = { editingFolder = item.folder }
                                 )
                             }
@@ -404,8 +403,7 @@ private fun SolveLogListScreenContent(
                                     onClick = { onNavigateToViewer(item.log.id) },
                                     onDelete = { onDeleteSolveLog(item.log) },
                                     onMove = { movingLog = item.log },
-                                    onExportLog = { onExportLog(item.log) },
-                                    onExportFolder = {},
+                                    onExport = { onExportLog(item.log) },
                                     onEdit = { editingLog = item.log }
                                 )
                             }
@@ -567,16 +565,16 @@ private fun SolveLogItemCard(
     title: String,
     questionQuantity: Int,
     attemptCount: Int,
-    selectionType: Int,
-    selectionQuantity: Int,
+    selectionTypeIndex: Int,
+    selectionQuantityIndex: Int,
     onClick: () -> Unit,
     onDelete: () -> Unit,
     onMove: () -> Unit,
-    onExportLog: () -> Unit,
+    onExport: () -> Unit,
     onEdit: () -> Unit,
 ) {
-    val selectionType = SelectionType.from(selectionType)
-    val selectionQuantity = SelectionQuantity.from(selectionQuantity)
+    val selectionType = SelectionType.from(selectionTypeIndex)
+    val selectionQuantity = SelectionQuantity.from(selectionQuantityIndex)
 
     Card(
         modifier = Modifier
@@ -627,13 +625,17 @@ private fun SolveLogItemCard(
                 )
                 InfoBadge(
                     icon = Icons.Default.Category,
-                    text = stringResource(R.string.log_list_description_selection, selectionType.displayString, selectionQuantity.displayString)
+                    text = stringResource(
+                        R.string.log_list_description_selection,
+                        selectionType.displayString,
+                        selectionQuantity.displayString
+                    )
                 )
             }
             OverFlowMenu(
                 onDelete = onDelete,
                 onMove = onMove,
-                onExport = onExportLog,
+                onExport = onExport,
                 onEdit = onEdit,
             )
         }
@@ -647,46 +649,49 @@ fun SolveListItem(
     onClick: () -> Unit,
     onDelete: () -> Unit,
     onMove: () -> Unit,
-    onExportLog: () -> Unit,
-    onExportFolder: () -> Unit,
+    onExport: () -> Unit,
     onEdit: () -> Unit,
 ) {
-    ListItem(
+    Column(
         modifier = Modifier
-            .fillMaxWidth()
-            .clickable { onClick() },
-        colors = ListItemDefaults.colors(
-            containerColor = MaterialTheme.colorScheme.surface,
-            headlineColor = MaterialTheme.colorScheme.onSurface,
-            leadingIconColor = MaterialTheme.colorScheme.onSurface,
-            trailingIconColor = MaterialTheme.colorScheme.onSurface
-        ),
-        leadingContent = {
-            Icon(
-                imageVector = if (isLog) Icons.AutoMirrored.Filled.Assignment else Icons.Default.Folder,
-                contentDescription = null,
-                modifier = Modifier
-                    .padding(end = Dimensions.PADDING_MEDIUM)
-                    .size(40.dp),
-                tint = MaterialTheme.colorScheme.onSurfaceVariant
-            )
-        },
-        headlineContent = {
-            Text(
-                text = title,
-                style = MaterialTheme.typography.titleLarge
-            )
-        },
-        trailingContent = {
-            OverFlowMenu(
-                onDelete = onDelete,
-                onMove = onMove,
-                onExport = if (isLog) onExportLog else onExportFolder,
-                onEdit = onEdit,
-            )
-        }
-    )
-    HorizontalDivider()
+    ) {
+        ListItem(
+            modifier = Modifier
+                .fillMaxWidth()
+                .clickable { onClick() },
+            colors = ListItemDefaults.colors(
+                containerColor = MaterialTheme.colorScheme.surface,
+                headlineColor = MaterialTheme.colorScheme.onSurface,
+                leadingIconColor = MaterialTheme.colorScheme.onSurface,
+                trailingIconColor = MaterialTheme.colorScheme.onSurface
+            ),
+            leadingContent = {
+                Icon(
+                    imageVector = if (isLog) Icons.AutoMirrored.Filled.Assignment else Icons.Default.Folder,
+                    contentDescription = null,
+                    modifier = Modifier
+                        .padding(end = Dimensions.PADDING_MEDIUM)
+                        .size(40.dp),
+                    tint = MaterialTheme.colorScheme.onSurfaceVariant
+                )
+            },
+            headlineContent = {
+                Text(
+                    text = title,
+                    style = MaterialTheme.typography.titleLarge
+                )
+            },
+            trailingContent = {
+                OverFlowMenu(
+                    onDelete = onDelete,
+                    onMove = onMove,
+                    onExport = onExport,
+                    onEdit = onEdit,
+                )
+            }
+        )
+        HorizontalDivider()
+    }
 }
 
 @Composable
@@ -727,7 +732,7 @@ private fun OverFlowMenu(
         ) {
             Icon(
                 imageVector = Icons.Default.MoreVert,
-                contentDescription = null
+                contentDescription = stringResource(R.string.log_list_cd_more_options)
             )
         }
         DropdownMenu(
@@ -985,8 +990,7 @@ private fun SolveLogListItemPreview() {
                 onClick = {},
                 onDelete = {},
                 onMove = {},
-                onExportLog = {},
-                onExportFolder = {},
+                onExport = {},
                 onEdit = {}
             )
             SolveListItem(
@@ -995,8 +999,7 @@ private fun SolveLogListItemPreview() {
                 onClick = {},
                 onDelete = {},
                 onMove = {},
-                onExportLog = {},
-                onExportFolder = {},
+                onExport = {},
                 onEdit = {}
             )
         }

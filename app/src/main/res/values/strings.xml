@@ -59,6 +59,8 @@
     <string name="log_list_cd_close_menu">Close menu</string>
     <string name="log_list_cd_open_menu">Open create menu</string>
     <string name="log_list_cd_go_up">Go up</string>
+    <string name="log_list_cd_toggle_view">Toggle view mode</string>
+    <string name="log_list_cd_more_options">More options</string>
 
     <!-- Log viewer -->
     <string name="log_view">View Log</string>

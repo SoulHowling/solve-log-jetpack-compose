@@ -59,6 +59,8 @@
     <string name="log_list_cd_close_menu">メニューを閉じる</string>
     <string name="log_list_cd_open_menu">新規作成メニューを開く</string>
     <string name="log_list_cd_go_up">上に戻る</string>
+    <string name="log_list_cd_toggle_view">表示形式を切り替え</string>
+    <string name="log_list_cd_more_options">メニュー</string>
 
     <!-- Log viewer -->
     <string name="log_view">ログ閲覧</string>
