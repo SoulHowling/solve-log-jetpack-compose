@@ -26,8 +26,9 @@
     <string name="log_list_delete_log_success">「%1$s」ログを削除しました</string>
     <string name="log_list_delete_folder_success">「%1$s」フォルダを削除しました</string>
     <string name="log_list_move_success">移動しました</string>
-    <string name="log_list_title_question_quantity">問題数: %1$d</string>
-    <string name="log_list_title_attempt_count">試行回数: %1$d</string>
+    <string name="log_list_description_question_quantity">問題数: %1$d</string>
+    <string name="log_list_description_attempt_count">試行回数: %1$d</string>
+    <string name="log_list_description_selection">%1$s / %2$s択</string>
     <string name="log_list_dropdown_menu_item_edit">編集</string>
     <string name="log_list_dropdown_menu_item_move">移動</string>
     <string name="log_list_dropdown_menu_item_delete">削除</string>
@@ -58,6 +59,8 @@
     <string name="log_list_cd_close_menu">メニューを閉じる</string>
     <string name="log_list_cd_open_menu">新規作成メニューを開く</string>
     <string name="log_list_cd_go_up">上に戻る</string>
+    <string name="log_list_cd_toggle_view">表示形式を切り替え</string>
+    <string name="log_list_cd_more_options">メニュー</string>
 
     <!-- Log viewer -->
     <string name="log_view">ログ閲覧</string>

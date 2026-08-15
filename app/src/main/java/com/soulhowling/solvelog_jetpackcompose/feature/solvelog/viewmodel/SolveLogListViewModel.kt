@@ -16,6 +16,8 @@ import com.soulhowling.solvelog_jetpackcompose.feature.solvelog.model.repository
 import com.soulhowling.solvelog_jetpackcompose.utils.FileUtils
 import com.soulhowling.solvelog_jetpackcompose.utils.LogUtils
 import com.soulhowling.solvelog_jetpackcompose.core.database.DBKeys
+import com.soulhowling.solvelog_jetpackcompose.data.PreferenceRepository
+import com.soulhowling.solvelog_jetpackcompose.feature.solvelog.ViewType
 import com.soulhowling.solvelog_jetpackcompose.feature.solvelog.model.entity.Question
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableSharedFlow
@@ -61,11 +63,17 @@ class SolveLogListViewModel(application: Application) : AndroidViewModel(applica
 
     private val _currentFolderId = MutableStateFlow<Int?>(null)
 
+    val viewType: StateFlow<ViewType> = PreferenceRepository.viewType
+
     private val allFolders = folderRepository.allFolders
     private val allSolveLogs = solveLogRepository.allSolveLogs
 
     private val _exportTarget = MutableSharedFlow<ExportTarget>()
     val exportTarget = _exportTarget.asSharedFlow()
+
+    init {
+        PreferenceRepository.loadViewType(application)
+    }
 
     val folders: StateFlow<List<Folder>> = allFolders.stateIn(
         scope = viewModelScope,
@@ -109,6 +117,11 @@ class SolveLogListViewModel(application: Application) : AndroidViewModel(applica
 
     fun selectFolder(folderId: Int?) {
         _currentFolderId.value = folderId
+    }
+
+    fun toggleViewMode() {
+        val viewType = ViewType.toggle(viewType.value)
+        PreferenceRepository.setViewType(getApplication(), viewType)
     }
 
     fun navigateBack() {
@@ -172,7 +185,8 @@ class SolveLogListViewModel(application: Application) : AndroidViewModel(applica
                 if (questionQuantity != solveLog.questionQuantity) {
                     val currentQuestions = questionRepository.getQuestionListBy(solveLog.id)
                     if (questionQuantity > solveLog.questionQuantity) {
-                        val attempts = currentQuestions.map { it.attempt }.distinct().ifEmpty { 1..solveLog.attemptCount }
+                        val attempts = currentQuestions.map { it.attempt }.distinct()
+                            .ifEmpty { 1..solveLog.attemptCount }
                         val newQuestions = attempts.flatMap { attempt ->
                             (solveLog.questionQuantity until questionQuantity).map { index ->
                                 questionRepository.createQuestion(
@@ -187,7 +201,8 @@ class SolveLogListViewModel(application: Application) : AndroidViewModel(applica
                         }
                         questionRepository.insertQuestions(newQuestions)
                     } else {
-                        val questionsToDelete = currentQuestions.filter { it.questionIndex >= questionQuantity }
+                        val questionsToDelete =
+                            currentQuestions.filter { it.questionIndex >= questionQuantity }
                         questionRepository.deleteQuestions(questionsToDelete)
                     }
                 }
@@ -283,19 +298,23 @@ class SolveLogListViewModel(application: Application) : AndroidViewModel(applica
                 try {
                     val jsonString = when (target) {
                         is ExportTarget.Log -> {
-                            val solveLog = solveLogRepository.getSolveLog(target.id).first() ?: return@withContext false
+                            val solveLog = solveLogRepository.getSolveLog(target.id).first()
+                                ?: return@withContext false
                             val questions = questionRepository.getQuestionListBy(target.id)
                             FileUtils.generateSolveLogJson(solveLog, questions)
                         }
+
                         is ExportTarget.Folder -> {
                             val allFolders = folderRepository.allFolders.first()
-                            val folder = allFolders.find { it.id == target.id } ?: return@withContext false
+                            val folder =
+                                allFolders.find { it.id == target.id } ?: return@withContext false
                             val allLogs = solveLogRepository.allSolveLogs.first()
 
                             val descendantFolderIds = mutableSetOf<Int>()
                             fun collectFolderIds(id: Int) {
                                 if (descendantFolderIds.add(id)) {
-                                    allFolders.filter { it.parentFolderId == id }.forEach { collectFolderIds(it.id) }
+                                    allFolders.filter { it.parentFolderId == id }
+                                        .forEach { collectFolderIds(it.id) }
                                 }
                             }
                             collectFolderIds(target.id)
@@ -305,8 +324,14 @@ class SolveLogListViewModel(application: Application) : AndroidViewModel(applica
                             val allQuestions = questionRepository.getQuestionsBySolveLogIds(logIds)
                             val logQuestionsMap = allQuestions.groupBy { it.solveLogId }
 
-                            FileUtils.generateFolderJson(folder, allFolders, allLogs, logQuestionsMap)
+                            FileUtils.generateFolderJson(
+                                folder,
+                                allFolders,
+                                allLogs,
+                                logQuestionsMap
+                            )
                         }
+
                         is ExportTarget.All -> {
                             val folders = folderRepository.allFolders.first()
                             val logs = solveLogRepository.allSolveLogs.first()
@@ -327,12 +352,13 @@ class SolveLogListViewModel(application: Application) : AndroidViewModel(applica
             onResult(success)
         }
     }
-    
+
     fun performImport(uri: android.net.Uri, onResult: (Boolean) -> Unit) {
         viewModelScope.launch {
             val success = withContext(Dispatchers.IO) {
                 try {
-                    val jsonString = FileUtils.readTextFromUri(getApplication(), uri) ?: return@withContext false
+                    val jsonString =
+                        FileUtils.readTextFromUri(getApplication(), uri) ?: return@withContext false
                     val jsonObject = JSONObject(jsonString)
 
                     database.withTransaction {
@@ -340,12 +366,15 @@ class SolveLogListViewModel(application: Application) : AndroidViewModel(applica
                             jsonObject.has(FileUtils.KEY_FOLDERS) -> {
                                 importAllData(jsonObject, _currentFolderId.value)
                             }
+
                             jsonObject.has(FileUtils.KEY_QUESTIONS) -> {
                                 importSolveLog(jsonObject, _currentFolderId.value)
                             }
+
                             jsonObject.has(FileUtils.KEY_SUBFOLDERS) || jsonObject.has(FileUtils.KEY_SOLVE_LOGS) -> {
                                 importFolder(jsonObject, _currentFolderId.value)
                             }
+
                             else -> false
                         }
                     }
@@ -376,23 +405,33 @@ class SolveLogListViewModel(application: Application) : AndroidViewModel(applica
             while (it.hasNext()) {
                 val folderJson = it.next()
                 val oldId = folderJson.getInt(DBKeys.KEY_ID)
-                val oldParentId = if (folderJson.isNull(DBKeys.KEY_PARENT_FOLDER_ID)) null else folderJson.getInt(DBKeys.KEY_PARENT_FOLDER_ID)
+                val oldParentId =
+                    if (folderJson.isNull(DBKeys.KEY_PARENT_FOLDER_ID)) null else folderJson.getInt(
+                        DBKeys.KEY_PARENT_FOLDER_ID
+                    )
 
                 val isParentAvailable = oldParentId == null
                         || !importFolderIds.contains(oldParentId)
                         || oldToNewFolderId.containsKey(oldParentId)
 
                 if (isParentAvailable) {
-                    val newParentId = if (oldParentId == null|| !importFolderIds.contains(oldParentId)) {
-                        targetFolderId
-                    } else {
-                        oldToNewFolderId[oldParentId]
-                    }
+                    val newParentId =
+                        if (oldParentId == null || !importFolderIds.contains(oldParentId)) {
+                            targetFolderId
+                        } else {
+                            oldToNewFolderId[oldParentId]
+                        }
                     val folder = Folder(
                         name = folderJson.getString(DBKeys.KEY_NAME),
                         parentFolderId = newParentId,
-                        createdAt = folderJson.optLong(DBKeys.KEY_CREATED_AT, System.currentTimeMillis()),
-                        updatedAt = folderJson.optLong(DBKeys.KEY_UPDATED_AT, System.currentTimeMillis())
+                        createdAt = folderJson.optLong(
+                            DBKeys.KEY_CREATED_AT,
+                            System.currentTimeMillis()
+                        ),
+                        updatedAt = folderJson.optLong(
+                            DBKeys.KEY_UPDATED_AT,
+                            System.currentTimeMillis()
+                        )
                     )
                     val newId = folderRepository.insertAndReturnId(folder)
                     oldToNewFolderId[oldId] = newId.toInt()
@@ -410,8 +449,11 @@ class SolveLogListViewModel(application: Application) : AndroidViewModel(applica
 
         for (i in 0 until logsArray.length()) {
             val logJson = logsArray.getJSONObject(i)
-            val oldFolderId = if (logJson.isNull(DBKeys.KEY_FOLDER_ID)) null else logJson.getInt(DBKeys.KEY_FOLDER_ID)
-            val newFolderId = if (oldFolderId == null) targetFolderId else oldToNewFolderId[oldFolderId] ?: targetFolderId
+            val oldFolderId =
+                if (logJson.isNull(DBKeys.KEY_FOLDER_ID)) null else logJson.getInt(DBKeys.KEY_FOLDER_ID)
+            val newFolderId =
+                if (oldFolderId == null) targetFolderId else oldToNewFolderId[oldFolderId]
+                    ?: targetFolderId
             importSolveLog(logJson, newFolderId)
         }
         return true

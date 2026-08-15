@@ -44,5 +44,9 @@ enum class SelectionType(val index: Int, val displayString: String) {
                 }
             }
         }
+
+        fun from(index: Int): SelectionType {
+            return entries.find { it.index == index } ?: NUMBER
+        }
     }
 }
