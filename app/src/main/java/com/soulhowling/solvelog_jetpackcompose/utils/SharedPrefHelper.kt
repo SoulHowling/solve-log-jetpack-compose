@@ -8,6 +8,7 @@ class SharedPrefHelper private constructor() {
         private const val PREF_NAME = "SolveLog_Preference"
         const val KEY_THEME_MODE = "key_theme_mode"
         const val KEY_IS_ANSWER_VISIBLE = "key_is_answer_visible"
+        const val KEY_VIEW_TYPE = "key_view_type"
 
         private fun getSharedPref(context: Context): SharedPreferences {
             return context.getSharedPreferences(PREF_NAME, Context.MODE_PRIVATE)

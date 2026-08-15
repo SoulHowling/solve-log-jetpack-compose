@@ -31,7 +31,6 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.automirrored.filled.Assignment
-import androidx.compose.material.icons.automirrored.filled.ViewList
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Category
 import androidx.compose.material.icons.filled.CreateNewFolder
@@ -40,7 +39,6 @@ import androidx.compose.material.icons.filled.History
 import androidx.compose.material.icons.filled.MoreVert
 import androidx.compose.material.icons.filled.Numbers
 import androidx.compose.material.icons.filled.PostAdd
-import androidx.compose.material.icons.filled.ViewAgenda
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.DropdownMenu
@@ -82,6 +80,7 @@ import com.soulhowling.solvelog_jetpackcompose.core.LocalAppBarController
 import com.soulhowling.solvelog_jetpackcompose.core.LocalBottomBarVisibility
 import com.soulhowling.solvelog_jetpackcompose.feature.solvelog.SelectionQuantity
 import com.soulhowling.solvelog_jetpackcompose.feature.solvelog.SelectionType
+import com.soulhowling.solvelog_jetpackcompose.feature.solvelog.ViewType
 import com.soulhowling.solvelog_jetpackcompose.feature.solvelog.model.entity.SolveLog
 import com.soulhowling.solvelog_jetpackcompose.feature.solvelog.model.entity.Folder
 import com.soulhowling.solvelog_jetpackcompose.feature.solvelog.viewmodel.ExportTarget
@@ -98,7 +97,7 @@ fun SolveLogListScreen(
     val displayItems by viewModel.displayItems.collectAsStateWithLifecycle()
     val folders by viewModel.folders.collectAsStateWithLifecycle()
     val currentFolderPath by viewModel.currentFolderPath.collectAsStateWithLifecycle()
-    val isCardView by viewModel.isCardView.collectAsStateWithLifecycle()
+    val viewType by viewModel.viewType.collectAsStateWithLifecycle()
     val context = LocalContext.current
 
     var pendingExportTarget by rememberSaveable { mutableStateOf<ExportTarget?>(null) }
@@ -155,7 +154,7 @@ fun SolveLogListScreen(
                 onClick = { viewModel.toggleViewMode() }
             ) {
                 Icon(
-                    imageVector = if (isCardView) Icons.AutoMirrored.Filled.ViewList else Icons.Default.ViewAgenda,
+                    imageVector = viewType.nextButtonImage,
                     contentDescription = stringResource(R.string.log_list_cd_toggle_view),
                     tint = MaterialTheme.colorScheme.onPrimary
                 )
@@ -210,7 +209,7 @@ fun SolveLogListScreen(
         displayItems = displayItems,
         folders = folders,
         currentFolderPath = currentFolderPath,
-        isCardView = isCardView,
+        isCardView = viewType == ViewType.CARD,
         onNavigateToViewer = onNavigateToViewer,
         onSelectFolder = { viewModel.selectFolder(it) },
         onNavigateBack = { viewModel.navigateBack() },
@@ -670,15 +669,14 @@ fun SolveListItem(
                     imageVector = if (isLog) Icons.AutoMirrored.Filled.Assignment else Icons.Default.Folder,
                     contentDescription = null,
                     modifier = Modifier
-                        .padding(end = Dimensions.PADDING_MEDIUM)
-                        .size(40.dp),
+                        .size(30.dp),
                     tint = MaterialTheme.colorScheme.onSurfaceVariant
                 )
             },
             headlineContent = {
                 Text(
                     text = title,
-                    style = MaterialTheme.typography.titleLarge
+                    style = MaterialTheme.typography.titleMedium
                 )
             },
             trailingContent = {
