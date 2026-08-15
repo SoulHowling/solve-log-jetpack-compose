@@ -26,8 +26,9 @@
     <string name="log_list_delete_log_success">Deleted log \"%1$s\"</string>
     <string name="log_list_delete_folder_success">Deleted folder \"%1$s\"</string>
     <string name="log_list_move_success">Moved successfully</string>
-    <string name="log_list_title_question_quantity">Questions: %1$d</string>
-    <string name="log_list_title_attempt_count">Attempts: %1$d</string>
+    <string name="log_list_description_question_quantity">Questions: %1$d</string>
+    <string name="log_list_description_attempt_count">Attempts: %1$d</string>
+    <string name="log_list_description_selection">%1$s / %2$s choices</string>
     <string name="log_list_dropdown_menu_item_edit">Edit</string>
     <string name="log_list_dropdown_menu_item_move">Move</string>
     <string name="log_list_dropdown_menu_item_delete">Delete</string>

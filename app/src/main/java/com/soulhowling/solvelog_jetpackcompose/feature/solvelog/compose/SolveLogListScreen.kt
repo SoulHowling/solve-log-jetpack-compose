@@ -31,18 +31,26 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.automirrored.filled.Assignment
+import androidx.compose.material.icons.automirrored.filled.ViewList
 import androidx.compose.material.icons.filled.Add
+import androidx.compose.material.icons.filled.Category
 import androidx.compose.material.icons.filled.CreateNewFolder
 import androidx.compose.material.icons.filled.Folder
+import androidx.compose.material.icons.filled.History
 import androidx.compose.material.icons.filled.MoreVert
+import androidx.compose.material.icons.filled.Numbers
 import androidx.compose.material.icons.filled.PostAdd
+import androidx.compose.material.icons.filled.ViewAgenda
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.FloatingActionButton
+import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
+import androidx.compose.material3.ListItem
+import androidx.compose.material3.ListItemDefaults
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.SmallFloatingActionButton
 import androidx.compose.material3.Text
@@ -57,8 +65,11 @@ import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.drawBehind
 import androidx.compose.ui.draw.rotate
+import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.graphicsLayer
+import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
@@ -87,6 +98,7 @@ fun SolveLogListScreen(
     val displayItems by viewModel.displayItems.collectAsStateWithLifecycle()
     val folders by viewModel.folders.collectAsStateWithLifecycle()
     val currentFolderPath by viewModel.currentFolderPath.collectAsStateWithLifecycle()
+    val isCardView by viewModel.isCardView.collectAsStateWithLifecycle()
     val context = LocalContext.current
 
     var pendingExportTarget by rememberSaveable { mutableStateOf<ExportTarget?>(null) }
@@ -140,6 +152,15 @@ fun SolveLogListScreen(
         title = null,
         actions = {
             IconButton(
+                onClick = { viewModel.toggleViewMode() }
+            ) {
+                Icon(
+                    imageVector = if (isCardView) Icons.AutoMirrored.Filled.ViewList else Icons.Default.ViewAgenda,
+                    contentDescription = null,
+                    tint = MaterialTheme.colorScheme.onPrimary
+                )
+            }
+            IconButton(
                 onClick = { isExpanded = true }
             ) {
                 Icon(
@@ -189,6 +210,7 @@ fun SolveLogListScreen(
         displayItems = displayItems,
         folders = folders,
         currentFolderPath = currentFolderPath,
+        isCardView = isCardView,
         onNavigateToViewer = onNavigateToViewer,
         onSelectFolder = { viewModel.selectFolder(it) },
         onNavigateBack = { viewModel.navigateBack() },
@@ -248,6 +270,7 @@ private fun SolveLogListScreenContent(
     displayItems: List<SolveLogListItem>,
     folders: List<Folder>,
     currentFolderPath: String?,
+    isCardView: Boolean,
     onNavigateToViewer: (Int) -> Unit,
     onSelectFolder: (Int?) -> Unit,
     onNavigateBack: () -> Unit,
@@ -262,7 +285,6 @@ private fun SolveLogListScreenContent(
     onExportLog: (SolveLog) -> Unit,
     onExportFolder: (Folder) -> Unit,
 ) {
-    val questionQuantityFormatText = stringResource(R.string.log_list_title_question_quantity)
     var isShownBottomSheet by remember { mutableStateOf(false) }
     var isShownAddFolderDialog by remember { mutableStateOf(false) }
     var isFabExpanded by remember { mutableStateOf(false) }
@@ -291,25 +313,37 @@ private fun SolveLogListScreenContent(
         label = "fabTranslationY"
     )
 
+    val contentPadding = if (isCardView) {
+        PaddingValues(
+            start = Dimensions.PADDING_MEDIUM,
+            top = Dimensions.PADDING_MEDIUM,
+            end = Dimensions.PADDING_MEDIUM,
+            bottom = Dimensions.LIST_BOTTOM_WITH_FAB
+        )
+    } else {
+        PaddingValues(bottom = Dimensions.LIST_BOTTOM_WITH_FAB)
+    }
+
+    val verticalArrangement = if (isCardView) {
+        Arrangement.spacedBy(Dimensions.SPACING_MEDIUM)
+    } else {
+        Arrangement.spacedBy(0.dp)
+    }
+
     Box(modifier = Modifier.fillMaxSize()) {
         Column(modifier = Modifier.fillMaxSize()) {
             if (currentFolderPath != null) {
                 CurrentFolderHeader(
                     currentFolderPath = currentFolderPath,
-                    onNavigateBack = onNavigateBack
+                    onNavigateBack = onNavigateBack,
                 )
             }
 
             LazyColumn(
                 state = listState,
                 modifier = Modifier.weight(1f),
-                contentPadding = PaddingValues(
-                    start = Dimensions.PADDING_MEDIUM,
-                    top = Dimensions.PADDING_MEDIUM,
-                    end = Dimensions.PADDING_MEDIUM,
-                    bottom = Dimensions.LIST_BOTTOM_WITH_FAB
-                ),
-                verticalArrangement = Arrangement.spacedBy(Dimensions.SPACING_MEDIUM)
+                contentPadding = contentPadding,
+                verticalArrangement = verticalArrangement
             ) {
                 items(
                     items = displayItems,
@@ -320,29 +354,61 @@ private fun SolveLogListScreenContent(
                         }
                     }
                 ) { item ->
-                    when (item) {
-                        is SolveLogListItem.FolderItem -> {
-                            FolderItemCard(
-                                title = item.folder.name,
-                                onClick = { onSelectFolder(item.folder.id) },
-                                onDelete = { onDeleteFolder(item.folder) },
-                                onMove = { movingFolder = item.folder },
-                                onExportFolder = { onExportFolder(item.folder) },
-                                onEdit = { editingFolder = item.folder }
-                            )
-                        }
+                    if (isCardView) {
+                        when (item) {
+                            is SolveLogListItem.FolderItem -> {
+                                FolderItemCard(
+                                    title = item.folder.name,
+                                    onClick = { onSelectFolder(item.folder.id) },
+                                    onDelete = { onDeleteFolder(item.folder) },
+                                    onMove = { movingFolder = item.folder },
+                                    onExportFolder = { onExportFolder(item.folder) },
+                                    onEdit = { editingFolder = item.folder }
+                                )
+                            }
 
-                        is SolveLogListItem.LogItem -> {
-                            SolveLogItemCard(
-                                title = item.log.name,
-                                description = questionQuantityFormatText.format(item.log.questionQuantity),
-                                attemptCount = item.log.attemptCount,
-                                onClick = { onNavigateToViewer(item.log.id) },
-                                onDelete = { onDeleteSolveLog(item.log) },
-                                onMove = { movingLog = item.log },
-                                onExportLog = { onExportLog(item.log) },
-                                onEdit = { editingLog = item.log }
-                            )
+                            is SolveLogListItem.LogItem -> {
+                                SolveLogItemCard(
+                                    title = item.log.name,
+                                    questionQuantity = item.log.questionQuantity,
+                                    attemptCount = item.log.attemptCount,
+                                    selectionType = item.log.selectionType,
+                                    selectionQuantity = item.log.selectionQuantity,
+                                    onClick = { onNavigateToViewer(item.log.id) },
+                                    onDelete = { onDeleteSolveLog(item.log) },
+                                    onMove = { movingLog = item.log },
+                                    onExportLog = { onExportLog(item.log) },
+                                    onEdit = { editingLog = item.log }
+                                )
+                            }
+                        }
+                    } else {
+                        when (item) {
+                            is SolveLogListItem.FolderItem -> {
+                                SolveListItem(
+                                    isLog = false,
+                                    title = item.folder.name,
+                                    onClick = { onSelectFolder(item.folder.id) },
+                                    onDelete = { onDeleteFolder(item.folder) },
+                                    onMove = { movingFolder = item.folder },
+                                    onExportLog = {},
+                                    onExportFolder = { onExportFolder(item.folder) },
+                                    onEdit = { editingFolder = item.folder }
+                                )
+                            }
+
+                            is SolveLogListItem.LogItem -> {
+                                SolveListItem(
+                                    isLog = true,
+                                    title = item.log.name,
+                                    onClick = { onNavigateToViewer(item.log.id) },
+                                    onDelete = { onDeleteSolveLog(item.log) },
+                                    onMove = { movingLog = item.log },
+                                    onExportLog = { onExportLog(item.log) },
+                                    onExportFolder = {},
+                                    onEdit = { editingLog = item.log }
+                                )
+                            }
                         }
                     }
                 }
@@ -464,7 +530,7 @@ private fun FolderItemCard(
             .clickable { onClick() },
         elevation = CardDefaults.cardElevation(defaultElevation = Dimensions.SPACING_SMALL),
         colors = CardDefaults.cardColors(
-            containerColor = MaterialTheme.colorScheme.secondaryContainer
+            containerColor = MaterialTheme.colorScheme.surfaceVariant
         ),
     ) {
         Row(
@@ -479,7 +545,7 @@ private fun FolderItemCard(
                 modifier = Modifier
                     .padding(end = Dimensions.PADDING_MEDIUM)
                     .size(40.dp),
-                tint = MaterialTheme.colorScheme.secondary
+                tint = MaterialTheme.colorScheme.onSurfaceVariant
             )
             Text(
                 text = title,
@@ -499,15 +565,19 @@ private fun FolderItemCard(
 @Composable
 private fun SolveLogItemCard(
     title: String,
-    description: String,
+    questionQuantity: Int,
     attemptCount: Int,
+    selectionType: Int,
+    selectionQuantity: Int,
     onClick: () -> Unit,
     onDelete: () -> Unit,
     onMove: () -> Unit,
     onExportLog: () -> Unit,
     onEdit: () -> Unit,
 ) {
-    val attemptCountFormatText = stringResource(R.string.log_list_title_attempt_count)
+    val selectionType = SelectionType.from(selectionType)
+    val selectionQuantity = SelectionQuantity.from(selectionQuantity)
+
     Card(
         modifier = Modifier
             .fillMaxWidth()
@@ -529,31 +599,36 @@ private fun SolveLogItemCard(
                 modifier = Modifier
                     .padding(end = Dimensions.PADDING_MEDIUM)
                     .size(40.dp),
-                tint = MaterialTheme.colorScheme.primary
+                tint = MaterialTheme.colorScheme.onSurfaceVariant
             )
+
             Column(
-                modifier = Modifier.weight(1f)
+                modifier = Modifier
+                    .weight(1f)
             ) {
                 Text(
                     text = title,
                     style = MaterialTheme.typography.titleLarge
                 )
-                Row(
-                    modifier = Modifier
-                ) {
-                    Text(
-                        text = description,
-                        style = MaterialTheme.typography.bodyMedium,
-                        modifier = Modifier.padding(top = Dimensions.PADDING_SMALL)
+                HorizontalDivider(
+                    modifier = Modifier.padding(top = 4.dp, bottom = 2.dp),
+                    color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.5f)
+                )
+                InfoBadge(
+                    icon = Icons.Default.Numbers,
+                    text = stringResource(
+                        R.string.log_list_description_question_quantity,
+                        questionQuantity
                     )
-                    Spacer(modifier = Modifier.width(8.dp))
-                    Text(
-                        text = attemptCountFormatText.format(attemptCount),
-                        style = MaterialTheme.typography.bodyMedium,
-                        modifier = Modifier.padding(top = Dimensions.PADDING_SMALL)
-                    )
-                }
-
+                )
+                InfoBadge(
+                    icon = Icons.Default.History,
+                    text = stringResource(R.string.log_list_description_attempt_count, attemptCount)
+                )
+                InfoBadge(
+                    icon = Icons.Default.Category,
+                    text = stringResource(R.string.log_list_description_selection, selectionType.displayString, selectionQuantity.displayString)
+                )
             }
             OverFlowMenu(
                 onDelete = onDelete,
@@ -562,6 +637,79 @@ private fun SolveLogItemCard(
                 onEdit = onEdit,
             )
         }
+    }
+}
+
+@Composable
+fun SolveListItem(
+    isLog: Boolean,
+    title: String,
+    onClick: () -> Unit,
+    onDelete: () -> Unit,
+    onMove: () -> Unit,
+    onExportLog: () -> Unit,
+    onExportFolder: () -> Unit,
+    onEdit: () -> Unit,
+) {
+    ListItem(
+        modifier = Modifier
+            .fillMaxWidth()
+            .clickable { onClick() },
+        colors = ListItemDefaults.colors(
+            containerColor = MaterialTheme.colorScheme.surface,
+            headlineColor = MaterialTheme.colorScheme.onSurface,
+            leadingIconColor = MaterialTheme.colorScheme.onSurface,
+            trailingIconColor = MaterialTheme.colorScheme.onSurface
+        ),
+        leadingContent = {
+            Icon(
+                imageVector = if (isLog) Icons.AutoMirrored.Filled.Assignment else Icons.Default.Folder,
+                contentDescription = null,
+                modifier = Modifier
+                    .padding(end = Dimensions.PADDING_MEDIUM)
+                    .size(40.dp),
+                tint = MaterialTheme.colorScheme.onSurfaceVariant
+            )
+        },
+        headlineContent = {
+            Text(
+                text = title,
+                style = MaterialTheme.typography.titleLarge
+            )
+        },
+        trailingContent = {
+            OverFlowMenu(
+                onDelete = onDelete,
+                onMove = onMove,
+                onExport = if (isLog) onExportLog else onExportFolder,
+                onEdit = onEdit,
+            )
+        }
+    )
+    HorizontalDivider()
+}
+
+@Composable
+private fun InfoBadge(
+    icon: ImageVector,
+    text: String,
+) {
+    Row(
+        verticalAlignment = Alignment.CenterVertically,
+        modifier = Modifier.padding(end = 12.dp)
+    ) {
+        Icon(
+            imageVector = icon,
+            contentDescription = null,
+            modifier = Modifier.size(16.dp),
+            tint = MaterialTheme.colorScheme.onSurfaceVariant
+        )
+        Spacer(modifier = Modifier.width(4.dp))
+        Text(
+            text = text,
+            style = MaterialTheme.typography.bodySmall,
+            color = MaterialTheme.colorScheme.onSurfaceVariant
+        )
     }
 }
 
@@ -650,24 +798,36 @@ fun CurrentFolderHeader(
     currentFolderPath: String,
     onNavigateBack: () -> Unit,
 ) {
+    val dividerColor = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.5f)
     Row(
         modifier = Modifier
             .fillMaxWidth()
-            .padding(horizontal = Dimensions.PADDING_MEDIUM, vertical = Dimensions.PADDING_SMALL),
+            .padding(horizontal = Dimensions.PADDING_MEDIUM, vertical = Dimensions.PADDING_SMALL)
+            .drawBehind {
+                drawLine(
+                    color = dividerColor,
+                    start = Offset(0f, size.height),
+                    end = Offset(size.width, size.height),
+                    strokeWidth = 1.dp.toPx()
+                )
+            },
         verticalAlignment = Alignment.CenterVertically
     ) {
         IconButton(onClick = { onNavigateBack() }) {
             Icon(
-                Icons.AutoMirrored.Filled.ArrowBack,
+                imageVector = Icons.AutoMirrored.Filled.ArrowBack,
                 contentDescription = stringResource(R.string.log_list_cd_back)
             )
         }
         Text(
             text = currentFolderPath,
             style = MaterialTheme.typography.titleMedium,
-            modifier = Modifier.padding(start = Dimensions.PADDING_SMALL)
+            modifier = Modifier
+                .weight(1f)
+                .padding(start = Dimensions.PADDING_SMALL)
         )
     }
+
 }
 
 @Composable
@@ -692,7 +852,6 @@ private fun NewActionButtons(
                 horizontalAlignment = Alignment.End,
                 verticalArrangement = Arrangement.spacedBy(16.dp)
             ) {
-                // フォルダ作成ボタン
                 Row(
                     verticalAlignment = Alignment.CenterVertically,
                     horizontalArrangement = Arrangement.spacedBy(8.dp)
@@ -786,6 +945,7 @@ private fun SolveLogListScreenContentPreview() {
             displayItems = displayItems,
             folders = emptyList(),
             currentFolderPath = "テスト / サブフォルダ",
+            isCardView = true,
             onNavigateToViewer = {},
             onSelectFolder = {},
             onNavigateBack = {},
@@ -800,5 +960,45 @@ private fun SolveLogListScreenContentPreview() {
             onExportLog = {},
             onExportFolder = {}
         )
+    }
+}
+
+@Preview(showBackground = true)
+@Composable
+private fun SolveLogListItemPreview() {
+    val sampleLog = SolveLog(
+        id = 1,
+        name = "サンプルログ",
+        questionQuantity = 30,
+        selectionType = SelectionType.NUMBER.index,
+        selectionQuantity = SelectionQuantity.FOUR.index,
+        attemptCount = 5,
+        createdAt = 0L,
+        updatedAt = 0L,
+        folderId = null
+    )
+    SolveLogJetpackComposeTheme {
+        Column {
+            SolveListItem(
+                isLog = true,
+                title = sampleLog.name,
+                onClick = {},
+                onDelete = {},
+                onMove = {},
+                onExportLog = {},
+                onExportFolder = {},
+                onEdit = {}
+            )
+            SolveListItem(
+                isLog = false,
+                title = "サンプルフォルダ",
+                onClick = {},
+                onDelete = {},
+                onMove = {},
+                onExportLog = {},
+                onExportFolder = {},
+                onEdit = {}
+            )
+        }
     }
 }

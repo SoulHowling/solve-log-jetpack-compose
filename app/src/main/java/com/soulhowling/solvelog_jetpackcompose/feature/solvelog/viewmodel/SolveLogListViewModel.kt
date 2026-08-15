@@ -23,6 +23,7 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted.Companion.WhileSubscribed
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asSharedFlow
+import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.stateIn
@@ -60,6 +61,9 @@ class SolveLogListViewModel(application: Application) : AndroidViewModel(applica
     private val questionRepository: QuestionRepository = QuestionRepository(database.questionDao())
 
     private val _currentFolderId = MutableStateFlow<Int?>(null)
+
+    private val _isCardView = MutableStateFlow(true)
+    val isCardView: StateFlow<Boolean> = _isCardView.asStateFlow()
 
     private val allFolders = folderRepository.allFolders
     private val allSolveLogs = solveLogRepository.allSolveLogs
@@ -109,6 +113,10 @@ class SolveLogListViewModel(application: Application) : AndroidViewModel(applica
 
     fun selectFolder(folderId: Int?) {
         _currentFolderId.value = folderId
+    }
+
+    fun toggleViewMode() {
+        _isCardView.value = !_isCardView.value
     }
 
     fun navigateBack() {
