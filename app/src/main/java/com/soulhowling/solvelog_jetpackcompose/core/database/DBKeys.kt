@@ -6,6 +6,7 @@ object DBKeys {
     const val TABLE_SOLVE_LOG = "solve_log"
     const val TABLE_QUESTION = "question"
     const val TABLE_FOLDER = "folder"
+    const val TABLE_TIMER = "timer_state"
 
     // Common params
     const val KEY_ID = "id"

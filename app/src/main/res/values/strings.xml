@@ -109,6 +109,7 @@
     <string name="timer_list_break_time">Break Time</string>
     <string name="timer_list_running">Running</string>
     <string name="timer_list_sets_display">%1$d Sets</string>
+    <string name="timer_list_none">None</string>
     <string name="timer_page_phase_work">Work</string>
     <string name="timer_page_phase_break">Break</string>
     <string name="timer_page_phase_complete">Complete</string>

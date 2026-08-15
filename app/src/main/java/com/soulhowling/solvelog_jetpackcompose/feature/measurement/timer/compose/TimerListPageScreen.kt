@@ -50,6 +50,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.Alignment
@@ -68,6 +69,7 @@ import com.soulhowling.solvelog_jetpackcompose.core.CustomAppBarEffect
 import com.soulhowling.solvelog_jetpackcompose.core.LocalAppBarController
 import com.soulhowling.solvelog_jetpackcompose.core.LocalBottomBarVisibility
 import com.soulhowling.solvelog_jetpackcompose.feature.measurement.timer.viewmodel.TimerListViewModel
+import com.soulhowling.solvelog_jetpackcompose.feature.measurement.timer.model.ActiveTimer
 import com.soulhowling.solvelog_jetpackcompose.feature.measurement.timer.model.TimerPhase
 import com.soulhowling.solvelog_jetpackcompose.feature.measurement.timer.model.TimerState
 import com.soulhowling.solvelog_jetpackcompose.ui.theme.Dimensions
@@ -108,7 +110,7 @@ fun TimerListPageScreen(
 
 @Composable
 fun TimerListPageScreenContent(
-    timers: List<TimerState>,
+    timers: List<ActiveTimer>,
     activeTimerId: Int?,
     onAddTimer: (String, Int, Int, Int, Int, Int) -> Unit,
     onUpdateTimer: (TimerState, String, Int, Int, Int, Int, Int) -> Unit,
@@ -141,6 +143,7 @@ fun TimerListPageScreenContent(
 
     Box(modifier = Modifier.fillMaxSize()) {
         LazyColumn(
+            state = listState,
             modifier = Modifier.fillMaxSize(),
             contentPadding = PaddingValues(
                 start = Dimensions.PADDING_MEDIUM,
@@ -162,9 +165,9 @@ fun TimerListPageScreenContent(
                     timer = timer,
                     isAnyTimerActive = isAnyTimerActive,
                     activeTimerId = activeTimerId,
-                    onEdit = { editingTimer = timer },
+                    onEdit = { editingTimer = timer.state },
                     onDelete = { onDeleteTimer(timer.id) },
-                    onClicked = { 
+                    onClicked = {
                         if (isAnyTimerActive && timer.id != activeTimerId) {
                             timerIdToStartAfterConfirm = timer.id
                         } else {
@@ -246,7 +249,7 @@ fun TimerListPageScreenContent(
 @Composable
 fun TimerItemCard(
     modifier: Modifier = Modifier,
-    timer: TimerState,
+    timer: ActiveTimer,
     isAnyTimerActive: Boolean,
     activeTimerId: Int?,
     onEdit: () -> Unit,
@@ -254,7 +257,7 @@ fun TimerItemCard(
     onClicked: () -> Unit,
 ) {
     val breakSet = timer.workSet - 1
-    
+
     val isCurrentlyManaged = timer.id == activeTimerId || timer.isRunning
 
     Card(
@@ -269,7 +272,7 @@ fun TimerItemCard(
         shape = MaterialTheme.shapes.large,
         colors = CardDefaults.cardColors(
             containerColor = if (isCurrentlyManaged) MaterialTheme.colorScheme.primaryContainer
-                             else MaterialTheme.colorScheme.surfaceVariant
+            else MaterialTheme.colorScheme.surfaceVariant
         )
     ) {
         Column(modifier = Modifier.padding(Dimensions.PADDING_MEDIUM)) {
@@ -282,10 +285,10 @@ fun TimerItemCard(
                     modifier = Modifier.fillMaxSize(),
                     colors = ListItemDefaults.colors(
                         containerColor = Color.Transparent,
-                        headlineColor = if (isCurrentlyManaged) MaterialTheme.colorScheme.onPrimaryContainer 
-                                        else MaterialTheme.colorScheme.onSurfaceVariant,
-                        supportingColor = if (isCurrentlyManaged) MaterialTheme.colorScheme.onPrimaryContainer 
-                                         else MaterialTheme.colorScheme.onSurfaceVariant,
+                        headlineColor = if (isCurrentlyManaged) MaterialTheme.colorScheme.onPrimaryContainer
+                        else MaterialTheme.colorScheme.onSurfaceVariant,
+                        supportingColor = if (isCurrentlyManaged) MaterialTheme.colorScheme.onPrimaryContainer
+                        else MaterialTheme.colorScheme.onSurfaceVariant,
                     ),
                     headlineContent = {
                         Text(
@@ -337,26 +340,38 @@ fun TimerItemCard(
                         timer.workSeconds % 60
                     ),
                     subText = stringResource(R.string.timer_list_sets_display, timer.workSet),
-                    containerColor = if (isCurrentlyManaged) MaterialTheme.colorScheme.primary.copy(alpha = 0.1f)
-                                     else MaterialTheme.colorScheme.surface,
+                    containerColor = if (isCurrentlyManaged) MaterialTheme.colorScheme.primary.copy(
+                        alpha = 0.1f
+                    )
+                    else MaterialTheme.colorScheme.surface,
                     contentColor = if (isCurrentlyManaged) MaterialTheme.colorScheme.onPrimaryContainer
-                                   else MaterialTheme.colorScheme.onSurface
+                    else MaterialTheme.colorScheme.onSurface
                 )
 
+                val hasBreak = timer.workSet > 1 && timer.breakSeconds > 0
                 InfoBlock(
                     modifier = Modifier.weight(1f),
                     label = stringResource(R.string.timer_list_break_time),
-                    time = String.format(
-                        Locale.ROOT,
-                        "%2d:%02d",
-                        timer.breakSeconds / 60,
-                        timer.breakSeconds % 60
-                    ),
-                    subText = stringResource(R.string.timer_list_sets_display, breakSet),
-                    containerColor = if (isCurrentlyManaged) MaterialTheme.colorScheme.primary.copy(alpha = 0.1f)
-                                     else MaterialTheme.colorScheme.surface,
+                    time = if (hasBreak) {
+                        String.format(
+                            Locale.ROOT,
+                            "%2d:%02d",
+                            timer.breakSeconds / 60,
+                            timer.breakSeconds % 60
+                        )
+                    } else {
+                        stringResource(R.string.timer_list_none)
+                    },
+                    subText = if (hasBreak) stringResource(
+                        R.string.timer_list_sets_display,
+                        breakSet
+                    ) else null,
+                    containerColor = if (isCurrentlyManaged) MaterialTheme.colorScheme.primary.copy(
+                        alpha = 0.1f
+                    )
+                    else MaterialTheme.colorScheme.surface,
                     contentColor = if (isCurrentlyManaged) MaterialTheme.colorScheme.onPrimaryContainer
-                                   else MaterialTheme.colorScheme.onSurface
+                    else MaterialTheme.colorScheme.onSurface
                 )
             }
         }
@@ -394,6 +409,8 @@ private fun InfoBlock(
                     style = MaterialTheme.typography.labelSmall,
                     color = contentColor.copy(alpha = 0.7f)
                 )
+            } ?: run {
+                Spacer(modifier = Modifier.height(13.dp))
             }
         }
     }
@@ -455,16 +472,16 @@ fun TimerAddDialog(
     onDismiss: () -> Unit,
     onConfirm: (title: String, sets: Int, workMin: Int, workSec: Int, breakMin: Int, breakSec: Int) -> Unit
 ) {
-    val title = remember { mutableStateOf(initialTimer?.title ?: "") }
-    val sets = remember { mutableIntStateOf(initialTimer?.workSet ?: 4) }
+    val title = rememberSaveable { mutableStateOf(initialTimer?.title ?: "") }
+    val sets = rememberSaveable { mutableIntStateOf(initialTimer?.workSet ?: 4) }
     val workMinutes =
-        remember { mutableIntStateOf(initialTimer?.workSeconds?.let { it / 60 } ?: 25) }
+        rememberSaveable { mutableIntStateOf(initialTimer?.workSeconds?.let { it / 60 } ?: 25) }
     val workSeconds =
-        remember { mutableIntStateOf(initialTimer?.workSeconds?.let { it % 60 } ?: 0) }
+        rememberSaveable { mutableIntStateOf(initialTimer?.workSeconds?.let { it % 60 } ?: 0) }
     val breakMinutes =
-        remember { mutableIntStateOf(initialTimer?.breakSeconds?.let { it / 60 } ?: 5) }
+        rememberSaveable { mutableIntStateOf(initialTimer?.breakSeconds?.let { it / 60 } ?: 5) }
     val breakSeconds =
-        remember { mutableIntStateOf(initialTimer?.breakSeconds?.let { it % 60 } ?: 0) }
+        rememberSaveable { mutableIntStateOf(initialTimer?.breakSeconds?.let { it % 60 } ?: 0) }
 
     AlertDialog(
         onDismissRequest = onDismiss,
@@ -525,18 +542,26 @@ fun TimerAlertDialogContent(
     breakMinutes: MutableIntState,
     breakSeconds: MutableIntState
 ) {
+    val isEnabledBreakTime = sets.intValue > 1
+
     Column(
         modifier = Modifier.verticalScroll(rememberScrollState()),
         verticalArrangement = Arrangement.spacedBy(Dimensions.SPACING_SMALL_MEDIUM),
         horizontalAlignment = Alignment.Start
     ) {
-        Text(stringResource(R.string.timer_dialog_label_name), style = MaterialTheme.typography.titleSmall)
+        Text(
+            stringResource(R.string.timer_dialog_label_name),
+            style = MaterialTheme.typography.titleSmall
+        )
         TextField(
             value = title.value,
             onValueChange = { title.value = it },
             modifier = Modifier.fillMaxWidth()
         )
-        Text(stringResource(R.string.timer_dialog_label_sets), style = MaterialTheme.typography.titleSmall)
+        Text(
+            stringResource(R.string.timer_dialog_label_sets),
+            style = MaterialTheme.typography.titleSmall
+        )
         Row(verticalAlignment = Alignment.CenterVertically) {
             NumberPicker(
                 value = sets.intValue,
@@ -552,7 +577,10 @@ fun TimerAlertDialogContent(
 
         HorizontalDivider(modifier = Modifier.padding(vertical = 4.dp))
 
-        Text(stringResource(R.string.timer_dialog_label_work), style = MaterialTheme.typography.titleSmall)
+        Text(
+            stringResource(R.string.timer_dialog_label_work),
+            style = MaterialTheme.typography.titleSmall
+        )
         Row(verticalAlignment = Alignment.CenterVertically) {
             NumberPicker(
                 value = workMinutes.intValue,
@@ -580,28 +608,33 @@ fun TimerAlertDialogContent(
 
         Text(
             stringResource(R.string.timer_dialog_label_break),
-            style = MaterialTheme.typography.titleSmall
+            style = MaterialTheme.typography.titleSmall,
+            color = if (isEnabledBreakTime) MaterialTheme.colorScheme.onSurface else MaterialTheme.colorScheme.onSurface.copy(alpha = 0.38f)
         )
         Row(verticalAlignment = Alignment.CenterVertically) {
             NumberPicker(
                 value = breakMinutes.intValue,
                 range = 0..99,
                 onValueChange = { breakMinutes.intValue = it },
+                enabled = isEnabledBreakTime,
                 modifier = Modifier.weight(1f)
             )
             Text(
                 stringResource(R.string.timer_dialog_unit_minutes),
-                modifier = Modifier.padding(horizontal = 4.dp)
+                modifier = Modifier.padding(horizontal = 4.dp),
+                color = if (isEnabledBreakTime) MaterialTheme.colorScheme.onSurface else MaterialTheme.colorScheme.onSurface.copy(alpha = 0.38f)
             )
             NumberPicker(
                 value = breakSeconds.intValue,
                 range = 0..59,
                 onValueChange = { breakSeconds.intValue = it },
+                enabled = isEnabledBreakTime,
                 modifier = Modifier.weight(1f)
             )
             Text(
                 stringResource(R.string.timer_dialog_unit_seconds),
-                modifier = Modifier.padding(start = 4.dp)
+                modifier = Modifier.padding(start = 4.dp),
+                color = if (isEnabledBreakTime) MaterialTheme.colorScheme.onSurface else MaterialTheme.colorScheme.onSurface.copy(alpha = 0.38f)
             )
         }
     }
@@ -612,7 +645,8 @@ fun NumberPicker(
     value: Int,
     range: Iterable<Int>,
     onValueChange: (Int) -> Unit,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
+    enabled: Boolean = true
 ) {
     val numbers = remember(range) { range.toList() }
     val pagerState = rememberPagerState(
@@ -620,20 +654,38 @@ fun NumberPicker(
         pageCount = { numbers.size }
     )
 
-    LaunchedEffect(pagerState.currentPage) {
-        onValueChange(numbers[pagerState.currentPage])
+    LaunchedEffect(value, pagerState.isScrollInProgress) {
+        if (!pagerState.isScrollInProgress) {
+            val targetPage = numbers.indexOf(value).coerceAtLeast(0)
+            if (pagerState.currentPage != targetPage) {
+                pagerState.scrollToPage(targetPage)
+            }
+        }
+    }
+
+    LaunchedEffect(pagerState.settledPage) {
+        val newValue = numbers[pagerState.settledPage]
+        if (newValue != value) {
+            onValueChange(newValue)
+        }
     }
 
     VerticalPager(
         state = pagerState,
         modifier = modifier.height(100.dp),
-        contentPadding = PaddingValues(vertical = 30.dp)
+        contentPadding = PaddingValues(vertical = 30.dp),
+        userScrollEnabled = enabled
     ) { page ->
         val isSelected = pagerState.currentPage == page
         Box(
             modifier = Modifier.fillMaxSize(),
             contentAlignment = Alignment.Center
         ) {
+            val baseColor = if (isSelected) {
+                MaterialTheme.colorScheme.primary
+            } else {
+                MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.5f)
+            }
             Text(
                 text = String.format(Locale.ROOT, "%02d", numbers[page]),
                 style = if (isSelected) {
@@ -641,11 +693,7 @@ fun NumberPicker(
                 } else {
                     MaterialTheme.typography.bodyMedium
                 },
-                color = if (isSelected) {
-                    MaterialTheme.colorScheme.primary
-                } else {
-                    MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.5f)
-                }
+                color = if (enabled) baseColor else baseColor.copy(alpha = 0.38f)
             )
         }
     }
@@ -657,24 +705,28 @@ fun TimerListPageScreenContentPreview() {
     SolveLogJetpackComposeTheme {
         TimerListPageScreenContent(
             timers = listOf(
-                TimerState(
-                    id = 0,
-                    title = "テスト",
-                    workSet = 4,
-                    workSeconds = 1500,
-                    breakSeconds = 300,
-                    phase = TimerPhase.WORK,
+                ActiveTimer(
+                    state = TimerState(
+                        id = 0,
+                        title = "テスト",
+                        workSet = 4,
+                        workSeconds = 1500,
+                        breakSeconds = 300,
+                        phase = TimerPhase.WORK,
+                    ),
                     initialSeconds = 1500,
                     remainingSeconds = 1500,
                     isRunning = false
                 ),
-                TimerState(
-                    id = 1,
-                    title = "テスト",
-                    workSet = 4,
-                    workSeconds = 1500,
-                    breakSeconds = 300,
-                    phase = TimerPhase.BREAK,
+                ActiveTimer(
+                    state = TimerState(
+                        id = 1,
+                        title = "テスト",
+                        workSet = 4,
+                        workSeconds = 1500,
+                        breakSeconds = 300,
+                        phase = TimerPhase.BREAK,
+                    ),
                     initialSeconds = 300,
                     remainingSeconds = 120,
                     isRunning = true

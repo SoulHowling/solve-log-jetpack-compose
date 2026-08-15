@@ -77,8 +77,6 @@ class WipeDataViewModelTest {
                 workSet = 0,
                 workSeconds = 60,
                 breakSeconds = 30,
-                initialSeconds = 60,
-                remainingSeconds = 60
             )
         )
         var timers = timerDao.getAllTimerStates().first()
