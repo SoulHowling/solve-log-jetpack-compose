@@ -53,7 +53,7 @@ fun StopwatchPageScreen(
     LaunchedEffect(isRunning, baseTime, accumulatedTime) {
         if (isRunning) {
             while (true) {
-                displayTime = System.currentTimeMillis() - baseTime
+                displayTime = viewModel.timeProvider.currentTimeMillis() - baseTime
                 delay(10.milliseconds)
             }
         } else {

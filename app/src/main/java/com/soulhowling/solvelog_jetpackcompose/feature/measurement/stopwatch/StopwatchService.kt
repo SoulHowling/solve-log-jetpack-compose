@@ -8,7 +8,9 @@ import android.content.pm.ServiceInfo
 import android.os.Build
 import android.os.IBinder
 import com.soulhowling.solvelog_jetpackcompose.R
+import com.soulhowling.solvelog_jetpackcompose.utils.DefaultTimeProvider
 import com.soulhowling.solvelog_jetpackcompose.utils.NotificationUtils
+import com.soulhowling.solvelog_jetpackcompose.utils.TimeProvider
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -16,6 +18,8 @@ import kotlinx.coroutines.flow.asStateFlow
 class StopwatchService : Service() {
 
     companion object {
+        var timeProvider: TimeProvider = DefaultTimeProvider
+
         const val ACTION_START = "ACTION_START"
         const val ACTION_PAUSE = "ACTION_PAUSE"
         const val ACTION_RESUME = "ACTION_RESUME"
@@ -57,7 +61,7 @@ class StopwatchService : Service() {
     private fun startStopwatch() {
         if (_isRunning.value) return
         _isRunning.value = true
-        startTime = System.currentTimeMillis()
+        startTime = timeProvider.currentTimeMillis()
         _accumulatedTime.value = 0L
         _baseTime.value = startTime
         
@@ -78,7 +82,7 @@ class StopwatchService : Service() {
     private fun resumeStopwatch() {
         if (_isRunning.value) return
         _isRunning.value = true
-        startTime = System.currentTimeMillis()
+        startTime = timeProvider.currentTimeMillis()
         _baseTime.value = startTime - _accumulatedTime.value
         promptToForeground()
     }
@@ -86,7 +90,7 @@ class StopwatchService : Service() {
     private fun pauseStopwatch() {
         if (!_isRunning.value) return
         _isRunning.value = false
-        _accumulatedTime.value += System.currentTimeMillis() - startTime
+        _accumulatedTime.value += timeProvider.currentTimeMillis() - startTime
         promptToForeground()
     }
 
