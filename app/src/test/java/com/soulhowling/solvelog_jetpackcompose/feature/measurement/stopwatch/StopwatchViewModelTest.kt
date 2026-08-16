@@ -9,6 +9,7 @@ import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.test.UnconfinedTestDispatcher
 import kotlinx.coroutines.test.resetMain
+import kotlinx.coroutines.test.runCurrent
 import kotlinx.coroutines.test.runTest
 import kotlinx.coroutines.test.setMain
 import org.junit.After
@@ -79,28 +80,28 @@ class StopwatchViewModelTest {
 
     @Test
     fun `isPaused should be false when isRunning is true`() = runTest {
-        isRunningFlow.value = true
-        accumulatedTimeFlow.value = 100L
-
-        // Since it starts as false, we can't just use first { !it } because it might succeed immediately
-        // and we want to ensure it's false AFTER the changes.
-        // But here it is false by default.
-        
         backgroundScope.launch {
             viewModel.isPaused.collect {}
         }
+
+        isRunningFlow.value = true
+        accumulatedTimeFlow.value = 100L
+
+        runCurrent()
         
         assertFalse(viewModel.isPaused.value)
     }
 
     @Test
     fun `isPaused should be false when accumulatedTime is 0`() = runTest {
-        isRunningFlow.value = false
-        accumulatedTimeFlow.value = 0L
-
         backgroundScope.launch {
             viewModel.isPaused.collect {}
         }
+
+        isRunningFlow.value = false
+        accumulatedTimeFlow.value = 0L
+
+        runCurrent()
 
         assertFalse(viewModel.isPaused.value)
     }
