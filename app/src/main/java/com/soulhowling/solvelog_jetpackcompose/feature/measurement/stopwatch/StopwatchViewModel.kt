@@ -8,6 +8,7 @@ import com.soulhowling.solvelog_jetpackcompose.feature.measurement.stopwatch.Sto
 import com.soulhowling.solvelog_jetpackcompose.feature.measurement.stopwatch.StopwatchService.Companion.ACTION_RESET
 import com.soulhowling.solvelog_jetpackcompose.feature.measurement.stopwatch.StopwatchService.Companion.ACTION_RESUME
 import com.soulhowling.solvelog_jetpackcompose.feature.measurement.stopwatch.StopwatchService.Companion.ACTION_START
+import com.soulhowling.solvelog_jetpackcompose.utils.TimeProvider
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.combine
@@ -17,7 +18,8 @@ class StopwatchViewModel @JvmOverloads constructor(
     application: Application,
     isRunningFlow: StateFlow<Boolean> = StopwatchService.isRunning,
     accumulatedTimeFlow: StateFlow<Long> = StopwatchService.accumulatedTime,
-    baseTimeFlow: StateFlow<Long> = StopwatchService.baseTime
+    baseTimeFlow: StateFlow<Long> = StopwatchService.baseTime,
+    val timeProvider: TimeProvider = StopwatchService.timeProvider
 ) : AndroidViewModel(application) {
 
     val isRunning: StateFlow<Boolean> = isRunningFlow

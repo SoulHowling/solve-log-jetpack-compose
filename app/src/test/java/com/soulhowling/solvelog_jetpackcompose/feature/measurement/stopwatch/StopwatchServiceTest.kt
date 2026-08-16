@@ -4,8 +4,11 @@ import android.content.Intent
 import androidx.test.core.app.ApplicationProvider
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import com.soulhowling.solvelog_jetpackcompose.core.SolveLogApplication
+import com.soulhowling.solvelog_jetpackcompose.utils.DefaultTimeProvider
+import com.soulhowling.solvelog_jetpackcompose.utils.TimeProvider
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.test.runTest
+import org.junit.After
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
 import org.junit.Assert.assertTrue
@@ -20,8 +23,17 @@ import org.robolectric.annotation.Config
 @Config(sdk = [36], application = SolveLogApplication::class)
 class StopwatchServiceTest {
 
+    private class FakeTimeProvider(var time: Long = 1000L) : TimeProvider {
+        override fun currentTimeMillis(): Long = time
+    }
+
+    private lateinit var fakeTimeProvider: FakeTimeProvider
+
     @Before
     fun setup() {
+        fakeTimeProvider = FakeTimeProvider()
+        StopwatchService.timeProvider = fakeTimeProvider
+
         // Reset the static state of StopwatchService before each test
         // Since the state flows are private, we send a RESET intent to a temporary service instance
         val serviceController = Robolectric.buildService(StopwatchService::class.java)
@@ -31,6 +43,11 @@ class StopwatchServiceTest {
         }
         serviceController.get().onStartCommand(intent, 0, 0)
         serviceController.destroy()
+    }
+
+    @After
+    fun tearDown() {
+        StopwatchService.timeProvider = DefaultTimeProvider
     }
 
     @Test
@@ -44,7 +61,7 @@ class StopwatchServiceTest {
         service.onStartCommand(intent, 0, 1)
 
         assertTrue(StopwatchService.isRunning.value)
-        assertTrue(StopwatchService.baseTime.value > 0)
+        assertEquals(1000L, StopwatchService.baseTime.value)
         assertEquals(0L, StopwatchService.accumulatedTime.value)
 
         serviceController.destroy()
@@ -55,21 +72,20 @@ class StopwatchServiceTest {
         val serviceController = Robolectric.buildService(StopwatchService::class.java)
         val service = serviceController.create().get()
 
-        // Start
+        // Start (at t=1000)
         service.onStartCommand(Intent(StopwatchService.ACTION_START), 0, 1)
         
-        // Wait a bit to simulate time passing (in unit tests we might need to mock time if we want exact values,
-        // but here we just check if it's greater than 0)
-        Thread.sleep(100) 
+        // Advance time by 100ms
+        fakeTimeProvider.time += 100
 
-        // Pause
+        // Pause (at t=1100)
         val pauseIntent = Intent(ApplicationProvider.getApplicationContext(), StopwatchService::class.java).apply {
             action = StopwatchService.ACTION_PAUSE
         }
         service.onStartCommand(pauseIntent, 0, 2)
 
         assertFalse(StopwatchService.isRunning.value)
-        assertTrue(StopwatchService.accumulatedTime.value >= 100)
+        assertEquals(100L, StopwatchService.accumulatedTime.value)
 
         serviceController.destroy()
     }
@@ -79,21 +95,27 @@ class StopwatchServiceTest {
         val serviceController = Robolectric.buildService(StopwatchService::class.java)
         val service = serviceController.create().get()
 
-        // Start -> Pause
+        // Start (t=1000) -> Advance 50ms -> Pause (t=1050)
         service.onStartCommand(Intent(StopwatchService.ACTION_START), 0, 1)
-        Thread.sleep(50)
+        fakeTimeProvider.time += 50
         service.onStartCommand(Intent(StopwatchService.ACTION_PAUSE), 0, 2)
         
         val pausedAccumulatedTime = StopwatchService.accumulatedTime.value
+        assertEquals(50L, pausedAccumulatedTime)
 
-        // Resume
+        // Advance time while paused
+        fakeTimeProvider.time += 1000
+
+        // Resume (t=2050)
         val resumeIntent = Intent(ApplicationProvider.getApplicationContext(), StopwatchService::class.java).apply {
             action = StopwatchService.ACTION_RESUME
         }
         service.onStartCommand(resumeIntent, 0, 3)
 
         assertTrue(StopwatchService.isRunning.value)
-        assertEquals(pausedAccumulatedTime, StopwatchService.accumulatedTime.value)
+        assertEquals(50L, StopwatchService.accumulatedTime.value)
+        // baseTime = current(2050) - accumulated(50) = 2000
+        assertEquals(2000L, StopwatchService.baseTime.value)
         
         serviceController.destroy()
     }
