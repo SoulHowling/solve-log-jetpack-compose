@@ -13,11 +13,16 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.stateIn
 
-class StopwatchViewModel(application: Application) : AndroidViewModel(application) {
+class StopwatchViewModel @JvmOverloads constructor(
+    application: Application,
+    isRunningFlow: StateFlow<Boolean> = StopwatchService.isRunning,
+    accumulatedTimeFlow: StateFlow<Long> = StopwatchService.accumulatedTime,
+    baseTimeFlow: StateFlow<Long> = StopwatchService.baseTime
+) : AndroidViewModel(application) {
 
-    val isRunning: StateFlow<Boolean> = StopwatchService.isRunning
-    val accumulatedTime: StateFlow<Long> = StopwatchService.accumulatedTime
-    val baseTime: StateFlow<Long> = StopwatchService.baseTime
+    val isRunning: StateFlow<Boolean> = isRunningFlow
+    val accumulatedTime: StateFlow<Long> = accumulatedTimeFlow
+    val baseTime: StateFlow<Long> = baseTimeFlow
 
     val isPaused: StateFlow<Boolean> = combine(accumulatedTime, isRunning) { time, running ->
         time > 0 && !running
