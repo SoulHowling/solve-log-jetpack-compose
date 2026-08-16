@@ -68,36 +68,45 @@ class SolveLogListViewModel(application: Application) : AndroidViewModel(applica
     private val allFolders = folderRepository.allFolders
     private val allSolveLogs = solveLogRepository.allSolveLogs
 
-    private val _exportTarget = MutableSharedFlow<ExportTarget>()
-    val exportTarget = _exportTarget.asSharedFlow()
-
-    init {
-        PreferenceRepository.loadViewType(application)
-    }
-
     val folders: StateFlow<List<Folder>> = allFolders.stateIn(
         scope = viewModelScope,
         started = WhileSubscribed(5000),
         initialValue = emptyList()
     )
 
-    val displayItems: StateFlow<List<SolveLogListItem>> = combine(
-        allFolders,
-        allSolveLogs,
-        _currentFolderId
-    ) { folders, logs, currentId ->
-        val folderItems = folders
-            .filter { it.parentFolderId == currentId }
-            .map { SolveLogListItem.FolderItem(it) }
-        val logItems = logs
-            .filter { it.folderId == currentId }
-            .map { SolveLogListItem.LogItem(it) }
-        folderItems + logItems
-    }.stateIn(
-        scope = viewModelScope,
-        started = WhileSubscribed(5000),
-        initialValue = emptyList()
-    )
+    private val _displayItems = MutableStateFlow<List<SolveLogListItem>>(emptyList())
+    val displayItems: StateFlow<List<SolveLogListItem>> = _displayItems
+
+    private val _exportTarget = MutableSharedFlow<ExportTarget>()
+    val exportTarget = _exportTarget.asSharedFlow()
+
+    init {
+        PreferenceRepository.loadViewType(application)
+        viewModelScope.launch {
+            combine(
+                allFolders,
+                allSolveLogs,
+                _currentFolderId
+            ) { folders, logs, currentId ->
+                val folderItems = folders
+                    .filter { it.parentFolderId == currentId }
+                    .map { SolveLogListItem.FolderItem(it) }
+                val logItems = logs
+                    .filter { it.folderId == currentId }
+                    .map { SolveLogListItem.LogItem(it) }
+                
+                // フォルダとログを混ぜて priority 順にソートする
+                (folderItems + logItems).sortedBy { item ->
+                    when (item) {
+                        is SolveLogListItem.FolderItem -> item.folder.priority
+                        is SolveLogListItem.LogItem -> item.log.priority
+                    }
+                }
+            }.collect {
+                _displayItems.value = it
+            }
+        }
+    }
 
     val currentFolderPath: StateFlow<String?> = combine(
         allFolders,
@@ -146,7 +155,7 @@ class SolveLogListViewModel(application: Application) : AndroidViewModel(applica
                     selectionType = selectionType,
                     selectionQuantity = selectionQuantity,
                     folderId = _currentFolderId.value
-                )
+                ).copy(priority = displayItems.value.size)
                 val solveLogId = solveLogRepository.insertAndReturnId(solveLog)
 
                 val questions = (0 until questionQuantity).map { index ->
@@ -221,7 +230,7 @@ class SolveLogListViewModel(application: Application) : AndroidViewModel(applica
             val folder = folderRepository.createFolder(
                 name = name,
                 parentFolderId = _currentFolderId.value
-            )
+            ).copy(priority = displayItems.value.size)
             folderRepository.insertFolder(folder)
         }
     }
@@ -289,6 +298,32 @@ class SolveLogListViewModel(application: Application) : AndroidViewModel(applica
     fun exportAll() {
         viewModelScope.launch {
             _exportTarget.emit(ExportTarget.All)
+        }
+    }
+
+    fun reorder(fromIndex: Int, toIndex: Int) {
+        val currentItems = _displayItems.value.toMutableList()
+        if (fromIndex !in currentItems.indices || toIndex !in currentItems.indices) return
+
+        val item = currentItems.removeAt(fromIndex)
+        currentItems.add(toIndex, item)
+        
+        // UI側のStateを即座に更新
+        _displayItems.value = currentItems
+
+        viewModelScope.launch {
+            database.withTransaction {
+                currentItems.forEachIndexed { index, listItem ->
+                    when (listItem) {
+                        is SolveLogListItem.FolderItem -> {
+                            folderRepository.upsertFolder(listItem.folder.copy(priority = index))
+                        }
+                        is SolveLogListItem.LogItem -> {
+                            solveLogRepository.upsertSolveLog(listItem.log.copy(priority = index))
+                        }
+                    }
+                }
+            }
         }
     }
 

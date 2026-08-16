@@ -26,5 +26,6 @@ data class SolveLog(
     val attemptCount: Int,
     val createdAt: Long,
     val updatedAt: Long,
-    val folderId: Int?
+    val folderId: Int?,
+    val priority: Int = 0
 )
