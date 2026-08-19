@@ -22,6 +22,7 @@ import com.soulhowling.solvelog_jetpackcompose.feature.solvelog.model.entity.Que
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.SharingStarted.Companion.WhileSubscribed
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asSharedFlow
@@ -62,6 +63,10 @@ class SolveLogListViewModel(application: Application) : AndroidViewModel(applica
     private val questionRepository: QuestionRepository = QuestionRepository(database.questionDao())
 
     private val _currentFolderId = MutableStateFlow<Int?>(null)
+    private val _manualOrder = MutableStateFlow<List<SolveLogListItem>?>(null)
+
+    private val _exportTarget = MutableSharedFlow<ExportTarget>()
+    val exportTarget = _exportTarget.asSharedFlow()
 
     val viewType: StateFlow<ViewType> = PreferenceRepository.viewType
 
@@ -74,39 +79,32 @@ class SolveLogListViewModel(application: Application) : AndroidViewModel(applica
         initialValue = emptyList()
     )
 
-    private val _displayItems = MutableStateFlow<List<SolveLogListItem>>(emptyList())
-    val displayItems: StateFlow<List<SolveLogListItem>> = _displayItems
+    val displayItems: StateFlow<List<SolveLogListItem>> = combine(
+        allFolders,
+        allSolveLogs,
+        _currentFolderId,
+        _manualOrder
+    ) { folders, logs, currentId, manual ->
+        if (manual != null) return@combine manual
 
-    private val _exportTarget = MutableSharedFlow<ExportTarget>()
-    val exportTarget = _exportTarget.asSharedFlow()
+        val folderItems = folders
+            .filter { it.parentFolderId == currentId }
+            .map { SolveLogListItem.FolderItem(it) }
+        val logItems = logs
+            .filter { it.folderId == currentId }
+            .map { SolveLogListItem.LogItem(it) }
 
-    init {
-        PreferenceRepository.loadViewType(application)
-        viewModelScope.launch {
-            combine(
-                allFolders,
-                allSolveLogs,
-                _currentFolderId
-            ) { folders, logs, currentId ->
-                val folderItems = folders
-                    .filter { it.parentFolderId == currentId }
-                    .map { SolveLogListItem.FolderItem(it) }
-                val logItems = logs
-                    .filter { it.folderId == currentId }
-                    .map { SolveLogListItem.LogItem(it) }
-                
-                // フォルダとログを混ぜて priority 順にソートする
-                (folderItems + logItems).sortedBy { item ->
-                    when (item) {
-                        is SolveLogListItem.FolderItem -> item.folder.priority
-                        is SolveLogListItem.LogItem -> item.log.priority
-                    }
-                }
-            }.collect { newList ->
-                _displayItems.value = newList
+        (folderItems + logItems).sortedBy { item ->
+            when (item) {
+                is SolveLogListItem.FolderItem -> item.folder.priority
+                is SolveLogListItem.LogItem -> item.log.priority
             }
         }
-    }
+    }.stateIn(
+        scope = viewModelScope,
+        started = SharingStarted.WhileSubscribed(5000),
+        initialValue = emptyList()
+    )
 
     val currentFolderPath: StateFlow<String?> = combine(
         allFolders,
@@ -302,14 +300,13 @@ class SolveLogListViewModel(application: Application) : AndroidViewModel(applica
     }
 
     fun reorder(fromIndex: Int, toIndex: Int) {
-        val currentItems = _displayItems.value.toMutableList()
+        val currentItems = displayItems.value.toMutableList()
         if (fromIndex !in currentItems.indices || toIndex !in currentItems.indices) return
 
         val item = currentItems.removeAt(fromIndex)
         currentItems.add(toIndex, item)
         
-        // UI側のStateを即座に更新
-        _displayItems.value = currentItems
+        _manualOrder.value = currentItems
 
         viewModelScope.launch {
             database.withTransaction {
@@ -328,6 +325,8 @@ class SolveLogListViewModel(application: Application) : AndroidViewModel(applica
                     }
                 }
             }
+            kotlinx.coroutines.delay(500)
+            _manualOrder.value = null
         }
     }
 

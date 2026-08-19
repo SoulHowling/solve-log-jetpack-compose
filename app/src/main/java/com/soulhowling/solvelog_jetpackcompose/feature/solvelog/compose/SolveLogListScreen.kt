@@ -27,6 +27,7 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.lazy.rememberLazyListState
+import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.foundation.gestures.detectDragGestures
 import androidx.compose.runtime.mutableFloatStateOf
 import androidx.compose.animation.core.spring
@@ -331,15 +332,19 @@ private fun SolveLogListScreenContent(
     val listState = rememberLazyListState()
     val appBarController = LocalAppBarController.current
 
+    val currentDisplayItems by rememberUpdatedState(displayItems)
     var localItems by remember { mutableStateOf(displayItems) }
     var draggedItemKey by remember { mutableStateOf<Any?>(null) }
     var targetSwapKey by remember { mutableStateOf<Any?>(null) }
     var dragOffset by remember { mutableFloatStateOf(0f) }
     var startIndex by remember { mutableIntStateOf(-1) }
 
-    LaunchedEffect(displayItems, draggedItemKey) {
+    var lastSyncedDisplayItems by remember { mutableStateOf(displayItems) }
+
+    LaunchedEffect(displayItems) {
         if (draggedItemKey == null) {
             localItems = displayItems
+            lastSyncedDisplayItems = displayItems
         }
     }
 
@@ -491,7 +496,8 @@ private fun SolveLogListScreenContent(
                                     }
                                 },
                                 onDragEnd = {
-                                    val finalIndex = localItems.indexOfFirst { listItem ->
+                                    val currentList = localItems
+                                    val finalIndex = currentList.indexOfFirst { listItem ->
                                         val key = when (listItem) {
                                             is SolveLogListItem.FolderItem -> "folder_${listItem.folder.id}"
                                             is SolveLogListItem.LogItem -> "log_${listItem.log.id}"
@@ -502,12 +508,26 @@ private fun SolveLogListScreenContent(
                                         onReorder(startIndex, finalIndex)
                                     }
                                     draggedItemKey = null
+
+                                    // 最新の displayItems を参照して同期チェック
+                                    if (lastSyncedDisplayItems != currentDisplayItems) {
+                                        localItems = currentDisplayItems
+                                        lastSyncedDisplayItems = currentDisplayItems
+                                    }
+
                                     targetSwapKey = null
                                     dragOffset = 0f
                                     startIndex = -1
                                 },
                                 onDragCancel = {
                                     draggedItemKey = null
+
+                                    // キャンセル時も最新の displayItems で同期
+                                    if (lastSyncedDisplayItems != currentDisplayItems) {
+                                        localItems = currentDisplayItems
+                                        lastSyncedDisplayItems = currentDisplayItems
+                                    }
+
                                     targetSwapKey = null
                                     dragOffset = 0f
                                     startIndex = -1
