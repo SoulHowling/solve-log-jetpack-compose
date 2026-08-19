@@ -23,7 +23,6 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
-import kotlinx.coroutines.flow.SharingStarted.Companion.WhileSubscribed
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.flow.combine
@@ -75,7 +74,7 @@ class SolveLogListViewModel(application: Application) : AndroidViewModel(applica
 
     val folders: StateFlow<List<Folder>> = allFolders.stateIn(
         scope = viewModelScope,
-        started = WhileSubscribed(5000),
+        started = SharingStarted.WhileSubscribed(5000),
         initialValue = emptyList()
     )
 
@@ -85,8 +84,6 @@ class SolveLogListViewModel(application: Application) : AndroidViewModel(applica
         _currentFolderId,
         _manualOrder
     ) { folders, logs, currentId, manual ->
-        if (manual != null) return@combine manual
-
         val folderItems = folders
             .filter { it.parentFolderId == currentId }
             .map { SolveLogListItem.FolderItem(it) }
@@ -94,17 +91,47 @@ class SolveLogListViewModel(application: Application) : AndroidViewModel(applica
             .filter { it.folderId == currentId }
             .map { SolveLogListItem.LogItem(it) }
 
-        (folderItems + logItems).sortedBy { item ->
+        val dbSortedItems = (folderItems + logItems).sortedBy { item ->
             when (item) {
                 is SolveLogListItem.FolderItem -> item.folder.priority
                 is SolveLogListItem.LogItem -> item.log.priority
             }
         }
+
+        if (manual != null) {
+            val isSynced = dbSortedItems.size == manual.size &&
+                    dbSortedItems.zip(manual).all { (db, man) ->
+                        getItemId(db) == getItemId(man)
+                    }
+            if (isSynced) return@combine dbSortedItems
+            return@combine manual
+        }
+
+        dbSortedItems
     }.stateIn(
         scope = viewModelScope,
         started = SharingStarted.WhileSubscribed(5000),
         initialValue = emptyList()
     )
+
+    private fun getItemId(item: SolveLogListItem): String = when (item) {
+        is SolveLogListItem.FolderItem -> "f_${item.folder.id}"
+        is SolveLogListItem.LogItem -> "l_${item.log.id}"
+    }
+
+    init {
+        PreferenceRepository.loadViewType(application)
+        viewModelScope.launch {
+            displayItems.collect { items ->
+                val manual = _manualOrder.value ?: return@collect
+                val isSynced = items.size == manual.size &&
+                        items.zip(manual).all { (a, b) -> getItemId(a) == getItemId(b) }
+                if (isSynced) {
+                    _manualOrder.value = null
+                }
+            }
+        }
+    }
 
     val currentFolderPath: StateFlow<String?> = combine(
         allFolders,
@@ -120,7 +147,7 @@ class SolveLogListViewModel(application: Application) : AndroidViewModel(applica
             folder = folders.find { it.id == folder.parentFolderId }
         }
         path.joinToString(" / ")
-    }.stateIn(viewModelScope, WhileSubscribed(5000), null)
+    }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), null)
 
     fun selectFolder(folderId: Int?) {
         _currentFolderId.value = folderId
@@ -139,6 +166,17 @@ class SolveLogListViewModel(application: Application) : AndroidViewModel(applica
         }
     }
 
+    private fun getNextPriority(): Int {
+        val currentItems = displayItems.value
+        if (currentItems.isEmpty()) return 0
+        return currentItems.maxOf { item ->
+            when (item) {
+                is SolveLogListItem.FolderItem -> item.folder.priority
+                is SolveLogListItem.LogItem -> item.log.priority
+            }
+        } + 1
+    }
+
     fun insertSolveLog(
         name: String,
         questionQuantity: Int,
@@ -153,7 +191,7 @@ class SolveLogListViewModel(application: Application) : AndroidViewModel(applica
                     selectionType = selectionType,
                     selectionQuantity = selectionQuantity,
                     folderId = _currentFolderId.value
-                ).copy(priority = displayItems.value.size)
+                ).copy(priority = getNextPriority())
                 val solveLogId = solveLogRepository.insertAndReturnId(solveLog)
 
                 val questions = (0 until questionQuantity).map { index ->
@@ -228,7 +266,7 @@ class SolveLogListViewModel(application: Application) : AndroidViewModel(applica
             val folder = folderRepository.createFolder(
                 name = name,
                 parentFolderId = _currentFolderId.value
-            ).copy(priority = displayItems.value.size)
+            ).copy(priority = getNextPriority())
             folderRepository.insertFolder(folder)
         }
     }
@@ -325,8 +363,6 @@ class SolveLogListViewModel(application: Application) : AndroidViewModel(applica
                     }
                 }
             }
-            kotlinx.coroutines.delay(500)
-            _manualOrder.value = null
         }
     }
 
