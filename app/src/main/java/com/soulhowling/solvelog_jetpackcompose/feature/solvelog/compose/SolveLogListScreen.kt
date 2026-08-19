@@ -337,7 +337,7 @@ private fun SolveLogListScreenContent(
     var dragOffset by remember { mutableFloatStateOf(0f) }
     var startIndex by remember { mutableIntStateOf(-1) }
 
-    LaunchedEffect(displayItems) {
+    LaunchedEffect(displayItems, draggedItemKey) {
         if (draggedItemKey == null) {
             localItems = displayItems
         }

@@ -80,12 +80,6 @@ class SolveLogListViewModel(application: Application) : AndroidViewModel(applica
     private val _exportTarget = MutableSharedFlow<ExportTarget>()
     val exportTarget = _exportTarget.asSharedFlow()
 
-    private var lastManualReorderTime = 0L
-
-    companion object {
-        private const val REORDER_STABILIZATION_MS = 1000L
-    }
-
     init {
         PreferenceRepository.loadViewType(application)
         viewModelScope.launch {
@@ -109,9 +103,7 @@ class SolveLogListViewModel(application: Application) : AndroidViewModel(applica
                     }
                 }
             }.collect { newList ->
-                if (System.currentTimeMillis() - lastManualReorderTime > REORDER_STABILIZATION_MS) {
-                    _displayItems.value = newList
-                }
+                _displayItems.value = newList
             }
         }
     }
@@ -318,7 +310,6 @@ class SolveLogListViewModel(application: Application) : AndroidViewModel(applica
         
         // UI側のStateを即座に更新
         _displayItems.value = currentItems
-        lastManualReorderTime = System.currentTimeMillis()
 
         viewModelScope.launch {
             database.withTransaction {
