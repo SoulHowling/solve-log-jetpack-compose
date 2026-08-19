@@ -13,10 +13,10 @@ interface SolveLogDao: BaseDao<SolveLog> {
     @Query("SELECT * FROM solve_log WHERE id = :id")
     fun getSolveLog(id: Int): Flow<SolveLog?>
     
-    @Query("SELECT * FROM solve_log WHERE folderId = :folderId ORDER BY priority ASC, createdAt ASC")
+    @Query("SELECT * FROM solve_log WHERE folderId = :folderId ORDER BY createdAt ASC")
     suspend fun getSolveLogListBy(folderId: Int): List<SolveLog>
 
-    @Query("SELECT * FROM solve_log ORDER BY priority ASC, createdAt ASC")
+    @Query("SELECT * FROM solve_log ORDER BY createdAt ASC")
     fun getAllSolveLogs(): Flow<List<SolveLog>>
 
     @Insert(onConflict = OnConflictStrategy.REPLACE)

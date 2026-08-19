@@ -80,6 +80,12 @@ class SolveLogListViewModel(application: Application) : AndroidViewModel(applica
     private val _exportTarget = MutableSharedFlow<ExportTarget>()
     val exportTarget = _exportTarget.asSharedFlow()
 
+    private var lastManualReorderTime = 0L
+
+    companion object {
+        private const val REORDER_STABILIZATION_MS = 1000L
+    }
+
     init {
         PreferenceRepository.loadViewType(application)
         viewModelScope.launch {
@@ -102,8 +108,10 @@ class SolveLogListViewModel(application: Application) : AndroidViewModel(applica
                         is SolveLogListItem.LogItem -> item.log.priority
                     }
                 }
-            }.collect {
-                _displayItems.value = it
+            }.collect { newList ->
+                if (System.currentTimeMillis() - lastManualReorderTime > REORDER_STABILIZATION_MS) {
+                    _displayItems.value = newList
+                }
             }
         }
     }
@@ -310,16 +318,21 @@ class SolveLogListViewModel(application: Application) : AndroidViewModel(applica
         
         // UI側のStateを即座に更新
         _displayItems.value = currentItems
+        lastManualReorderTime = System.currentTimeMillis()
 
         viewModelScope.launch {
             database.withTransaction {
                 currentItems.forEachIndexed { index, listItem ->
                     when (listItem) {
                         is SolveLogListItem.FolderItem -> {
-                            folderRepository.upsertFolder(listItem.folder.copy(priority = index))
+                            if (listItem.folder.priority != index) {
+                                folderRepository.upsertFolder(listItem.folder.copy(priority = index))
+                            }
                         }
                         is SolveLogListItem.LogItem -> {
-                            solveLogRepository.upsertSolveLog(listItem.log.copy(priority = index))
+                            if (listItem.log.priority != index) {
+                                solveLogRepository.upsertSolveLog(listItem.log.copy(priority = index))
+                            }
                         }
                     }
                 }
