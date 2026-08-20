@@ -78,12 +78,11 @@ class SolveLogListViewModel(application: Application) : AndroidViewModel(applica
         initialValue = emptyList()
     )
 
-    val displayItems: StateFlow<List<SolveLogListItem>> = combine(
+    private val dbSortedItems: StateFlow<List<SolveLogListItem>> = combine(
         allFolders,
         allSolveLogs,
-        _currentFolderId,
-        _manualOrder
-    ) { folders, logs, currentId, manual ->
+        _currentFolderId
+    ) { folders, logs, currentId ->
         val folderItems = folders
             .filter { it.parentFolderId == currentId }
             .map { SolveLogListItem.FolderItem(it) }
@@ -91,23 +90,23 @@ class SolveLogListViewModel(application: Application) : AndroidViewModel(applica
             .filter { it.folderId == currentId }
             .map { SolveLogListItem.LogItem(it) }
 
-        val dbSortedItems = (folderItems + logItems).sortedBy { item ->
+        (folderItems + logItems).sortedBy { item ->
             when (item) {
                 is SolveLogListItem.FolderItem -> item.folder.priority
                 is SolveLogListItem.LogItem -> item.log.priority
             }
         }
+    }.stateIn(
+        scope = viewModelScope,
+        started = SharingStarted.WhileSubscribed(5000),
+        initialValue = emptyList()
+    )
 
-        if (manual != null) {
-            val isSynced = dbSortedItems.size == manual.size &&
-                    dbSortedItems.zip(manual).all { (db, man) ->
-                        getItemId(db) == getItemId(man)
-                    }
-            if (isSynced) return@combine dbSortedItems
-            return@combine manual
-        }
-
-        dbSortedItems
+    val displayItems: StateFlow<List<SolveLogListItem>> = combine(
+        dbSortedItems,
+        _manualOrder
+    ) { dbItems, manual ->
+        manual ?: dbItems
     }.stateIn(
         scope = viewModelScope,
         started = SharingStarted.WhileSubscribed(5000),
@@ -122,10 +121,10 @@ class SolveLogListViewModel(application: Application) : AndroidViewModel(applica
     init {
         PreferenceRepository.loadViewType(application)
         viewModelScope.launch {
-            displayItems.collect { items ->
+            dbSortedItems.collect { dbItems ->
                 val manual = _manualOrder.value ?: return@collect
-                val isSynced = items.size == manual.size &&
-                        items.zip(manual).all { (a, b) -> getItemId(a) == getItemId(b) }
+                val isSynced = dbItems.size == manual.size &&
+                        dbItems.zip(manual).all { (a, b) -> getItemId(a) == getItemId(b) }
                 if (isSynced) {
                     _manualOrder.value = null
                 }
