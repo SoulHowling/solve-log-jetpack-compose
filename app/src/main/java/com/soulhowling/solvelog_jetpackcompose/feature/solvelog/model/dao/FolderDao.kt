@@ -13,7 +13,7 @@ interface FolderDao: BaseDao<Folder> {
     @Query("SELECT * FROM folder WHERE id = :id")
     fun getFolder(id: Int): Flow<Folder?>
 
-    @Query("SELECT * FROM folder")
+    @Query("SELECT * FROM folder ORDER BY createdAt ASC")
     fun getAllFolders(): Flow<List<Folder>>
 
     @Insert(onConflict = OnConflictStrategy.REPLACE)

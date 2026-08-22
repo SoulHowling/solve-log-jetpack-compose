@@ -20,6 +20,7 @@ object DBKeys {
     const val KEY_CREATED_AT = "createdAt"
     const val KEY_UPDATED_AT = "updatedAt"
     const val KEY_FOLDER_ID = "folderId"
+    const val KEY_PRIORITY = "priority"
 
     // Question params
     const val KEY_ATTEMPT = "attempt"

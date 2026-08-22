@@ -23,4 +23,5 @@ data class Folder(
     val createdAt: Long,
     val updatedAt: Long,
     val parentFolderId: Int?,
+    val priority: Int = 0
 )
