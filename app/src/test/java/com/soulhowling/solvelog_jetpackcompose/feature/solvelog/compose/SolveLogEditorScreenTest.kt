@@ -72,8 +72,7 @@ class SolveLogEditorScreenTest {
             }
         }
 
-        // 3 rows for questions + 1 header
-        // Rows start with "1.", "2.", "3."
+        // Check if rows are displayed via number text
         composeTestRule.onNodeWithText("1.").assertIsDisplayed()
         composeTestRule.onNodeWithText("2.").assertIsDisplayed()
         composeTestRule.onNodeWithText("3.").assertIsDisplayed()
@@ -96,20 +95,9 @@ class SolveLogEditorScreenTest {
             }
         }
 
-        // Find the second row (Index 1) which has Incorrect (✖︎) initial state
-        // The toggle button has "◯" and "✖︎"
-        // We want to click "◯" in the second row to change it
-        
-        // Note: SolveLogEditorRowItem uses index + 1 for display
-        // Second row is "2."
-        
-        // Correctness symbols: Correct="◯", Incorrect="✖︎"
-        // Since it's a list, there are multiple "◯" on screen. 
-        // We need to target the specific row.
-        
-        // Find row starting with "2." and then find "◯" within it.
+        // Click "◯" in the second row (Number 2)
         composeTestRule.onNode(
-            hasText(Correctness.CORRECT.symbol) and hasAnyAncestor(hasAnyChild(hasText("2."))),
+            hasText(Correctness.CORRECT.symbol) and hasAnyAncestor(hasTestTag(SolveLogEditorTestTags.CORRECTNESS_TOGGLE + "2")),
             useUnmergedTree = true
         ).performClick()
 
@@ -133,11 +121,8 @@ class SolveLogEditorScreenTest {
             }
         }
 
-        // Toggle checkbox in the first row "1."
-        composeTestRule.onNode(
-            isToggleable() and hasAnyAncestor(hasAnyChild(hasText("1."))),
-            useUnmergedTree = true
-        ).performClick()
+        // Toggle checkbox in the first row (Number 1)
+        composeTestRule.onNodeWithTag(SolveLogEditorTestTags.FLAG_CHECKBOX + "1").performClick()
 
         assertTrue(updatedFlag == true)
     }
@@ -160,15 +145,9 @@ class SolveLogEditorScreenTest {
             }
         }
 
-        // Open dropdown in first row
-        composeTestRule.onAllNodes(
-            hasClickAction() and hasAnyAncestor(hasAnyChild(hasText("1."))),
-            useUnmergedTree = true
-        ).onFirst().performClick()
+        // Open dropdown in first row (Number 1)
+        composeTestRule.onNodeWithTag(SolveLogEditorTestTags.ANSWER_SELECTOR + "1").performClick()
 
-        // Verify dropdown items are shown
-        composeTestRule.onNodeWithText("Option C").assertIsDisplayed()
-        
         // Select an option
         composeTestRule.onNodeWithText("Option C").performClick()
         
@@ -191,16 +170,8 @@ class SolveLogEditorScreenTest {
             }
         }
 
-        // The archive row should show "◯" and "✖︎" in small text.
-        // They are rendered as Text nodes.
-        // Since they are in the archive, they are likely the only ones with small label style if we are lucky, 
-        // but we can just check if they are displayed.
-        
         // Check if there are archive symbols
-        val correctNodes = composeTestRule.onAllNodesWithText(Correctness.CORRECT.symbol).fetchSemanticsNodes()
-        assertTrue(correctNodes.isNotEmpty())
-        
-        val incorrectNodes = composeTestRule.onAllNodesWithText(Correctness.INCORRECT.symbol).fetchSemanticsNodes()
-        assertTrue(incorrectNodes.isNotEmpty())
+        composeTestRule.onAllNodesWithText(Correctness.CORRECT.symbol).onFirst().assertExists()
+        composeTestRule.onAllNodesWithText(Correctness.INCORRECT.symbol).onFirst().assertExists()
     }
 }
