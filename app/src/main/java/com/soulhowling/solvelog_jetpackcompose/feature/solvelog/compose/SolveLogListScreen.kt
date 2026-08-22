@@ -27,6 +27,8 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.lazy.rememberLazyListState
+import androidx.compose.foundation.gestures.scrollBy
+import kotlinx.coroutines.delay
 import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.foundation.gestures.detectDragGestures
 import androidx.compose.runtime.mutableFloatStateOf
@@ -98,6 +100,7 @@ import com.soulhowling.solvelog_jetpackcompose.feature.solvelog.viewmodel.SolveL
 import com.soulhowling.solvelog_jetpackcompose.feature.solvelog.viewmodel.SolveLogListViewModel
 import com.soulhowling.solvelog_jetpackcompose.ui.theme.Dimensions
 import com.soulhowling.solvelog_jetpackcompose.ui.theme.SolveLogJetpackComposeTheme
+import kotlin.time.Duration.Companion.milliseconds
 
 @Composable
 fun SolveLogListScreen(
@@ -355,6 +358,31 @@ private fun SolveLogListScreenContent(
                     appBarController.setBottomBarVisible(true)
                 }
             }
+    }
+
+    LaunchedEffect(draggedItemKey) {
+        if (draggedItemKey == null) return@LaunchedEffect
+        while (true) {
+            val layoutInfo = listState.layoutInfo
+            val visibleItems = layoutInfo.visibleItemsInfo
+            val draggedItem = visibleItems.find { itemInfo -> itemInfo.key == draggedItemKey }
+            if (draggedItem != null) {
+                val currentPos = draggedItem.offset + dragOffset
+                val viewportHeight = layoutInfo.viewportEndOffset
+                val threshold = 150f
+                val scrollAmount = when {
+                    currentPos < threshold -> -15f
+                    currentPos > viewportHeight - threshold -> 15f
+                    else -> 0f
+                }
+                if (scrollAmount != 0f) {
+                    // 実際にスクロールできた量（consumed）だけオフセットを調整する
+                    val consumed = listState.scrollBy(scrollAmount)
+                    dragOffset += consumed
+                }
+            }
+            delay(16.milliseconds)
+        }
     }
 
     var movingLog by remember { mutableStateOf<SolveLog?>(null) }
