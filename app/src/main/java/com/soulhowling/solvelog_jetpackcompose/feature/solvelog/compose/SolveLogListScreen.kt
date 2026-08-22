@@ -336,6 +336,7 @@ private fun SolveLogListScreenContent(
     val appBarController = LocalAppBarController.current
 
     val currentDisplayItems by rememberUpdatedState(displayItems)
+    val currentOnReorder by rememberUpdatedState(onReorder)
     var localItems by remember { mutableStateOf(displayItems) }
     var draggedItemKey by remember { mutableStateOf<Any?>(null) }
     var targetSwapKey by remember { mutableStateOf<Any?>(null) }
@@ -478,8 +479,9 @@ private fun SolveLogListScreenContent(
                                     val visibleItems = layoutInfo.visibleItemsInfo
                                     val draggedItemInfo = visibleItems.find { it.key == itemKey } ?: return@detectDragGestures
 
-                                    // localItems を現在の状態に基づいて検索
-                                    val currentIndex = localItems.indexOfFirst {
+                                    // 常に最新の localItems の状態に基づいて検索
+                                    val currentList = localItems
+                                    val currentIndex = currentList.indexOfFirst {
                                         val key = when (it) {
                                             is SolveLogListItem.FolderItem -> "folder_${it.folder.id}"
                                             is SolveLogListItem.LogItem -> "log_${it.log.id}"
@@ -533,7 +535,7 @@ private fun SolveLogListScreenContent(
                                         key == draggedItemKey
                                     }
                                     if (startIndex != -1 && finalIndex != -1 && startIndex != finalIndex) {
-                                        onReorder(startIndex, finalIndex)
+                                        currentOnReorder(startIndex, finalIndex)
                                     }
                                     draggedItemKey = null
 
