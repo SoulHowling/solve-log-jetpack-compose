@@ -30,6 +30,7 @@ import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.input.nestedscroll.NestedScrollConnection
 import androidx.compose.ui.input.nestedscroll.NestedScrollSource
 import androidx.compose.ui.input.nestedscroll.nestedScroll
+import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
@@ -45,6 +46,12 @@ import com.soulhowling.solvelog_jetpackcompose.feature.solvelog.model.entity.Sol
 import com.soulhowling.solvelog_jetpackcompose.feature.solvelog.viewmodel.SolveLogEditorUiState
 import com.soulhowling.solvelog_jetpackcompose.feature.solvelog.viewmodel.SolveLogEditorViewModel
 import com.soulhowling.solvelog_jetpackcompose.ui.theme.SolveLogJetpackComposeTheme
+
+object SolveLogEditorTestTags {
+    const val ANSWER_SELECTOR = "answer_selector_"
+    const val CORRECTNESS_TOGGLE = "correctness_toggle_"
+    const val FLAG_CHECKBOX = "flag_checkbox_"
+}
 
 @Composable
 fun SolveLogEditorScreen(
@@ -276,6 +283,7 @@ fun SolveLogEditorRowItem(
                                 modifier = Modifier
                                     .fillMaxWidth()
                                     .padding(horizontal = 8.dp)
+                                    .testTag(SolveLogEditorTestTags.ANSWER_SELECTOR + number)
                             ) {
                                 Row(
                                     verticalAlignment = Alignment.CenterVertically,
@@ -330,7 +338,8 @@ fun SolveLogEditorRowItem(
                                     val answerIndex =
                                         selectionTypeStringList.indexOf(selectedAnswer)
                                     onUpdate(answerIndex, it, isCheckedFlag)
-                                }
+                                },
+                                modifier = Modifier.testTag(SolveLogEditorTestTags.CORRECTNESS_TOGGLE + number)
                             )
                         }
                     }
@@ -349,6 +358,7 @@ fun SolveLogEditorRowItem(
                                 onUpdate(answerIndex, resultStatus ?: Correctness.NONE, it)
                             },
                             modifier = Modifier.size(48.dp)
+                                .testTag(SolveLogEditorTestTags.FLAG_CHECKBOX + number)
                         )
                     }
                 }
