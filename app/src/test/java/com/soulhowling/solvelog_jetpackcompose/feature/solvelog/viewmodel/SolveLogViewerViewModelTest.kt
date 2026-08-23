@@ -167,8 +167,10 @@ class SolveLogViewerViewModelTest {
         ))
 
         createViewModel()
-        // Wait for Success
+        
+        // Wait for initial Success state and ensure uiState.value is updated
         viewModel.uiState.first { it is SolveLogViewerUiState.Success }
+        assertTrue("ViewModel should be in Success state", viewModel.uiState.value is SolveLogViewerUiState.Success)
 
         var nextAttempt: Int? = null
         viewModel.startNewAttempt { nextAttempt = it }
@@ -178,7 +180,7 @@ class SolveLogViewerViewModelTest {
             (it as? SolveLogViewerUiState.Success)?.solveLog?.attemptCount == 2 
         }
 
-        assertEquals(2, nextAttempt)
+        assertEquals("onComplete should be called with next attempt number", 2, nextAttempt)
 
         val updatedSolveLog = solveLogRepository.getSolveLog(solveLogId).first { it?.attemptCount == 2 }
         assertEquals(2, updatedSolveLog?.attemptCount)
@@ -204,6 +206,7 @@ class SolveLogViewerViewModelTest {
 
         createViewModel()
         viewModel.uiState.first { it is SolveLogViewerUiState.Success }
+        assertTrue(viewModel.uiState.value is SolveLogViewerUiState.Success)
 
         viewModel.addQuestion()
         
@@ -239,6 +242,7 @@ class SolveLogViewerViewModelTest {
 
         createViewModel()
         viewModel.uiState.first { it is SolveLogViewerUiState.Success }
+        assertTrue(viewModel.uiState.value is SolveLogViewerUiState.Success)
 
         viewModel.deleteAttempt(2)
         
@@ -275,6 +279,7 @@ class SolveLogViewerViewModelTest {
 
         createViewModel()
         viewModel.uiState.first { it is SolveLogViewerUiState.Success }
+        assertTrue(viewModel.uiState.value is SolveLogViewerUiState.Success)
 
         // Select index 1 to delete
         viewModel.toggleEditMode()
