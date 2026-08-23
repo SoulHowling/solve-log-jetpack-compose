@@ -1,18 +1,18 @@
 package com.soulhowling.solvelog_jetpackcompose.feature.measurement.timer.viewmodel
 
+import androidx.room.Room
 import androidx.test.core.app.ApplicationProvider
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import com.soulhowling.solvelog_jetpackcompose.core.SolveLogApplication
+import com.soulhowling.solvelog_jetpackcompose.core.database.SolveLogDatabase
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.test.UnconfinedTestDispatcher
 import kotlinx.coroutines.test.resetMain
 import kotlinx.coroutines.test.runTest
 import kotlinx.coroutines.test.setMain
-import kotlinx.coroutines.withContext
 import org.junit.After
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertTrue
@@ -28,6 +28,7 @@ class TimerListViewModelTest {
 
     private lateinit var viewModel: TimerListViewModel
     private lateinit var application: SolveLogApplication
+    private lateinit var database: SolveLogDatabase
     private val testDispatcher = UnconfinedTestDispatcher()
 
     @Before
@@ -35,17 +36,19 @@ class TimerListViewModelTest {
         Dispatchers.setMain(testDispatcher)
         application = ApplicationProvider.getApplicationContext()
         
-        runBlocking {
-            withContext(Dispatchers.IO) {
-                application.database.clearAllTables()
-            }
-        }
+        database = Room.inMemoryDatabaseBuilder(
+            application,
+            SolveLogDatabase::class.java
+        ).allowMainThreadQueries().build()
+        SolveLogDatabase.setTestInstance(database)
         
         viewModel = TimerListViewModel(application)
     }
 
     @After
     fun tearDown() {
+        database.close()
+        SolveLogDatabase.setTestInstance(null)
         Dispatchers.resetMain()
     }
 

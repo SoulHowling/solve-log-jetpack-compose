@@ -1,10 +1,12 @@
 package com.soulhowling.solvelog_jetpackcompose.feature.solvelog.viewmodel
 
 import androidx.lifecycle.SavedStateHandle
+import androidx.room.Room
 import androidx.test.core.app.ApplicationProvider
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import com.soulhowling.solvelog_jetpackcompose.core.Screens
 import com.soulhowling.solvelog_jetpackcompose.core.SolveLogApplication
+import com.soulhowling.solvelog_jetpackcompose.core.database.SolveLogDatabase
 import com.soulhowling.solvelog_jetpackcompose.feature.solvelog.Correctness
 import com.soulhowling.solvelog_jetpackcompose.feature.solvelog.model.entity.Question
 import com.soulhowling.solvelog_jetpackcompose.feature.solvelog.model.entity.SolveLog
@@ -14,12 +16,10 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.test.UnconfinedTestDispatcher
 import kotlinx.coroutines.test.resetMain
 import kotlinx.coroutines.test.runTest
 import kotlinx.coroutines.test.setMain
-import kotlinx.coroutines.withContext
 import org.junit.After
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
@@ -36,6 +36,7 @@ class SolveLogViewerViewModelTest {
 
     private lateinit var viewModel: SolveLogViewerViewModel
     private lateinit var application: SolveLogApplication
+    private lateinit var database: SolveLogDatabase
     private lateinit var solveLogRepository: SolveLogRepository
     private lateinit var questionRepository: QuestionRepository
     private val testDispatcher = UnconfinedTestDispatcher()
@@ -46,19 +47,21 @@ class SolveLogViewerViewModelTest {
     fun setup() {
         Dispatchers.setMain(testDispatcher)
         application = ApplicationProvider.getApplicationContext()
-        val database = application.database
+        
+        database = Room.inMemoryDatabaseBuilder(
+            application,
+            SolveLogDatabase::class.java
+        ).allowMainThreadQueries().build()
+        SolveLogDatabase.setTestInstance(database)
+
         solveLogRepository = SolveLogRepository(database.solveLogDao())
         questionRepository = QuestionRepository(database.questionDao())
-
-        runBlocking {
-            withContext(Dispatchers.IO) {
-                database.clearAllTables()
-            }
-        }
     }
 
     @After
     fun tearDown() {
+        database.close()
+        SolveLogDatabase.setTestInstance(null)
         Dispatchers.resetMain()
     }
 

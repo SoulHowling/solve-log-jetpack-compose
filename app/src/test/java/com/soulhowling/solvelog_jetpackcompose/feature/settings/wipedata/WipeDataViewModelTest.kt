@@ -1,18 +1,18 @@
 package com.soulhowling.solvelog_jetpackcompose.feature.settings.wipedata
 
+import androidx.room.Room
 import androidx.test.core.app.ApplicationProvider
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import com.soulhowling.solvelog_jetpackcompose.core.SolveLogApplication
+import com.soulhowling.solvelog_jetpackcompose.core.database.SolveLogDatabase
 import com.soulhowling.solvelog_jetpackcompose.feature.measurement.timer.model.TimerState
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.first
-import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.test.StandardTestDispatcher
 import kotlinx.coroutines.test.resetMain
 import kotlinx.coroutines.test.runTest
 import kotlinx.coroutines.test.setMain
-import kotlinx.coroutines.withContext
 import org.junit.After
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertTrue
@@ -28,6 +28,7 @@ class WipeDataViewModelTest {
 
     private lateinit var viewModel: WipeDataViewModel
     private lateinit var application: SolveLogApplication
+    private lateinit var database: SolveLogDatabase
     private val testDispatcher = StandardTestDispatcher()
 
     @Before
@@ -35,18 +36,19 @@ class WipeDataViewModelTest {
         Dispatchers.setMain(testDispatcher)
         application = ApplicationProvider.getApplicationContext()
         
-        // Ensure a clean state before each test
-        runBlocking {
-            withContext(Dispatchers.IO) {
-                application.database.clearAllTables()
-            }
-        }
+        database = Room.inMemoryDatabaseBuilder(
+            application,
+            SolveLogDatabase::class.java
+        ).allowMainThreadQueries().build()
+        SolveLogDatabase.setTestInstance(database)
         
         viewModel = WipeDataViewModel(application)
     }
 
     @After
     fun tearDown() {
+        database.close()
+        SolveLogDatabase.setTestInstance(null)
         Dispatchers.resetMain()
     }
 
