@@ -9,7 +9,6 @@ import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.test.runTest
 import org.junit.After
 import org.junit.Assert.assertEquals
-import org.junit.Assert.assertNotNull
 import org.junit.Before
 import org.junit.Test
 import org.junit.runner.RunWith
@@ -42,7 +41,6 @@ class FolderRepositoryTest {
         
         assertEquals(0, folder.id)
         assertEquals("New Folder", folder.name)
-        assertNotNull(folder.createdAt)
         assertEquals(folder.createdAt, folder.updatedAt)
         assertEquals(null, folder.parentFolderId)
     }

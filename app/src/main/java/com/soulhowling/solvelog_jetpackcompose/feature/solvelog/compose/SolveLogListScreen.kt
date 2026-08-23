@@ -499,7 +499,8 @@ internal fun SolveLogListScreenContent(
 
                                     val layoutInfo = listState.layoutInfo
                                     val visibleItems = layoutInfo.visibleItemsInfo
-                                    val draggedItemInfo = visibleItems.find { it.key == itemKey } ?: return@detectDragGestures
+                                    val draggedItemInfo = visibleItems.find { it.key == itemKey }
+                                        ?: return@detectDragGestures
 
                                     // 常に最新の localItems の状態に基づいて検索
                                     val currentList = localItems
@@ -511,7 +512,8 @@ internal fun SolveLogListScreenContent(
                                         key == itemKey
                                     }
 
-                                    val draggedVisualCenter = draggedItemInfo.offset + draggedItemInfo.size / 2 + dragOffset
+                                    val draggedVisualCenter =
+                                        draggedItemInfo.offset + draggedItemInfo.size / 2 + dragOffset
                                     val targetItemInfo = visibleItems.find { itemInfo ->
                                         if (itemInfo.key == itemKey) return@find false
                                         val itemTop = itemInfo.offset.toFloat()
@@ -523,19 +525,21 @@ internal fun SolveLogListScreenContent(
                                         // targetItemInfo.index はリスト全体でのインデックス
                                         val targetIndex = targetItemInfo.index
                                         if (targetIndex != -1 && currentIndex != -1 && targetIndex != currentIndex) {
-                                            val targetMidPoint = targetItemInfo.offset + targetItemInfo.size / 2
+                                            val targetMidPoint =
+                                                targetItemInfo.offset + targetItemInfo.size / 2
 
                                             if ((targetIndex > currentIndex && draggedVisualCenter > targetMidPoint) ||
-                                                (targetIndex < currentIndex && draggedVisualCenter < targetMidPoint)) {
-                                                
+                                                (targetIndex < currentIndex && draggedVisualCenter < targetMidPoint)
+                                            ) {
+
                                                 val oldOffset = draggedItemInfo.offset.toFloat()
                                                 val newOffset = targetItemInfo.offset.toFloat()
-                                                
+
                                                 val newList = localItems.toMutableList()
                                                 val moved = newList.removeAt(currentIndex)
                                                 newList.add(targetIndex, moved)
                                                 localItems = newList
-                                                
+
                                                 // スワップが発生したので指の位置を補正
                                                 dragOffset += (oldOffset - newOffset)
                                                 targetSwapKey = null
@@ -628,7 +632,13 @@ internal fun SolveLogListScreenContent(
                                         onExportFolder = { onExportFolder(item.folder) },
                                         onEdit = { editingFolder = item.folder },
                                         isSortMode = isSortMode,
-                                        dragHandle = { modifier -> DragIndicator(modifier.then(dragModifier)) },
+                                        dragHandle = { modifier ->
+                                            DragIndicator(
+                                                modifier.then(
+                                                    dragModifier
+                                                )
+                                            )
+                                        },
                                         modifier = Modifier.testTag(SolveLogListTestTags.FOLDER_ITEM + item.folder.id)
                                     )
                                 }
@@ -646,7 +656,13 @@ internal fun SolveLogListScreenContent(
                                         onExport = { onExportLog(item.log) },
                                         onEdit = { editingLog = item.log },
                                         isSortMode = isSortMode,
-                                        dragHandle = { modifier -> DragIndicator(modifier.then(dragModifier)) },
+                                        dragHandle = { modifier ->
+                                            DragIndicator(
+                                                modifier.then(
+                                                    dragModifier
+                                                )
+                                            )
+                                        },
                                         modifier = Modifier.testTag(SolveLogListTestTags.LOG_ITEM + item.log.id)
                                     )
                                 }
@@ -663,7 +679,13 @@ internal fun SolveLogListScreenContent(
                                         onExport = { onExportFolder(item.folder) },
                                         onEdit = { editingFolder = item.folder },
                                         isSortMode = isSortMode,
-                                        dragHandle = { modifier -> DragIndicator(modifier.then(dragModifier)) },
+                                        dragHandle = { modifier ->
+                                            DragIndicator(
+                                                modifier.then(
+                                                    dragModifier
+                                                )
+                                            )
+                                        },
                                         modifier = Modifier.testTag(SolveLogListTestTags.FOLDER_ITEM + item.folder.id)
                                     )
                                 }
@@ -678,7 +700,13 @@ internal fun SolveLogListScreenContent(
                                         onExport = { onExportLog(item.log) },
                                         onEdit = { editingLog = item.log },
                                         isSortMode = isSortMode,
-                                        dragHandle = { modifier -> DragIndicator(modifier.then(dragModifier)) },
+                                        dragHandle = { modifier ->
+                                            DragIndicator(
+                                                modifier.then(
+                                                    dragModifier
+                                                )
+                                            )
+                                        },
                                         modifier = Modifier.testTag(SolveLogListTestTags.LOG_ITEM + item.log.id)
                                     )
                                 }
@@ -699,15 +727,15 @@ internal fun SolveLogListScreenContent(
             )
         }
 
-    NewActionButtons(
-        modifier = Modifier
-            .align(Alignment.BottomEnd)
-            .graphicsLayer {
-                this.translationY = fabTranslationY.toPx()
-            }
-            .padding(Dimensions.PADDING_MEDIUM)
-            .testTag(SolveLogListTestTags.ADD_FAB),
-        expanded = isFabExpanded,
+        NewActionButtons(
+            modifier = Modifier
+                .align(Alignment.BottomEnd)
+                .graphicsLayer {
+                    this.translationY = fabTranslationY.toPx()
+                }
+                .padding(Dimensions.PADDING_MEDIUM)
+                .testTag(SolveLogListTestTags.ADD_FAB),
+            expanded = isFabExpanded,
             onToggle = { isFabExpanded = !isFabExpanded },
             onAddNewFolder = {
                 isFabExpanded = false
@@ -1132,7 +1160,10 @@ fun CurrentFolderHeader(
             },
         verticalAlignment = Alignment.CenterVertically
     ) {
-        IconButton(onClick = { onNavigateBack() }, modifier = Modifier.testTag(SolveLogListTestTags.BACK_BUTTON)) {
+        IconButton(
+            onClick = { onNavigateBack() },
+            modifier = Modifier.testTag(SolveLogListTestTags.BACK_BUTTON)
+        ) {
             Icon(
                 imageVector = Icons.AutoMirrored.Filled.ArrowBack,
                 contentDescription = stringResource(R.string.log_list_cd_back)
