@@ -26,12 +26,20 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.soulhowling.solvelog_jetpackcompose.R
 import com.soulhowling.solvelog_jetpackcompose.feature.solvelog.model.entity.Folder
 import com.soulhowling.solvelog_jetpackcompose.ui.theme.SolveLogJetpackComposeTheme
+
+object MoveToFolderDialogTestTags {
+    const val BACK_BUTTON = "move_to_folder_back_button"
+    const val FOLDER_ITEM = "move_to_folder_item_"
+    const val CONFIRM_BUTTON = "move_to_folder_confirm_button"
+    const val CANCEL_BUTTON = "move_to_folder_cancel_button"
+}
 
 @Composable
 fun MoveToFolderDialog(
@@ -54,12 +62,12 @@ fun MoveToFolderDialog(
             )
         },
         confirmButton = {
-            TextButton(onClick = { onConfirm(currentViewedFolderId) }) {
+            TextButton(onClick = { onConfirm(currentViewedFolderId) }, modifier = Modifier.testTag(MoveToFolderDialogTestTags.CONFIRM_BUTTON)) {
                 Text(stringResource(R.string.log_list_dialog_move_here_button))
             }
         },
         dismissButton = {
-            TextButton(onClick = onDismiss) {
+            TextButton(onClick = onDismiss, modifier = Modifier.testTag(MoveToFolderDialogTestTags.CANCEL_BUTTON)) {
                 Text(stringResource(R.string.common_dialog_cancel_button))
             }
         }
@@ -67,7 +75,7 @@ fun MoveToFolderDialog(
 }
 
 @Composable
-private fun MoveToFolderContent(
+internal fun MoveToFolderContent(
     allFolders: List<Folder>,
     excludeFolderId: Int?,
     currentViewedFolderId: Int?,
@@ -124,7 +132,7 @@ private fun MoveToFolderContent(
                     val parentId =
                         allFolders.find { it.id == currentViewedFolderId }?.parentFolderId
                     onViewFolder(parentId)
-                }) {
+                }, modifier = Modifier.testTag(MoveToFolderDialogTestTags.BACK_BUTTON)) {
                     Icon(
                         Icons.AutoMirrored.Filled.ArrowBack,
                         contentDescription = stringResource(R.string.log_list_cd_go_up)
@@ -147,7 +155,8 @@ private fun MoveToFolderContent(
             ) { folder ->
                 MoveToFolderItem(
                     name = folder.name,
-                    onClick = { onViewFolder(folder.id) }
+                    onClick = { onViewFolder(folder.id) },
+                    modifier = Modifier.testTag(MoveToFolderDialogTestTags.FOLDER_ITEM + folder.id)
                 )
             }
 
@@ -168,10 +177,11 @@ private fun MoveToFolderContent(
 @Composable
 private fun MoveToFolderItem(
     name: String,
-    onClick: () -> Unit
+    modifier: Modifier = Modifier,
+    onClick: () -> Unit,
 ) {
     Row(
-        modifier = Modifier
+        modifier = modifier
             .fillMaxWidth()
             .clickable { onClick() }
             .padding(vertical = 12.dp, horizontal = 8.dp),

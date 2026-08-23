@@ -21,6 +21,7 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.style.TextAlign
@@ -31,6 +32,14 @@ import com.soulhowling.solvelog_jetpackcompose.feature.solvelog.SelectionType
 import com.soulhowling.solvelog_jetpackcompose.ui.theme.Dimensions
 import com.soulhowling.solvelog_jetpackcompose.ui.theme.SolveLogJetpackComposeTheme
 import com.soulhowling.solvelog_jetpackcompose.utils.compose.SingleChoiceSegmentedButton
+
+object SolveLogAddBottomSheetTestTags {
+    const val TITLE_FIELD = "solve_log_add_title_field"
+    const val QUANTITY_FIELD = "solve_log_add_quantity_field"
+    const val CONFIRM_BUTTON = "solve_log_add_confirm_button"
+    const val TYPE_SELECTOR = "solve_log_add_type_selector"
+    const val SELECTION_QUANTITY_SELECTOR = "solve_log_add_selection_quantity_selector"
+}
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -64,7 +73,7 @@ fun SolveLogAddBottomSheet(
 }
 
 @Composable
-private fun SolveLogAddContent(
+internal fun SolveLogAddContent(
     initialName: String = "",
     initialQuestionQuantity: Int? = null,
     initialSelectionType: SelectionType = SelectionType.NUMBER,
@@ -122,7 +131,9 @@ private fun SolveLogAddContent(
                         logTitle = it
                     },
                     placeholder = { Text(stringResource(R.string.log_list_placeholder_log_title)) },
-                    modifier = Modifier.fillMaxWidth()
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .testTag(SolveLogAddBottomSheetTestTags.TITLE_FIELD)
                 )
                 Spacer(modifier = Modifier.height(sectionSpace))
 
@@ -136,7 +147,9 @@ private fun SolveLogAddContent(
                         questionQuantity = it
                     },
                     placeholder = { Text(stringResource(R.string.log_list_placeholder_question_quantity)) },
-                    modifier = Modifier.fillMaxWidth(),
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .testTag(SolveLogAddBottomSheetTestTags.QUANTITY_FIELD),
                     keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
                     singleLine = true
                 )
@@ -148,7 +161,9 @@ private fun SolveLogAddContent(
                     style = MaterialTheme.typography.titleMedium
                 )
                 SingleChoiceSegmentedButton(
-                    modifier = Modifier.fillMaxWidth(),
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .testTag(SolveLogAddBottomSheetTestTags.TYPE_SELECTOR),
                     itemList = itemKindList,
                     selectedIndex = selectedKind.index,
                     onSelectedIndexChange = { selectedKind = SelectionType.entries[it] },
@@ -162,7 +177,9 @@ private fun SolveLogAddContent(
                     style = MaterialTheme.typography.titleMedium
                 )
                 SingleChoiceSegmentedButton(
-                    modifier = Modifier.fillMaxWidth(),
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .testTag(SolveLogAddBottomSheetTestTags.SELECTION_QUANTITY_SELECTOR),
                     itemList = itemQuantityList,
                     selectedIndex = if (isTrueFalseSelected) SelectionQuantity.TWO.index else selectedQuantity.index,
                     onSelectedIndexChange = { selectedQuantity = SelectionQuantity.entries[it] },
@@ -183,7 +200,9 @@ private fun SolveLogAddContent(
                     )
                     onDismiss()
                 },
-                modifier = Modifier.fillMaxWidth(),
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .testTag(SolveLogAddBottomSheetTestTags.CONFIRM_BUTTON),
                 enabled = isAddButtonEnabled(
                     logTitle = logTitle,
                     questionQuantity = questionQuantity

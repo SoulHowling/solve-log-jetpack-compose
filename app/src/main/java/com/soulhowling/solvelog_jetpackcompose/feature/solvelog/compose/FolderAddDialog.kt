@@ -14,12 +14,19 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import com.soulhowling.solvelog_jetpackcompose.R
 import com.soulhowling.solvelog_jetpackcompose.ui.theme.Dimensions
 import com.soulhowling.solvelog_jetpackcompose.ui.theme.SolveLogJetpackComposeTheme
+
+object FolderAddDialogTestTags {
+    const val TEXT_FIELD = "folder_add_text_field"
+    const val CONFIRM_BUTTON = "folder_add_confirm_button"
+    const val CANCEL_BUTTON = "folder_add_cancel_button"
+}
 
 @Composable
 fun FolderAddDialog(
@@ -45,7 +52,8 @@ fun FolderAddDialog(
                 enabled = folderTitle.isNotBlank(),
                 onClick = {
                     onConfirm(folderTitle.trim())
-                }
+                },
+                modifier = Modifier.testTag(FolderAddDialogTestTags.CONFIRM_BUTTON)
             ) {
                 Text(
                     stringResource(
@@ -60,7 +68,8 @@ fun FolderAddDialog(
         },
         dismissButton = {
             TextButton(
-                onClick = onDismiss
+                onClick = onDismiss,
+                modifier = Modifier.testTag(FolderAddDialogTestTags.CANCEL_BUTTON)
             ) {
                 Text(stringResource(R.string.common_dialog_cancel_button))
             }
@@ -88,7 +97,9 @@ fun FolderAddContent(
                 onValueChanged(it)
             },
             placeholder = { Text(stringResource(R.string.log_list_placeholder_folder_name)) },
-            modifier = Modifier.fillMaxWidth()
+            modifier = Modifier
+                .fillMaxWidth()
+                .testTag(FolderAddDialogTestTags.TEXT_FIELD)
         )
     }
 }
