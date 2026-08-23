@@ -1,6 +1,7 @@
 package com.soulhowling.solvelog_jetpackcompose.core.database
 
 import android.content.Context
+import androidx.annotation.VisibleForTesting
 import androidx.room.Database
 import androidx.room.Room
 import androidx.room.RoomDatabase
@@ -74,7 +75,7 @@ abstract class SolveLogDatabase : RoomDatabase() {
 
         fun getDatabase(context: Context, scope: CoroutineScope): SolveLogDatabase {
             return instance ?: synchronized(this) {
-                Room.databaseBuilder(context, SolveLogDatabase::class.java, DATABASE_NAME)
+                val newInstance = Room.databaseBuilder(context, SolveLogDatabase::class.java, DATABASE_NAME)
                     .addMigrations(MIGRATION_1_2, MIGRATION_2_3)
                     .addCallback(object: Callback() {
                         override fun onCreate(db: SupportSQLiteDatabase) {
@@ -85,8 +86,17 @@ abstract class SolveLogDatabase : RoomDatabase() {
                         }
                     })
                     .build()
-                    .also { instance = it }
+                instance = newInstance
+                newInstance
             }
+        }
+
+        /**
+         * For testing purposes to inject an in-memory database.
+         */
+        @VisibleForTesting(otherwise = VisibleForTesting.PRIVATE)
+        fun setTestInstance(db: SolveLogDatabase?) {
+            instance = db
         }
     }
 }

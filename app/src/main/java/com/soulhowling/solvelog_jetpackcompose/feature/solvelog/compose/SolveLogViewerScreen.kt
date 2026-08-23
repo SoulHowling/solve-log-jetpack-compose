@@ -28,6 +28,7 @@ import androidx.compose.ui.draw.drawBehind
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Shape
 import androidx.compose.ui.graphics.graphicsLayer
+import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
@@ -55,6 +56,18 @@ private val colWidth = 120.dp
 private val stickyColWidth = 56.dp
 private val expandedStickyColWidth = 86.dp
 private val spacing = 8.dp
+
+object SolveLogViewerTestTags {
+    const val VISIBILITY_TOGGLE = "visibility_toggle"
+    const val DELETE_ATTEMPT = "delete_attempt_"
+    const val ADD_QUESTION_ROW = "add_question_row"
+    const val QUESTION_SELECTION = "question_selection_"
+    const val ATTEMPT_HEADER = "attempt_header_"
+    const val SCORE_FOOTER = "score_footer_"
+    const val ITEM_CELL = "item_cell_"
+    const val FAB_NEW_ATTEMPT = "fab_new_attempt"
+    const val QUESTION_LABEL = "question_label_"
+}
 
 @Composable
 fun SolveLogViewerScreen(
@@ -314,7 +327,8 @@ fun SolveLogViewerScreenContent(
                             ) {
                                 IconButton(
                                     modifier = Modifier
-                                        .align(Alignment.Center),
+                                        .align(Alignment.Center)
+                                        .testTag(SolveLogViewerTestTags.VISIBILITY_TOGGLE),
                                     onClick = { onAnswerVisibility() },
                                 ) {
                                     Icon(
@@ -332,7 +346,7 @@ fun SolveLogViewerScreenContent(
                                     if (isEditMode && solveLog.attemptCount > 1) {
                                         IconButton(
                                             onClick = { onDeleteAttempt(attemptNumber) },
-                                            modifier = Modifier
+                                            modifier = Modifier.testTag(SolveLogViewerTestTags.DELETE_ATTEMPT + attemptNumber)
                                         ) {
                                             Icon(
                                                 imageVector = Icons.Default.Delete,
@@ -349,7 +363,8 @@ fun SolveLogViewerScreenContent(
                                                 attemptNumber
                                             )
                                         },
-                                        width = colWidth
+                                        width = colWidth,
+                                        modifier = Modifier.testTag(SolveLogViewerTestTags.ATTEMPT_HEADER + attemptNumber)
                                     )
                                 }
                             }
@@ -393,7 +408,8 @@ fun SolveLogViewerScreenContent(
                                         )
                                     },
                                     width = colWidth,
-                                    height = rowHeight
+                                    height = rowHeight,
+                                    modifier = Modifier.testTag(SolveLogViewerTestTags.ITEM_CELL + "${qIndex}_$attemptNumber")
                                 )
                             }
                         }
@@ -442,6 +458,7 @@ fun SolveLogViewerScreenContent(
                                     .width(colWidth * solveLog.attemptCount + spacing * (solveLog.attemptCount - 1))
                                     .height(rowHeight)
                                     .background(MaterialTheme.colorScheme.surface)
+                                    .testTag(SolveLogViewerTestTags.ADD_QUESTION_ROW)
                                     .clickable { onAddQuestion() },
                                 contentAlignment = Alignment.Center
                             ) {
@@ -523,7 +540,8 @@ fun SolveLogViewerScreenContent(
                                     total = solveLog.questionQuantity,
                                     shape = footerShape,
                                     width = colWidth,
-                                    onNavigateToEditor = { onNavigateToEditor(attemptNumber) }
+                                    onNavigateToEditor = { onNavigateToEditor(attemptNumber) },
+                                    modifier = Modifier.testTag(SolveLogViewerTestTags.SCORE_FOOTER + attemptNumber)
                                 )
                             }
                         }
@@ -539,7 +557,8 @@ fun SolveLogViewerScreenContent(
                     .graphicsLayer {
                         this.translationY = fabTranslationY.toPx()
                     }
-                    .padding(all = Dimensions.PADDING_MEDIUM),
+                    .padding(all = Dimensions.PADDING_MEDIUM)
+                    .testTag(SolveLogViewerTestTags.FAB_NEW_ATTEMPT),
                 onClick = {
                     onStartNewAttempt { nextAttempt ->
                         onNavigateToEditor(nextAttempt)
@@ -575,6 +594,7 @@ fun QuestionStickyLabel(
                 Checkbox(
                     checked = isSelected,
                     onCheckedChange = { onToggleSelection() },
+                    modifier = Modifier.testTag(SolveLogViewerTestTags.QUESTION_SELECTION + number)
                 )
             }
             Spacer(Modifier.width(4.dp))
@@ -584,7 +604,8 @@ fun QuestionStickyLabel(
             modifier = Modifier
                 .size(32.dp, 32.dp)
                 .clip(MaterialTheme.shapes.small)
-                .background(MaterialTheme.colorScheme.surfaceVariant),
+                .background(MaterialTheme.colorScheme.surfaceVariant)
+                .testTag(SolveLogViewerTestTags.QUESTION_LABEL + number),
             contentAlignment = Alignment.Center
         ) {
             Text(
@@ -603,10 +624,11 @@ fun AttemptHeader(
     attemptNumber: Int,
     shape: Shape,
     width: Dp,
+    modifier: Modifier = Modifier,
     onNavigateToEditor: () -> Unit
 ) {
     Box(
-        modifier = Modifier
+        modifier = modifier
             .width(width)
             .background(MaterialTheme.colorScheme.primaryContainer, shape)
             .clickable(onClick = { onNavigateToEditor() })
@@ -629,15 +651,16 @@ fun SolveLogItemCell(
     isChecked: Boolean,
     isLast: Boolean,
     isAnswerVisible: Boolean,
-    onNavigateToEditor: () -> Unit,
     width: Dp,
-    height: Dp
+    height: Dp,
+    modifier: Modifier = Modifier,
+    onNavigateToEditor: () -> Unit,
 ) {
     val dividerColor = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.5f)
     val backgroundColor = MaterialTheme.colorScheme.surface
 
     Box(
-        modifier = Modifier
+        modifier = modifier
             .size(width, height)
             .drawBehind {
                 drawRect(backgroundColor)
@@ -668,11 +691,12 @@ fun ScoreFooter(
     total: Int,
     shape: Shape,
     width: Dp,
+    modifier: Modifier = Modifier,
     onNavigateToEditor: () -> Unit,
 ) {
     val accuracy: Float = if (total > 0) (score.toFloat() / total.toFloat()) * 100 else 0f
     Box(
-        modifier = Modifier
+        modifier = modifier
             .width(width)
             .background(color = MaterialTheme.colorScheme.surfaceVariant, shape)
             .padding(all = 5.dp)
