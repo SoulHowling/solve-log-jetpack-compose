@@ -81,6 +81,7 @@ import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
@@ -101,6 +102,21 @@ import com.soulhowling.solvelog_jetpackcompose.feature.solvelog.viewmodel.SolveL
 import com.soulhowling.solvelog_jetpackcompose.ui.theme.Dimensions
 import com.soulhowling.solvelog_jetpackcompose.ui.theme.SolveLogJetpackComposeTheme
 import kotlin.time.Duration.Companion.milliseconds
+
+object SolveLogListTestTags {
+    const val TOGGLE_VIEW_MODE = "toggle_view_mode"
+    const val MORE_OPTIONS = "more_options"
+    const val ADD_FAB = "add_fab"
+    const val ADD_FOLDER_FAB = "add_folder_fab"
+    const val ADD_LOG_FAB = "add_log_fab"
+    const val FOLDER_ITEM = "folder_item_"
+    const val LOG_ITEM = "log_item_"
+    const val BACK_BUTTON = "back_button"
+    const val SORT_OK_BUTTON = "sort_ok_button"
+    const val EXPORT_ALL_MENU_ITEM = "export_all_menu_item"
+    const val IMPORT_MENU_ITEM = "import_menu_item"
+    const val SORT_MENU_ITEM = "sort_menu_item"
+}
 
 @Composable
 fun SolveLogListScreen(
@@ -166,7 +182,8 @@ fun SolveLogListScreen(
         actions = {
             if (isSortMode) {
                 TextButton(
-                    onClick = { isSortMode = false }
+                    onClick = { isSortMode = false },
+                    modifier = Modifier.testTag(SolveLogListTestTags.SORT_OK_BUTTON)
                 ) {
                     Text(
                         text = stringResource(R.string.common_dialog_ok_button),
@@ -175,7 +192,8 @@ fun SolveLogListScreen(
                 }
             } else {
                 IconButton(
-                    onClick = { viewModel.toggleViewMode() }
+                    onClick = { viewModel.toggleViewMode() },
+                    modifier = Modifier.testTag(SolveLogListTestTags.TOGGLE_VIEW_MODE)
                 ) {
                     Icon(
                         imageVector = viewType.nextButtonImage,
@@ -184,7 +202,8 @@ fun SolveLogListScreen(
                     )
                 }
                 IconButton(
-                    onClick = { isExpanded = true }
+                    onClick = { isExpanded = true },
+                    modifier = Modifier.testTag(SolveLogListTestTags.MORE_OPTIONS)
                 ) {
                     Icon(
                         imageVector = Icons.Default.MoreVert,
@@ -200,6 +219,7 @@ fun SolveLogListScreen(
                     onDismissRequest = { isExpanded = false }
                 ) {
                     DropdownMenuItem(
+                        modifier = Modifier.testTag(SolveLogListTestTags.EXPORT_ALL_MENU_ITEM),
                         onClick = {
                             viewModel.exportAll()
                             isExpanded = false
@@ -213,6 +233,7 @@ fun SolveLogListScreen(
                         }
                     )
                     DropdownMenuItem(
+                        modifier = Modifier.testTag(SolveLogListTestTags.IMPORT_MENU_ITEM),
                         onClick = {
                             importDocumentLauncher.launch(arrayOf("application/json"))
                             isExpanded = false
@@ -226,6 +247,7 @@ fun SolveLogListScreen(
                         }
                     )
                     DropdownMenuItem(
+                        modifier = Modifier.testTag(SolveLogListTestTags.SORT_MENU_ITEM),
                         onClick = {
                             isExpanded = false
                             isSortMode = true
@@ -307,7 +329,7 @@ fun SolveLogListScreen(
 }
 
 @Composable
-private fun SolveLogListScreenContent(
+internal fun SolveLogListScreenContent(
     displayItems: List<SolveLogListItem>,
     folders: List<Folder>,
     currentFolderPath: String?,
@@ -606,7 +628,8 @@ private fun SolveLogListScreenContent(
                                         onExportFolder = { onExportFolder(item.folder) },
                                         onEdit = { editingFolder = item.folder },
                                         isSortMode = isSortMode,
-                                        dragHandle = { modifier -> DragIndicator(modifier.then(dragModifier)) }
+                                        dragHandle = { modifier -> DragIndicator(modifier.then(dragModifier)) },
+                                        modifier = Modifier.testTag(SolveLogListTestTags.FOLDER_ITEM + item.folder.id)
                                     )
                                 }
 
@@ -623,7 +646,8 @@ private fun SolveLogListScreenContent(
                                         onExport = { onExportLog(item.log) },
                                         onEdit = { editingLog = item.log },
                                         isSortMode = isSortMode,
-                                        dragHandle = { modifier -> DragIndicator(modifier.then(dragModifier)) }
+                                        dragHandle = { modifier -> DragIndicator(modifier.then(dragModifier)) },
+                                        modifier = Modifier.testTag(SolveLogListTestTags.LOG_ITEM + item.log.id)
                                     )
                                 }
                             }
@@ -639,7 +663,8 @@ private fun SolveLogListScreenContent(
                                         onExport = { onExportFolder(item.folder) },
                                         onEdit = { editingFolder = item.folder },
                                         isSortMode = isSortMode,
-                                        dragHandle = { modifier -> DragIndicator(modifier.then(dragModifier)) }
+                                        dragHandle = { modifier -> DragIndicator(modifier.then(dragModifier)) },
+                                        modifier = Modifier.testTag(SolveLogListTestTags.FOLDER_ITEM + item.folder.id)
                                     )
                                 }
 
@@ -653,7 +678,8 @@ private fun SolveLogListScreenContent(
                                         onExport = { onExportLog(item.log) },
                                         onEdit = { editingLog = item.log },
                                         isSortMode = isSortMode,
-                                        dragHandle = { modifier -> DragIndicator(modifier.then(dragModifier)) }
+                                        dragHandle = { modifier -> DragIndicator(modifier.then(dragModifier)) },
+                                        modifier = Modifier.testTag(SolveLogListTestTags.LOG_ITEM + item.log.id)
                                     )
                                 }
                             }
@@ -673,14 +699,15 @@ private fun SolveLogListScreenContent(
             )
         }
 
-        NewActionButtons(
-            modifier = Modifier
-                .align(Alignment.BottomEnd)
-                .graphicsLayer {
-                    this.translationY = fabTranslationY.toPx()
-                }
-                .padding(Dimensions.PADDING_MEDIUM),
-            expanded = isFabExpanded,
+    NewActionButtons(
+        modifier = Modifier
+            .align(Alignment.BottomEnd)
+            .graphicsLayer {
+                this.translationY = fabTranslationY.toPx()
+            }
+            .padding(Dimensions.PADDING_MEDIUM)
+            .testTag(SolveLogListTestTags.ADD_FAB),
+        expanded = isFabExpanded,
             onToggle = { isFabExpanded = !isFabExpanded },
             onAddNewFolder = {
                 isFabExpanded = false
@@ -772,10 +799,11 @@ private fun FolderItemCard(
     onExportFolder: () -> Unit,
     onEdit: () -> Unit,
     isSortMode: Boolean,
+    modifier: Modifier = Modifier,
     dragHandle: @Composable (Modifier) -> Unit = {},
 ) {
     Card(
-        modifier = Modifier
+        modifier = modifier
             .fillMaxWidth()
             .clickable(enabled = !isSortMode) { onClick() },
         elevation = CardDefaults.cardElevation(defaultElevation = Dimensions.SPACING_SMALL),
@@ -829,13 +857,14 @@ private fun SolveLogItemCard(
     onExport: () -> Unit,
     onEdit: () -> Unit,
     isSortMode: Boolean,
+    modifier: Modifier = Modifier,
     dragHandle: @Composable (Modifier) -> Unit = {},
 ) {
     val selectionType = SelectionType.from(selectionTypeIndex)
     val selectionQuantity = SelectionQuantity.from(selectionQuantityIndex)
 
     Card(
-        modifier = Modifier
+        modifier = modifier
             .fillMaxWidth()
             .clickable(enabled = !isSortMode) { onClick() },
         elevation = CardDefaults.cardElevation(defaultElevation = Dimensions.SPACING_SMALL),
@@ -914,10 +943,11 @@ fun SolveListItem(
     onExport: () -> Unit,
     onEdit: () -> Unit,
     isSortMode: Boolean,
+    modifier: Modifier = Modifier,
     dragHandle: @Composable (Modifier) -> Unit = {},
 ) {
     Column(
-        modifier = Modifier
+        modifier = modifier
     ) {
         ListItem(
             modifier = Modifier
@@ -1102,7 +1132,7 @@ fun CurrentFolderHeader(
             },
         verticalAlignment = Alignment.CenterVertically
     ) {
-        IconButton(onClick = { onNavigateBack() }) {
+        IconButton(onClick = { onNavigateBack() }, modifier = Modifier.testTag(SolveLogListTestTags.BACK_BUTTON)) {
             Icon(
                 imageVector = Icons.AutoMirrored.Filled.ArrowBack,
                 contentDescription = stringResource(R.string.log_list_cd_back)
@@ -1158,7 +1188,8 @@ private fun NewActionButtons(
                     SmallFloatingActionButton(
                         onClick = onAddNewFolder,
                         containerColor = MaterialTheme.colorScheme.secondaryContainer,
-                        contentColor = MaterialTheme.colorScheme.onSecondaryContainer
+                        contentColor = MaterialTheme.colorScheme.onSecondaryContainer,
+                        modifier = Modifier.testTag(SolveLogListTestTags.ADD_FOLDER_FAB)
                     ) {
                         Icon(
                             Icons.Default.CreateNewFolder,
@@ -1185,7 +1216,8 @@ private fun NewActionButtons(
                     SmallFloatingActionButton(
                         onClick = onAddNewLog,
                         containerColor = MaterialTheme.colorScheme.secondaryContainer,
-                        contentColor = MaterialTheme.colorScheme.onSecondaryContainer
+                        contentColor = MaterialTheme.colorScheme.onSecondaryContainer,
+                        modifier = Modifier.testTag(SolveLogListTestTags.ADD_LOG_FAB)
                     ) {
                         Icon(
                             Icons.Default.PostAdd,
