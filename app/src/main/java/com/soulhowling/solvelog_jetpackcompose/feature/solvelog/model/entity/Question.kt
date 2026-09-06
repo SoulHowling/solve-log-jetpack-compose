@@ -2,6 +2,7 @@ package com.soulhowling.solvelog_jetpackcompose.feature.solvelog.model.entity
 
 import androidx.room.Entity
 import androidx.room.ForeignKey
+import androidx.room.Index
 import androidx.room.PrimaryKey
 import com.soulhowling.solvelog_jetpackcompose.core.database.DBKeys
 import com.soulhowling.solvelog_jetpackcompose.feature.solvelog.Correctness
@@ -15,6 +16,9 @@ import com.soulhowling.solvelog_jetpackcompose.feature.solvelog.Correctness
             childColumns = [DBKeys.KEY_SOLVE_LOG_ID],
             onDelete = ForeignKey.CASCADE
         )
+    ],
+    indices = [
+        Index(value = [DBKeys.KEY_SOLVE_LOG_ID])
     ]
 )
 data class Question(

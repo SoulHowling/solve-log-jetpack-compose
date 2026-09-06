@@ -31,7 +31,7 @@ import org.robolectric.annotation.Config
 @OptIn(ExperimentalCoroutinesApi::class)
 @RunWith(AndroidJUnit4::class)
 @Config(sdk = [36])
-class SolveLogListViewModelTest {
+class SolveLogRouteListViewModelTest {
 
     private lateinit var viewModel: SolveLogListViewModel
     private lateinit var application: SolveLogApplication

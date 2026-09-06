@@ -133,6 +133,14 @@
     <string name="about_this_app_help_button">Help</string>
     <string name="about_this_app_version">Version %1$s</string>
 
+    <!-- Help -->
+    <string name="help_section_logging_title">Logging</string>
+    <string name="help_section_logging_content">You can create folders and logs to record your study progress. In the log viewer, you can input your answers and check your accuracy for each attempt.</string>
+    <string name="help_section_measurement_title">Measurement</string>
+    <string name="help_section_measurement_content">Use the stopwatch to measure your study time, or the repeat timer for interval-based sessions (work and break sets).</string>
+    <string name="help_section_settings_title">Settings</string>
+    <string name="help_section_settings_content">You can change the app theme or wipe all your data from the settings menu.</string>
+
     <!-- Wipe data -->
     <string name="wipe_data_title">Wipe data</string>
     <string name="wipe_data_all">Wipe all data</string>

@@ -18,6 +18,7 @@ private const val TIMER_ROUTE = "timer"
 private const val SETTING_ROUTE = "setting"
 private const val WIPE_DATA_ROUTE = "wipe_data"
 private const val ABOUT_THIS_APP_ROUTE = "about_this_app"
+private const val HELP_ROUTE = "help"
 private const val PRIVACY_POLICY_ROUTE = "privacy_policy"
 private const val SOFTWARE_LICENSE_ROUTE = "software_license"
 private const val SLASH = "/"
@@ -27,7 +28,7 @@ sealed class Screens(
     @get:StringRes val title: Int,
     val icon: ImageVector
 ) {
-    data object SolveLog : Screens(
+    data object SolveLogRoute : Screens(
         route = SOLVE_LOG_ROUTE,
         title = R.string.tab_editor,
         icon = Icons.Default.Edit
@@ -82,6 +83,12 @@ sealed class Screens(
         icon = Icons.Default.Settings
     )
 
+    data object Help : Screens(
+        route = SETTING_ROUTE + SLASH + HELP_ROUTE,
+        title = R.string.about_this_app_help_button,
+        icon = Icons.Default.Settings
+    )
+
     data object PrivacyPolicy : Screens(
         route = SETTING_ROUTE + SLASH + PRIVACY_POLICY_ROUTE,
         title = R.string.setting_privacy_policy,
@@ -100,7 +107,7 @@ sealed class Screens(
         const val ARG_TIMER_STATE_ID = "timerStateId"
 
         fun getAllScreens(): List<Screens> = listOf(
-            SolveLog,
+            SolveLogRoute,
             SolveLogViewer,
             SolveLogEditor,
             Measurement,
@@ -108,12 +115,13 @@ sealed class Screens(
             Setting,
             WipeData,
             AboutThisApp,
+            Help,
             PrivacyPolicy,
             SoftwareLicense
         )
 
         fun getBottomNaviScreens(): List<Screens> = listOf(
-            SolveLog,
+            SolveLogRoute,
             Measurement,
             Setting
         )

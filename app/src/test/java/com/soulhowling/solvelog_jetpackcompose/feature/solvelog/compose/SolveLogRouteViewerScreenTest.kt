@@ -16,7 +16,7 @@ import org.robolectric.annotation.Config
 
 @RunWith(AndroidJUnit4::class)
 @Config(sdk = [36])
-class SolveLogViewerScreenTest {
+class SolveLogRouteViewerScreenTest {
 
     @get:Rule
     val composeTestRule = createComposeRule()

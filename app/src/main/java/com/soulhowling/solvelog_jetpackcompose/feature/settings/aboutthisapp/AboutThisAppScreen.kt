@@ -1,6 +1,5 @@
 package com.soulhowling.solvelog_jetpackcompose.feature.settings.aboutthisapp
 
-import android.widget.Toast
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
@@ -21,7 +20,6 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
@@ -32,17 +30,22 @@ import com.soulhowling.solvelog_jetpackcompose.core.CustomAppBarEffect
 import com.soulhowling.solvelog_jetpackcompose.ui.theme.SolveLogJetpackComposeTheme
 
 @Composable
-fun AboutThisAppScreen() {
-    AboutThisAppContent()
+fun AboutThisAppScreen(
+    onNavigateToHelp: () -> Unit
+) {
+    AboutThisAppContent(
+        onNavigateToHelp = onNavigateToHelp
+    )
 }
 
 @Composable
-fun AboutThisAppContent() {
+fun AboutThisAppContent(
+    onNavigateToHelp: () -> Unit
+) {
     CustomAppBarEffect(
         title = stringResource(id = R.string.setting_about_this_app)
     )
 
-    val context = LocalContext.current
     val scrollState = rememberScrollState()
 
     Column(
@@ -85,20 +88,13 @@ fun AboutThisAppContent() {
 
         Spacer(modifier = Modifier.height(48.dp))
 
-        val notImplementedMessage = stringResource(id = R.string.common_not_implemented)
         Button(
             modifier = Modifier.fillMaxWidth(),
             colors = ButtonDefaults.buttonColors(
                 containerColor = MaterialTheme.colorScheme.primary,
                 contentColor = MaterialTheme.colorScheme.onPrimary
             ),
-            onClick = {
-                Toast.makeText(
-                    context,
-                    notImplementedMessage,
-                    Toast.LENGTH_SHORT
-                ).show()
-            }
+            onClick = onNavigateToHelp
         ) {
             Text(text = stringResource(id = R.string.about_this_app_help_button))
         }
@@ -109,6 +105,8 @@ fun AboutThisAppContent() {
 @Composable
 private fun AboutThisAppScreenPreview() {
     SolveLogJetpackComposeTheme {
-        AboutThisAppContent()
+        AboutThisAppContent(
+            onNavigateToHelp = {}
+        )
     }
 }

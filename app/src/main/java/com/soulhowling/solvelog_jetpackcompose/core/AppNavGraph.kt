@@ -15,6 +15,7 @@ import com.soulhowling.solvelog_jetpackcompose.feature.measurement.MeasurementSc
 import com.soulhowling.solvelog_jetpackcompose.feature.measurement.timer.compose.TimerPageScreen
 import com.soulhowling.solvelog_jetpackcompose.feature.settings.SettingScreen
 import com.soulhowling.solvelog_jetpackcompose.feature.settings.aboutthisapp.AboutThisAppScreen
+import com.soulhowling.solvelog_jetpackcompose.feature.settings.help.HelpScreen
 import com.soulhowling.solvelog_jetpackcompose.feature.settings.privacypolicy.PrivacyPolicyScreen
 import com.soulhowling.solvelog_jetpackcompose.feature.settings.softwarelicense.SoftwareLicenseScreen
 import com.soulhowling.solvelog_jetpackcompose.feature.settings.wipedata.WipeDataScreen
@@ -27,16 +28,16 @@ import com.soulhowling.solvelog_jetpackcompose.utils.compose.LifecycleTouchGuard
 fun AppNavGraph(
     modifier: Modifier = Modifier,
     navController: NavHostController,
-    innerPadding: PaddingValues
+    innerPadding: PaddingValues,
 ) {
     val currentNavBackStackEntry by navController.currentBackStackEntryAsState()
 
     NavHost(
         navController = navController,
-        startDestination = Screens.SolveLog.route,
+        startDestination = Screens.SolveLogRoute.route,
         modifier = modifier.padding(innerPadding)
     ) {
-        composable(Screens.SolveLog.route) { backStackEntry ->
+        composable(Screens.SolveLogRoute.route) { backStackEntry ->
             LifecycleTouchGuard(isTargetScreen = backStackEntry == currentNavBackStackEntry) {
                 SolveLogListScreen(
                     onNavigateToViewer = { id ->
@@ -116,7 +117,16 @@ fun AppNavGraph(
         }
         composable(Screens.AboutThisApp.route) { backStackEntry ->
             LifecycleTouchGuard(isTargetScreen = backStackEntry == currentNavBackStackEntry) {
-                AboutThisAppScreen()
+                AboutThisAppScreen(
+                    onNavigateToHelp = {
+                        navController.navigate(Screens.Help.route)
+                    }
+                )
+            }
+        }
+        composable(Screens.Help.route) { backStackEntry ->
+            LifecycleTouchGuard(isTargetScreen = backStackEntry == currentNavBackStackEntry) {
+                HelpScreen()
             }
         }
         composable(Screens.PrivacyPolicy.route) { backStackEntry ->
