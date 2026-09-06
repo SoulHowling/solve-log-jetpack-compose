@@ -2,7 +2,7 @@
   "formatVersion": 1,
   "database": {
     "version": 3,
-    "identityHash": "83f03b9060e87a3d0a4e81e4bb05af2b",
+    "identityHash": "7ff892e37818c14f751d17709ae728e6",
     "entities": [
       {
         "tableName": "timer_state",
@@ -134,6 +134,17 @@
             "id"
           ]
         },
+        "indices": [
+          {
+            "name": "index_solve_log_folderId",
+            "unique": false,
+            "columnNames": [
+              "folderId"
+            ],
+            "orders": [],
+            "createSql": "CREATE INDEX IF NOT EXISTS `index_solve_log_folderId` ON `${TABLE_NAME}` (`folderId`)"
+          }
+        ],
         "foreignKeys": [
           {
             "table": "folder",
@@ -194,6 +205,17 @@
             "id"
           ]
         },
+        "indices": [
+          {
+            "name": "index_folder_parentFolderId",
+            "unique": false,
+            "columnNames": [
+              "parentFolderId"
+            ],
+            "orders": [],
+            "createSql": "CREATE INDEX IF NOT EXISTS `index_folder_parentFolderId` ON `${TABLE_NAME}` (`parentFolderId`)"
+          }
+        ],
         "foreignKeys": [
           {
             "table": "folder",
@@ -261,6 +283,17 @@
             "id"
           ]
         },
+        "indices": [
+          {
+            "name": "index_question_solveLogId",
+            "unique": false,
+            "columnNames": [
+              "solveLogId"
+            ],
+            "orders": [],
+            "createSql": "CREATE INDEX IF NOT EXISTS `index_question_solveLogId` ON `${TABLE_NAME}` (`solveLogId`)"
+          }
+        ],
         "foreignKeys": [
           {
             "table": "solve_log",
@@ -278,7 +311,7 @@
     ],
     "setupQueries": [
       "CREATE TABLE IF NOT EXISTS room_master_table (id INTEGER PRIMARY KEY,identity_hash TEXT)",
-      "INSERT OR REPLACE INTO room_master_table (id,identity_hash) VALUES(42, '83f03b9060e87a3d0a4e81e4bb05af2b')"
+      "INSERT OR REPLACE INTO room_master_table (id,identity_hash) VALUES(42, '7ff892e37818c14f751d17709ae728e6')"
     ]
   }
 }

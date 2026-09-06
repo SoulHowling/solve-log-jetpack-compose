@@ -14,7 +14,7 @@ import org.robolectric.annotation.Config
 
 @RunWith(AndroidJUnit4::class)
 @Config(sdk = [36], qualifiers = "w1000dp-h2000dp")
-class SolveLogAddBottomSheetTest {
+class SolveLogRouteAddBottomSheetTest {
 
     @get:Rule
     val composeTestRule = createComposeRule()

@@ -5,6 +5,7 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.ui.test.assertIsDisplayed
 import androidx.compose.ui.test.junit4.v2.createComposeRule
 import androidx.compose.ui.test.onNodeWithText
+import androidx.compose.ui.test.performClick
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import androidx.test.platform.app.InstrumentationRegistry
 import com.soulhowling.solvelog_jetpackcompose.BuildConfig
@@ -31,7 +32,9 @@ class AboutThisAppScreenTest {
     fun aboutThisAppScreen_contentDisplayed() {
         composeTestRule.setContent {
             SolveLogJetpackComposeTheme {
-                AboutThisAppContent()
+                AboutThisAppContent(
+                    onNavigateToHelp = {}
+                )
             }
         }
 
@@ -60,7 +63,9 @@ class AboutThisAppScreenTest {
         composeTestRule.setContent {
             CompositionLocalProvider(LocalAppBarController provides mockController) {
                 SolveLogJetpackComposeTheme {
-                    AboutThisAppContent()
+                    AboutThisAppContent(
+                        onNavigateToHelp = {}
+                    )
                 }
             }
         }
@@ -68,5 +73,21 @@ class AboutThisAppScreenTest {
         composeTestRule.waitForIdle()
 
         assertEquals(context.getString(R.string.setting_about_this_app), appBarTitle.value)
+    }
+
+    @Test
+    fun aboutThisAppScreen_helpButtonClick_triggersCallback() {
+        var helpClicked = false
+        composeTestRule.setContent {
+            SolveLogJetpackComposeTheme {
+                AboutThisAppContent(
+                    onNavigateToHelp = { helpClicked = true }
+                )
+            }
+        }
+
+        composeTestRule.onNodeWithText(context.getString(R.string.about_this_app_help_button)).performClick()
+
+        assert(helpClicked)
     }
 }

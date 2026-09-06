@@ -133,6 +133,14 @@
     <string name="about_this_app_help_button">ヘルプ</string>
     <string name="about_this_app_version">Version %1$s</string>
 
+    <!-- Help -->
+    <string name="help_section_logging_title">ログの記録</string>
+    <string name="help_section_logging_content">フォルダやログを作成して、学習の進捗を記録できます。ログ閲覧画面では、回答を入力して試行ごとの正答率を確認できます。</string>
+    <string name="help_section_measurement_title">計測機能</string>
+    <string name="help_section_measurement_content">ストップウォッチで学習時間を計測したり、リピートタイマーを使ってインターバル形式（作業と休憩のセット）での学習が可能です。</string>
+    <string name="help_section_settings_title">設定</string>
+    <string name="help_section_settings_content">アプリのテーマ変更や、すべてのデータの消去を設定メニューから行えます。</string>
+
     <!-- Wipe data -->
     <string name="wipe_data_title">データ消去</string>
     <string name="wipe_data_all">すべてのデータを消去</string>
