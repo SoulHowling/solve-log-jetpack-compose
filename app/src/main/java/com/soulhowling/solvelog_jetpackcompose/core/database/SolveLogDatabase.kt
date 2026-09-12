@@ -67,6 +67,9 @@ abstract class SolveLogDatabase : RoomDatabase() {
             override fun migrate(db: SupportSQLiteDatabase) {
                 db.execSQL("ALTER TABLE ${DBKeys.TABLE_SOLVE_LOG} ADD COLUMN ${DBKeys.KEY_PRIORITY} INTEGER NOT NULL DEFAULT 0")
                 db.execSQL("ALTER TABLE ${DBKeys.TABLE_FOLDER} ADD COLUMN ${DBKeys.KEY_PRIORITY} INTEGER NOT NULL DEFAULT 0")
+                db.execSQL("CREATE INDEX IF NOT EXISTS index_solve_log_folderId ON ${DBKeys.TABLE_SOLVE_LOG}(${DBKeys.KEY_FOLDER_ID})")
+                db.execSQL("CREATE INDEX IF NOT EXISTS index_folder_parentFolderId ON ${DBKeys.TABLE_FOLDER}(${DBKeys.KEY_PARENT_FOLDER_ID})")
+                db.execSQL("CREATE INDEX IF NOT EXISTS index_question_solveLogId ON ${DBKeys.TABLE_QUESTION}(${DBKeys.KEY_SOLVE_LOG_ID})")
             }
         }
 
