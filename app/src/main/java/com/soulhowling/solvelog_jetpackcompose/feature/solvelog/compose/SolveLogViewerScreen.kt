@@ -408,11 +408,11 @@ fun SolveLogViewerScreenContent(
                                 SolveLogItemCell(
                                     selectedAnswer = question?.let {
                                         if (answerFormat == AnswerFormat.FREE_RESPONSE) {
-                                            if (it.freeAnswerContent.isNullOrEmpty()) "-" else it.freeAnswerContent
+                                            if (it.freeAnswerContent.isNullOrEmpty()) stringResource(SelectionType.unselectedResId) else it.freeAnswerContent
                                         } else {
                                             selectionType.getAnswerString(it.selectedAnswer)
                                         }
-                                    } ?: "-",
+                                    } ?: stringResource(SelectionType.unselectedResId),
                                     answerFormat = answerFormat,
                                     correctness = question?.correctness ?: Correctness.NONE.index,
                                     isChecked = question?.isFlag ?: false,
