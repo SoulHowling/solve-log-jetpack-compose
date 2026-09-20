@@ -26,6 +26,7 @@ data class SolveLog(
     val id: Int = 0,
     val name: String,
     val questionQuantity: Int,
+    val answerFormat: Int,
     val selectionType: Int,
     val selectionQuantity: Int,
     val attemptCount: Int,

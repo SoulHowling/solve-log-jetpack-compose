@@ -6,12 +6,11 @@ import kotlinx.coroutines.flow.Flow
 
 class QuestionRepository(private val questionDao: QuestionDao) {
 
-    val allQuestions: Flow<List<Question>> = questionDao.getAllQuestions()
-
     fun createQuestion(
         attempt: Int,
         selectedAnswer: Int,
         questionIndex: Int,
+        freeAnswerContent: String?,
         correctness: Int,
         isFlag: Boolean,
         solveLogId: Int
@@ -20,6 +19,7 @@ class QuestionRepository(private val questionDao: QuestionDao) {
             id = 0,
             attempt = attempt,
             questionIndex = questionIndex,
+            freeAnswerContent = freeAnswerContent,
             selectedAnswer = selectedAnswer,
             correctness = correctness,
             isFlag = isFlag,
@@ -49,10 +49,6 @@ class QuestionRepository(private val questionDao: QuestionDao) {
 
     suspend fun upsertQuestion(question: Question) {
         questionDao.upsert(question)
-    }
-
-    suspend fun deleteQuestion(question: Question) {
-        questionDao.delete(question)
     }
 
     suspend fun deleteQuestions(questions: List<Question>) {

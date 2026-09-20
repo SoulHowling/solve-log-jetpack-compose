@@ -91,6 +91,7 @@ import com.soulhowling.solvelog_jetpackcompose.R
 import com.soulhowling.solvelog_jetpackcompose.core.CustomAppBarEffect
 import com.soulhowling.solvelog_jetpackcompose.core.LocalAppBarController
 import com.soulhowling.solvelog_jetpackcompose.core.LocalBottomBarVisibility
+import com.soulhowling.solvelog_jetpackcompose.feature.solvelog.AnswerFormat
 import com.soulhowling.solvelog_jetpackcompose.feature.solvelog.SelectionQuantity
 import com.soulhowling.solvelog_jetpackcompose.feature.solvelog.SelectionType
 import com.soulhowling.solvelog_jetpackcompose.feature.solvelog.ViewType
@@ -274,8 +275,8 @@ fun SolveLogListScreen(
         onNavigateToViewer = onNavigateToViewer,
         onSelectFolder = { viewModel.selectFolder(it) },
         onNavigateBack = { viewModel.navigateBack() },
-        onAddSolveLog = { name, quantity, selectionType, selectionQuantity ->
-            viewModel.insertSolveLog(name, quantity, selectionType, selectionQuantity)
+        onAddSolveLog = { name, quantity, answerFormat, selectionType, selectionQuantity ->
+            viewModel.insertSolveLog(name, quantity, answerFormat, selectionType, selectionQuantity)
         },
         onAddFolder = { viewModel.insertFolder(it) },
         onDeleteSolveLog = {
@@ -310,8 +311,8 @@ fun SolveLogListScreen(
                 Toast.LENGTH_SHORT
             ).show()
         },
-        onUpdateSolveLog = { log, name, quantity, selectionType, selectionQuantity ->
-            viewModel.updateSolveLog(log, name, quantity, selectionType, selectionQuantity)
+        onUpdateSolveLog = { log, name, quantity, answerFormat, selectionType, selectionQuantity ->
+            viewModel.updateSolveLog(log, name, quantity, answerFormat, selectionType, selectionQuantity)
         },
         onUpdateFolder = { folder, name ->
             viewModel.updateFolder(folder, name)
@@ -338,13 +339,13 @@ internal fun SolveLogListScreenContent(
     onNavigateToViewer: (Int) -> Unit,
     onSelectFolder: (Int?) -> Unit,
     onNavigateBack: () -> Unit,
-    onAddSolveLog: (String, Int, SelectionType, SelectionQuantity) -> Unit,
+    onAddSolveLog: (String, Int, AnswerFormat, SelectionType, SelectionQuantity) -> Unit,
     onAddFolder: (String) -> Unit,
     onDeleteSolveLog: (SolveLog) -> Unit,
     onDeleteFolder: (Folder) -> Unit,
     onMoveSolveLog: (SolveLog, Int?) -> Unit,
     onMoveFolder: (Folder, Int?) -> Unit,
-    onUpdateSolveLog: (SolveLog, String, Int, SelectionType, SelectionQuantity) -> Unit,
+    onUpdateSolveLog: (SolveLog, String, Int, AnswerFormat, SelectionType, SelectionQuantity) -> Unit,
     onUpdateFolder: (Folder, String) -> Unit,
     onExportLog: (SolveLog) -> Unit,
     onExportFolder: (Folder) -> Unit,
@@ -648,6 +649,7 @@ internal fun SolveLogListScreenContent(
                                         title = item.log.name,
                                         questionQuantity = item.log.questionQuantity,
                                         attemptCount = item.log.attemptCount,
+                                        answerFormat = item.log.answerFormat,
                                         selectionTypeIndex = item.log.selectionType,
                                         selectionQuantityIndex = item.log.selectionQuantity,
                                         onClick = { onNavigateToViewer(item.log.id) },
@@ -772,8 +774,8 @@ internal fun SolveLogListScreenContent(
         if (isShownBottomSheet) {
             SolveLogAddBottomSheet(
                 onDismiss = { isShownBottomSheet = false },
-                onConfirm = { name, quantity, selectionType, selectionQuantity ->
-                    onAddSolveLog(name, quantity, selectionType, selectionQuantity)
+                onConfirm = { name, quantity, answerFormat, selectionType, selectionQuantity ->
+                    onAddSolveLog(name, quantity, answerFormat, selectionType, selectionQuantity)
                 }
             )
         }
@@ -782,12 +784,13 @@ internal fun SolveLogListScreenContent(
             SolveLogAddBottomSheet(
                 initialName = log.name,
                 initialQuestionQuantity = log.questionQuantity,
+                initialAnswerFormat = AnswerFormat.entries.find { it.index == log.answerFormat } ?: AnswerFormat.MULTIPLE_CHOICE,
                 initialSelectionType = SelectionType.entries.getOrElse(log.selectionType) { SelectionType.NUMBER },
                 initialSelectionQuantity = SelectionQuantity.entries.getOrElse(log.selectionQuantity) { SelectionQuantity.FOUR },
                 titleResId = R.string.log_list_edit_log_title,
                 onDismiss = { editingLog = null },
-                onConfirm = { name, quantity, selectionType, selectionQuantity ->
-                    onUpdateSolveLog(log, name, quantity, selectionType, selectionQuantity)
+                onConfirm = { name, quantity, answerFormat, selectionType, selectionQuantity ->
+                    onUpdateSolveLog(log, name, quantity, answerFormat, selectionType, selectionQuantity)
                     editingLog = null
                 }
             )
@@ -877,6 +880,7 @@ private fun SolveLogItemCard(
     title: String,
     questionQuantity: Int,
     attemptCount: Int,
+    answerFormat: Int,
     selectionTypeIndex: Int,
     selectionQuantityIndex: Int,
     onClick: () -> Unit,
@@ -888,8 +892,19 @@ private fun SolveLogItemCard(
     modifier: Modifier = Modifier,
     dragHandle: @Composable (Modifier) -> Unit = {},
 ) {
+    val answerFormat = AnswerFormat.from(answerFormat)
     val selectionType = SelectionType.from(selectionTypeIndex)
     val selectionQuantity = SelectionQuantity.from(selectionQuantityIndex)
+    val categoryText = when (answerFormat) {
+        AnswerFormat.FREE_RESPONSE -> stringResource(
+            R.string.log_list_description_free_response
+        )
+        AnswerFormat.MULTIPLE_CHOICE -> stringResource(
+            R.string.log_list_description_selection,
+            selectionType.displayString,
+            selectionQuantity.displayString
+        )
+    }
 
     Card(
         modifier = modifier
@@ -940,11 +955,7 @@ private fun SolveLogItemCard(
                 )
                 InfoBadge(
                     icon = Icons.Default.Category,
-                    text = stringResource(
-                        R.string.log_list_description_selection,
-                        selectionType.displayString,
-                        selectionQuantity.displayString
-                    )
+                    text = categoryText
                 )
             }
             if (isSortMode) {
@@ -1283,6 +1294,7 @@ private fun SolveLogListScreenContentPreview() {
             id = index,
             name = "テスト#$index",
             questionQuantity = 30,
+            answerFormat = AnswerFormat.MULTIPLE_CHOICE.index,
             selectionType = SelectionType.ALPHABET.index,
             selectionQuantity = SelectionQuantity.FOUR.index,
             attemptCount = 1,
@@ -1302,13 +1314,13 @@ private fun SolveLogListScreenContentPreview() {
             onNavigateToViewer = {},
             onSelectFolder = {},
             onNavigateBack = {},
-            onAddSolveLog = { _, _, _, _ -> },
+            onAddSolveLog = { _, _, _, _, _ -> },
             onAddFolder = {},
             onDeleteSolveLog = {},
             onDeleteFolder = {},
             onMoveSolveLog = { _, _ -> },
             onMoveFolder = { _, _ -> },
-            onUpdateSolveLog = { _, _, _, _, _ -> },
+            onUpdateSolveLog = { _, _, _, _, _, _ -> },
             onUpdateFolder = { _, _ -> },
             onExportLog = {},
             onExportFolder = {},
@@ -1324,6 +1336,7 @@ private fun SolveLogListItemPreview() {
         id = 1,
         name = "サンプルログ",
         questionQuantity = 30,
+        answerFormat = AnswerFormat.MULTIPLE_CHOICE.index,
         selectionType = SelectionType.NUMBER.index,
         selectionQuantity = SelectionQuantity.FOUR.index,
         attemptCount = 5,

@@ -26,6 +26,7 @@ data class Question(
     val id: Int = 0,
     val attempt: Int,
     val questionIndex: Int,
+    val freeAnswerContent: String?,
     val selectedAnswer: Int = -1,
     val correctness: Int = Correctness.NONE.index,
     val isFlag: Boolean = false,

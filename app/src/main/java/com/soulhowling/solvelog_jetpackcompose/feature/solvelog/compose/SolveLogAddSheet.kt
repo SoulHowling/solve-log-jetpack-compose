@@ -27,6 +27,7 @@ import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import com.soulhowling.solvelog_jetpackcompose.R
+import com.soulhowling.solvelog_jetpackcompose.feature.solvelog.AnswerFormat
 import com.soulhowling.solvelog_jetpackcompose.feature.solvelog.SelectionQuantity
 import com.soulhowling.solvelog_jetpackcompose.feature.solvelog.SelectionType
 import com.soulhowling.solvelog_jetpackcompose.ui.theme.Dimensions
@@ -38,6 +39,7 @@ object SolveLogAddBottomSheetTestTags {
     const val QUANTITY_FIELD = "solve_log_add_quantity_field"
     const val CONFIRM_BUTTON = "solve_log_add_confirm_button"
     const val TYPE_SELECTOR = "solve_log_add_type_selector"
+    const val ANSWER_FORMAT_SELECTOR = "solve_log_add_answer_format_selector"
     const val SELECTION_QUANTITY_SELECTOR = "solve_log_add_selection_quantity_selector"
 }
 
@@ -46,11 +48,12 @@ object SolveLogAddBottomSheetTestTags {
 fun SolveLogAddBottomSheet(
     initialName: String = "",
     initialQuestionQuantity: Int? = null,
+    initialAnswerFormat: AnswerFormat = AnswerFormat.MULTIPLE_CHOICE,
     initialSelectionType: SelectionType = SelectionType.NUMBER,
     initialSelectionQuantity: SelectionQuantity = SelectionQuantity.FOUR,
     titleResId: Int = R.string.log_list_add_new_log_title,
     onDismiss: () -> Unit,
-    onConfirm: (String, Int, SelectionType, SelectionQuantity) -> Unit
+    onConfirm: (String, Int, AnswerFormat, SelectionType, SelectionQuantity) -> Unit
 ) {
     val bottomSheetState = rememberModalBottomSheetState(
         skipPartiallyExpanded = true
@@ -63,6 +66,7 @@ fun SolveLogAddBottomSheet(
         SolveLogAddContent(
             initialName = initialName,
             initialQuestionQuantity = initialQuestionQuantity,
+            initialAnswerFormat = initialAnswerFormat,
             initialSelectionType = initialSelectionType,
             initialSelectionQuantity = initialSelectionQuantity,
             titleResId = titleResId,
@@ -76,20 +80,25 @@ fun SolveLogAddBottomSheet(
 internal fun SolveLogAddContent(
     initialName: String = "",
     initialQuestionQuantity: Int? = null,
+    initialAnswerFormat: AnswerFormat = AnswerFormat.MULTIPLE_CHOICE,
     initialSelectionType: SelectionType = SelectionType.NUMBER,
     initialSelectionQuantity: SelectionQuantity = SelectionQuantity.FOUR,
     titleResId: Int = R.string.log_list_add_new_log_title,
     onDismiss: () -> Unit,
-    onConfirm: (String, Int, SelectionType, SelectionQuantity) -> Unit
+    onConfirm: (String, Int, AnswerFormat, SelectionType, SelectionQuantity) -> Unit
 ) {
     val listState = rememberLazyListState()
     val itemKindList = SelectionType.entries.map { it.displayString }
     val itemQuantityList = SelectionQuantity.entries.map { it.displayString }
 
+    val answerFormatList = AnswerFormat.entries.map { stringResource(it.displayStringId) }
+    var selectedAnswerFormat by rememberSaveable(initialAnswerFormat) { mutableStateOf(initialAnswerFormat) }
+
     var selectedKind by rememberSaveable(initialSelectionType) { mutableStateOf(initialSelectionType) }
     var selectedQuantity by rememberSaveable(initialSelectionQuantity) { mutableStateOf(initialSelectionQuantity) }
 
-    val isTrueFalseSelected = selectedKind == SelectionType.CORRECTNESS
+    val isSelectionTypeEnabled = selectedAnswerFormat == AnswerFormat.MULTIPLE_CHOICE
+    val isSelectionQuantityEnabled = selectedKind != SelectionType.CORRECTNESS
 
     val sectionSpace = Dimensions.SPACING_MEDIUM
 
@@ -155,6 +164,23 @@ internal fun SolveLogAddContent(
                 )
                 Spacer(modifier = Modifier.height(sectionSpace))
 
+                Text(
+                    text = stringResource(R.string.log_list_label_answer_format),
+                    style = MaterialTheme.typography.titleMedium
+                )
+
+                SingleChoiceSegmentedButton(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .testTag(SolveLogAddBottomSheetTestTags.ANSWER_FORMAT_SELECTOR),
+                    itemList = answerFormatList,
+                    selectedIndex = selectedAnswerFormat.index,
+                    onSelectedIndexChange = { selectedAnswerFormat = AnswerFormat.entries[it] },
+                    isEnabled = true
+                )
+
+                Spacer(modifier = Modifier.height(sectionSpace))
+
 
                 Text(
                     text = stringResource(R.string.log_list_label_selection_type),
@@ -167,7 +193,7 @@ internal fun SolveLogAddContent(
                     itemList = itemKindList,
                     selectedIndex = selectedKind.index,
                     onSelectedIndexChange = { selectedKind = SelectionType.entries[it] },
-                    isEnabled = true
+                    isEnabled = isSelectionTypeEnabled
                 )
                 Spacer(modifier = Modifier.height(sectionSpace))
 
@@ -181,9 +207,9 @@ internal fun SolveLogAddContent(
                         .fillMaxWidth()
                         .testTag(SolveLogAddBottomSheetTestTags.SELECTION_QUANTITY_SELECTOR),
                     itemList = itemQuantityList,
-                    selectedIndex = if (isTrueFalseSelected) SelectionQuantity.TWO.index else selectedQuantity.index,
+                    selectedIndex = if (isSelectionQuantityEnabled) selectedQuantity.index else SelectionQuantity.TWO.index,
                     onSelectedIndexChange = { selectedQuantity = SelectionQuantity.entries[it] },
-                    isEnabled = !isTrueFalseSelected
+                    isEnabled = isSelectionTypeEnabled && isSelectionQuantityEnabled
                 )
             }
         }
@@ -195,8 +221,9 @@ internal fun SolveLogAddContent(
                     onConfirm(
                         logTitle.trim(),
                         questionQuantity.toIntOrZero(),
+                        selectedAnswerFormat,
                         selectedKind,
-                        if (isTrueFalseSelected) SelectionQuantity.TWO else selectedQuantity
+                        if (isSelectionQuantityEnabled) selectedQuantity else SelectionQuantity.TWO
                     )
                     onDismiss()
                 },
@@ -240,7 +267,7 @@ private fun SolveLogAddContentPreview() {
     SolveLogJetpackComposeTheme {
         SolveLogAddContent(
             onDismiss = {},
-            onConfirm = { _, _, _, _ -> }
+            onConfirm = { _, _, _, _, _ -> }
         )
     }
 }

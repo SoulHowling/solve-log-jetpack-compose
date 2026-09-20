@@ -10,7 +10,7 @@ enum class SelectionType(val index: Int, val displayString: String) {
     ;
 
     fun getAnswerString(selectedAnswer: Int): String {
-        if (selectedAnswer == -1) return ""
+        if (selectedAnswer == -1) return "-"
         return when (this) {
             NUMBER -> (selectedAnswer + 1).toString()
             ALPHABET -> ('A' + selectedAnswer).toString()
@@ -25,7 +25,7 @@ enum class SelectionType(val index: Int, val displayString: String) {
         )
 
         fun getSelectionTypeStringList(index: Int, selectionQuantity: SelectionQuantity): List<String> {
-            return when (index) {
+            val list = when (index) {
                 NUMBER.index -> {
                     (1..selectionQuantity.toInt()).map { it.toString() }
                 }
@@ -43,6 +43,7 @@ enum class SelectionType(val index: Int, val displayString: String) {
                     emptyList()
                 }
             }
+            return listOf("-") + list
         }
 
         fun from(index: Int): SelectionType {

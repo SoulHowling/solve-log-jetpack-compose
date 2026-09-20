@@ -91,6 +91,7 @@ class SolveLogEditorViewModel(
     )
 
     fun updateQuestion(
+        freeAnswerContent: String?,
         selectedAnswer: Int,
         questionIndex: Int,
         correctness: Correctness,
@@ -98,6 +99,7 @@ class SolveLogEditorViewModel(
     ) {
         viewModelScope.launch {
             upsertQuestion(
+                freeAnswerContent = freeAnswerContent,
                 selectedAnswer = selectedAnswer,
                 questionIndex = questionIndex,
                 correctness = correctness,
@@ -107,6 +109,7 @@ class SolveLogEditorViewModel(
     }
 
     private suspend fun upsertQuestion(
+        freeAnswerContent: String?,
         selectedAnswer: Int = -1,
         questionIndex: Int,
         correctness: Correctness = Correctness.NONE,
@@ -117,6 +120,7 @@ class SolveLogEditorViewModel(
 
         val newQuestion = questionRepository.createQuestion(
             attempt = attempt,
+            freeAnswerContent = freeAnswerContent,
             selectedAnswer = selectedAnswer,
             questionIndex = questionIndex,
             correctness = correctness.index,

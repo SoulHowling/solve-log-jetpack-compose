@@ -1,5 +1,6 @@
 package com.soulhowling.solvelog_jetpackcompose.feature.solvelog.model.repository
 
+import com.soulhowling.solvelog_jetpackcompose.feature.solvelog.AnswerFormat
 import com.soulhowling.solvelog_jetpackcompose.feature.solvelog.SelectionQuantity
 import com.soulhowling.solvelog_jetpackcompose.feature.solvelog.SelectionType
 import com.soulhowling.solvelog_jetpackcompose.feature.solvelog.model.dao.SolveLogDao
@@ -13,6 +14,7 @@ class SolveLogRepository(private val solveLogDao: SolveLogDao) {
     fun createSolveLog(
         name: String,
         questionQuantity: Int,
+        answerFormat: AnswerFormat,
         selectionType: SelectionType,
         selectionQuantity: SelectionQuantity,
         folderId: Int?
@@ -22,6 +24,7 @@ class SolveLogRepository(private val solveLogDao: SolveLogDao) {
             id = 0,
             name = name,
             questionQuantity = questionQuantity,
+            answerFormat = answerFormat.index,
             selectionType = selectionType.index,
             selectionQuantity = selectionQuantity.index,
             attemptCount = 1,

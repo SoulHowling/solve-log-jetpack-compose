@@ -91,6 +91,7 @@ class SolveLogViewerViewModel(
                         attempt = nextAttempt,
                         selectedAnswer = -1,
                         questionIndex = index,
+                        freeAnswerContent = null,
                         correctness = Correctness.NONE.index,
                         isFlag = false,
                         solveLogId = solveLog.id
@@ -114,6 +115,7 @@ class SolveLogViewerViewModel(
                         attempt = attempt,
                         selectedAnswer = -1,
                         questionIndex = nextIndex,
+                        freeAnswerContent = null,
                         correctness = Correctness.NONE.index,
                         isFlag = false,
                         solveLogId = solveLog.id
