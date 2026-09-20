@@ -32,6 +32,7 @@ import androidx.compose.ui.input.nestedscroll.NestedScrollConnection
 import androidx.compose.ui.input.nestedscroll.NestedScrollSource
 import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.platform.testTag
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
@@ -39,6 +40,7 @@ import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
+import com.soulhowling.solvelog_jetpackcompose.R
 import com.soulhowling.solvelog_jetpackcompose.core.CustomAppBarEffect
 import com.soulhowling.solvelog_jetpackcompose.feature.solvelog.AnswerFormat
 import com.soulhowling.solvelog_jetpackcompose.feature.solvelog.Correctness
@@ -114,8 +116,9 @@ fun SolveLogEditorScreenContent(
     var isHeaderVisible by remember { mutableStateOf(true) }
     val questionsMap = remember(questions) { questions.associateBy { it.questionIndex } }
     val answerFormat = remember(solveLog.answerFormat) {
-        AnswerFormat.entries.find { it.index == solveLog.answerFormat } ?: AnswerFormat.MULTIPLE_CHOICE
+        AnswerFormat.from(solveLog.answerFormat)
     }
+    val unselectedSymbol = stringResource(R.string.log_viewer_unselected_answer)
 
     val nestedScrollConnection = remember {
         object : NestedScrollConnection {
@@ -166,11 +169,11 @@ fun SolveLogEditorScreenContent(
                     answerFormat = answerFormat,
                     initialAnswer = question?.let {
                         if (answerFormat == AnswerFormat.FREE_RESPONSE) {
-                            if (it.freeAnswerContent.isNullOrEmpty()) "-" else it.freeAnswerContent
+                            it.freeAnswerContent?.ifEmpty { unselectedSymbol } ?: unselectedSymbol
                         } else {
-                            selectionType.getAnswerString(it.selectedAnswer)
+                            selectionType.getAnswerString(it.selectedAnswer) ?: unselectedSymbol
                         }
-                    } ?: "-",
+                    } ?: unselectedSymbol,
                     initialFreeAnswerContent = question?.freeAnswerContent,
                     initialSelectedAnswer = question?.selectedAnswer ?: -1,
                     initialCorrectness = question?.let { Correctness.from(it.correctness) }
@@ -257,6 +260,7 @@ fun SolveLogEditorRowItem(
     correctnessArchives: List<Int> = emptyList(),
     hasCheckedFlag: Boolean = false,
 ) {
+    val unselectedSymbol = stringResource(SelectionType.unselectedResId)
     var isExpandedDropdown by rememberSaveable { mutableStateOf(false) }
     var isShowFreeAnswerInputDialog by rememberSaveable { mutableStateOf(false) }
 
@@ -278,7 +282,7 @@ fun SolveLogEditorRowItem(
             content = freeAnswerContent ?: "",
             onConfirm = {
                 freeAnswerContent = it
-                selectedAnswer = if (it.isEmpty()) "-" else it
+                selectedAnswer = it.ifEmpty { unselectedSymbol }
                 isShowFreeAnswerInputDialog = false
                 onUpdate(
                     it,
@@ -344,7 +348,7 @@ fun SolveLogEditorRowItem(
                                         .fillMaxSize()
                                         .padding(horizontal = 10.dp, vertical = 10.dp)
                                 ) {
-                                    if (answerFormat == AnswerFormat.FREE_RESPONSE && selectedAnswer != "-") {
+                                    if (answerFormat == AnswerFormat.FREE_RESPONSE && selectedAnswer != unselectedSymbol) {
                                         Icon(
                                             imageVector = Icons.Default.Description,
                                             contentDescription = null,

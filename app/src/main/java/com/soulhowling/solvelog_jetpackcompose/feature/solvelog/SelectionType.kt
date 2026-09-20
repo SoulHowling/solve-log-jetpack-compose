@@ -1,5 +1,7 @@
 package com.soulhowling.solvelog_jetpackcompose.feature.solvelog
 
+import androidx.annotation.StringRes
+import com.soulhowling.solvelog_jetpackcompose.R
 import com.soulhowling.solvelog_jetpackcompose.utils.LogUtils
 
 enum class SelectionType(val index: Int, val displayString: String) {
@@ -9,8 +11,8 @@ enum class SelectionType(val index: Int, val displayString: String) {
     CORRECTNESS(3, "◯ ×"),
     ;
 
-    fun getAnswerString(selectedAnswer: Int): String {
-        if (selectedAnswer == -1) return "-"
+    fun getAnswerString(selectedAnswer: Int): String? {
+        if (selectedAnswer == -1) return null
         return when (this) {
             NUMBER -> (selectedAnswer + 1).toString()
             ALPHABET -> ('A' + selectedAnswer).toString()
@@ -20,12 +22,15 @@ enum class SelectionType(val index: Int, val displayString: String) {
     }
 
     companion object {
+        @StringRes
+        val unselectedResId = R.string.log_viewer_unselected_answer
+
         private val kanaList: List<String> = listOf(
             "ア", "イ", "ウ", "エ", "オ"
         )
 
         fun getSelectionTypeStringList(index: Int, selectionQuantity: SelectionQuantity): List<String> {
-            val list = when (index) {
+            return when (index) {
                 NUMBER.index -> {
                     (1..selectionQuantity.toInt()).map { it.toString() }
                 }
@@ -43,7 +48,6 @@ enum class SelectionType(val index: Int, val displayString: String) {
                     emptyList()
                 }
             }
-            return listOf("-") + list
         }
 
         fun from(index: Int): SelectionType {

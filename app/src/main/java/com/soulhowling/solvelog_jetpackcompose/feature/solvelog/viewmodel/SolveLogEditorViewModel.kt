@@ -4,6 +4,7 @@ import android.app.Application
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.viewModelScope
+import com.soulhowling.solvelog_jetpackcompose.R
 import com.soulhowling.solvelog_jetpackcompose.core.Screens
 import com.soulhowling.solvelog_jetpackcompose.core.SolveLogApplication
 import com.soulhowling.solvelog_jetpackcompose.feature.solvelog.Correctness
@@ -57,8 +58,11 @@ class SolveLogEditorViewModel(
     ) { solveLog, currentQuestions, allQuestions ->
         if (solveLog != null) {
             val selectionQuantity = SelectionQuantity.from(solveLog.selectionQuantity)
-            val choices =
-                SelectionType.getSelectionTypeStringList(solveLog.selectionType, selectionQuantity)
+            val unselectedSymbol = getApplication<Application>().getString(SelectionType.unselectedResId)
+            val choices = listOf(unselectedSymbol) + SelectionType.getSelectionTypeStringList(
+                solveLog.selectionType,
+                selectionQuantity
+            )
 
             val pastQuestionsByIndex = allQuestions
                 .filter { it.attempt < attempt }

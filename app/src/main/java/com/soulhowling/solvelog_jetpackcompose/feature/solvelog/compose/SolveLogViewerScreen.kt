@@ -753,7 +753,7 @@ fun SolveLogRowItem(
 ) {
     val correctnessType = Correctness.entries.getOrNull(correctness) ?: Correctness.NONE
     val isError = correctnessType == Correctness.INCORRECT
-    val unselectedString = stringResource(R.string.log_viewer_unselected_answer)
+    val unselectedString = stringResource(SelectionType.unselectedResId)
     val isUnselected = selectedAnswer == unselectedString || selectedAnswer.isEmpty()
 
     Row(
