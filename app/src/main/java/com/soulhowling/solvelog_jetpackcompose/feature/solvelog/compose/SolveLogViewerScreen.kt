@@ -386,10 +386,6 @@ fun SolveLogViewerScreenContent(
                     val questionsForThisNumber = questions[qIndex] ?: emptyList()
                     val selectionType =
                         SelectionType.entries.getOrElse(solveLog.selectionType) { SelectionType.ALPHABET }
-                    val answerFormat = remember(solveLog.answerFormat) {
-                        AnswerFormat.entries.find { it.index == solveLog.answerFormat }
-                            ?: AnswerFormat.MULTIPLE_CHOICE
-                    }
 
                     Box(
                         modifier = Modifier.padding(start = 0.dp, end = 8.dp)

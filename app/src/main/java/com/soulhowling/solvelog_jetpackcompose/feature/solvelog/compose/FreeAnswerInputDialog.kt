@@ -9,7 +9,6 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
@@ -37,7 +36,7 @@ fun FreeAnswerInputDialog(
     onConfirm: (String) -> Unit,
     onDismiss: () -> Unit,
 ) {
-    var content by rememberSaveable(content) { mutableStateOf(content) }
+    var inputText by rememberSaveable(content) { mutableStateOf(content) }
     AlertDialog(
         onDismissRequest = onDismiss,
         properties = DialogProperties(
@@ -46,16 +45,16 @@ fun FreeAnswerInputDialog(
         title = { Text(text = title) },
         text = {
             FreeAnswerContent(
-                content = content,
+                content = inputText,
                 onValueChanged = {
-                    content = it
+                    inputText = it
                 }
             )
         },
         confirmButton = {
             TextButton(
                 onClick = {
-                    onConfirm(content)
+                    onConfirm(inputText)
                 },
                 modifier = Modifier.testTag(FreeAnswerInputDialogTestTags.CONFIRM_BUTTON)
             ) {
@@ -82,7 +81,6 @@ fun FreeAnswerContent(
     content: String,
     onValueChanged: (String) -> Unit,
 ) {
-    var textCount by rememberSaveable { mutableIntStateOf(content.length) }
     Column(
         verticalArrangement = Arrangement.spacedBy(Dimensions.SPACING_SMALL_MEDIUM),
         horizontalAlignment = Alignment.Start
@@ -92,14 +90,13 @@ fun FreeAnswerContent(
             value = content,
             onValueChange = {
                 onValueChanged(it)
-                textCount = it.length
             },
             modifier = Modifier
                 .fillMaxWidth()
                 .testTag(FreeAnswerInputDialogTestTags.TEXT_FIELD),
         )
         Text(
-            text = stringResource(R.string.log_free_answer_dialog_input_text_count, textCount),
+            text = stringResource(R.string.log_free_answer_dialog_input_text_count, content.length),
             textAlign = TextAlign.End,
             modifier = Modifier.fillMaxWidth()
         )
