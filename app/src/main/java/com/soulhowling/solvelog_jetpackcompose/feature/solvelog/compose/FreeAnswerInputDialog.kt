@@ -82,7 +82,7 @@ fun FreeAnswerContent(
     content: String,
     onValueChanged: (String) -> Unit,
 ) {
-    var textCount by rememberSaveable { mutableIntStateOf(0) }
+    var textCount by rememberSaveable { mutableIntStateOf(content.length) }
     Column(
         verticalArrangement = Arrangement.spacedBy(Dimensions.SPACING_SMALL_MEDIUM),
         horizontalAlignment = Alignment.Start
