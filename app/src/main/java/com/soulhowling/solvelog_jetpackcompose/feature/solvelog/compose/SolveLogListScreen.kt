@@ -784,7 +784,7 @@ internal fun SolveLogListScreenContent(
             SolveLogAddBottomSheet(
                 initialName = log.name,
                 initialQuestionQuantity = log.questionQuantity,
-                initialAnswerFormat = AnswerFormat.entries.find { it.index == log.answerFormat } ?: AnswerFormat.MULTIPLE_CHOICE,
+                initialAnswerFormat = AnswerFormat.from(log.answerFormat),
                 initialSelectionType = SelectionType.entries.getOrElse(log.selectionType) { SelectionType.NUMBER },
                 initialSelectionQuantity = SelectionQuantity.entries.getOrElse(log.selectionQuantity) { SelectionQuantity.FOUR },
                 titleResId = R.string.log_list_edit_log_title,
