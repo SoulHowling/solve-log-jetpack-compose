@@ -3,6 +3,7 @@ package com.soulhowling.solvelog_jetpackcompose.feature.solvelog.compose
 import androidx.compose.ui.test.*
 import androidx.compose.ui.test.junit4.v2.createComposeRule
 import androidx.test.ext.junit.runners.AndroidJUnit4
+import com.soulhowling.solvelog_jetpackcompose.feature.solvelog.AnswerFormat
 import com.soulhowling.solvelog_jetpackcompose.feature.solvelog.SelectionQuantity
 import com.soulhowling.solvelog_jetpackcompose.feature.solvelog.SelectionType
 import com.soulhowling.solvelog_jetpackcompose.ui.theme.SolveLogJetpackComposeTheme
@@ -23,6 +24,7 @@ class SolveLogRouteAddBottomSheetTest {
     fun `SolveLogAddContent should trigger onConfirm with correct values`() {
         var confirmedName: String? = null
         var confirmedQuantity: Int? = null
+        var confirmedAnswerFormat: AnswerFormat? = null
         var confirmedType: SelectionType? = null
         var confirmedSelQuantity: SelectionQuantity? = null
 
@@ -30,9 +32,10 @@ class SolveLogRouteAddBottomSheetTest {
             SolveLogJetpackComposeTheme {
                 SolveLogAddContent(
                     onDismiss = {},
-                    onConfirm = { name, qty, type, selQty ->
+                    onConfirm = { name, qty, format, type, selQty ->
                         confirmedName = name
                         confirmedQuantity = qty
+                        confirmedAnswerFormat = format
                         confirmedType = type
                         confirmedSelQuantity = selQty
                     }
@@ -57,6 +60,7 @@ class SolveLogRouteAddBottomSheetTest {
 
         assertEquals("New Log", confirmedName)
         assertEquals(50, confirmedQuantity)
+        assertEquals(AnswerFormat.MULTIPLE_CHOICE, confirmedAnswerFormat)
         assertEquals(SelectionType.ALPHABET, confirmedType)
         assertEquals(SelectionQuantity.FIVE, confirmedSelQuantity)
     }
@@ -67,7 +71,7 @@ class SolveLogRouteAddBottomSheetTest {
             SolveLogJetpackComposeTheme {
                 SolveLogAddContent(
                     onDismiss = {},
-                    onConfirm = { _, _, _, _ -> }
+                    onConfirm = { _, _, _, _, _ -> }
                 )
             }
         }
@@ -99,7 +103,7 @@ class SolveLogRouteAddBottomSheetTest {
             SolveLogJetpackComposeTheme {
                 SolveLogAddContent(
                     onDismiss = {},
-                    onConfirm = { _, _, _, selQty -> confirmedSelQuantity = selQty }
+                    onConfirm = { _, _, _, _, selQty -> confirmedSelQuantity = selQty }
                 )
             }
         }

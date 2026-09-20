@@ -7,6 +7,7 @@ import androidx.test.ext.junit.runners.AndroidJUnit4
 import com.soulhowling.solvelog_jetpackcompose.core.Screens
 import com.soulhowling.solvelog_jetpackcompose.core.SolveLogApplication
 import com.soulhowling.solvelog_jetpackcompose.core.database.SolveLogDatabase
+import com.soulhowling.solvelog_jetpackcompose.feature.solvelog.AnswerFormat
 import com.soulhowling.solvelog_jetpackcompose.feature.solvelog.Correctness
 import com.soulhowling.solvelog_jetpackcompose.feature.solvelog.SelectionQuantity
 import com.soulhowling.solvelog_jetpackcompose.feature.solvelog.SelectionType
@@ -97,6 +98,7 @@ class SolveLogRouteEditorViewModelTest {
             id = solveLogId,
             name = "Test Log",
             questionQuantity = 10,
+            answerFormat = AnswerFormat.MULTIPLE_CHOICE.index,
             selectionType = SelectionType.ALPHABET.index,
             selectionQuantity = SelectionQuantity.FOUR.index,
             attemptCount = 2,
@@ -109,6 +111,7 @@ class SolveLogRouteEditorViewModelTest {
         val question = Question(
             attempt = attempt,
             questionIndex = 0,
+            freeAnswerContent = null,
             selectedAnswer = 0,
             correctness = Correctness.CORRECT.index,
             isFlag = true,
@@ -124,7 +127,7 @@ class SolveLogRouteEditorViewModelTest {
         assertEquals("Test Log", successState.solveLog.name)
         assertEquals(1, successState.questions.size)
         assertEquals(attempt, successState.attempt)
-        assertEquals(listOf("A", "B", "C", "D"), successState.selectionTypeStringList)
+        assertEquals(listOf("-", "A", "B", "C", "D"), successState.selectionTypeStringList)
     }
 
     @Test
@@ -142,6 +145,7 @@ class SolveLogRouteEditorViewModelTest {
             id = solveLogId,
             name = "Test Log",
             questionQuantity = 5,
+            answerFormat = AnswerFormat.MULTIPLE_CHOICE.index,
             selectionType = SelectionType.NUMBER.index,
             selectionQuantity = SelectionQuantity.FIVE.index,
             attemptCount = 1,
@@ -158,6 +162,7 @@ class SolveLogRouteEditorViewModelTest {
 
         // Update question
         viewModel.updateQuestion(
+            freeAnswerContent = null,
             selectedAnswer = 2,
             questionIndex = 0,
             correctness = Correctness.CORRECT,
@@ -179,6 +184,7 @@ class SolveLogRouteEditorViewModelTest {
             id = solveLogId,
             name = "Test Log",
             questionQuantity = 5,
+            answerFormat = AnswerFormat.MULTIPLE_CHOICE.index,
             selectionType = SelectionType.NUMBER.index,
             selectionQuantity = SelectionQuantity.FIVE.index,
             attemptCount = 3,
@@ -190,13 +196,13 @@ class SolveLogRouteEditorViewModelTest {
 
         // Attempt 1: Question 0 is Correct, Question 1 is Incorrect
         questionRepository.insertQuestions(listOf(
-            Question(attempt = 1, questionIndex = 0, correctness = Correctness.CORRECT.index, solveLogId = solveLogId),
-            Question(attempt = 1, questionIndex = 1, correctness = Correctness.INCORRECT.index, solveLogId = solveLogId, isFlag = true)
+            Question(attempt = 1, questionIndex = 0, freeAnswerContent = null, correctness = Correctness.CORRECT.index, solveLogId = solveLogId),
+            Question(attempt = 1, questionIndex = 1, freeAnswerContent = null, correctness = Correctness.INCORRECT.index, solveLogId = solveLogId, isFlag = true)
         ))
 
         // Attempt 2: Question 0 is Incorrect
         questionRepository.insertQuestions(listOf(
-            Question(attempt = 2, questionIndex = 0, correctness = Correctness.INCORRECT.index, solveLogId = solveLogId)
+            Question(attempt = 2, questionIndex = 0, freeAnswerContent = null, correctness = Correctness.INCORRECT.index, solveLogId = solveLogId)
         ))
 
         // Current Attempt is 3

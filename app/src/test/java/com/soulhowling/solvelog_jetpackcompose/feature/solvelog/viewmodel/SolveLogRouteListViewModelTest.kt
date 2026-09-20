@@ -5,6 +5,7 @@ import androidx.test.core.app.ApplicationProvider
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import com.soulhowling.solvelog_jetpackcompose.core.SolveLogApplication
 import com.soulhowling.solvelog_jetpackcompose.core.database.SolveLogDatabase
+import com.soulhowling.solvelog_jetpackcompose.feature.solvelog.AnswerFormat
 import com.soulhowling.solvelog_jetpackcompose.feature.solvelog.SelectionQuantity
 import com.soulhowling.solvelog_jetpackcompose.feature.solvelog.SelectionType
 import com.soulhowling.solvelog_jetpackcompose.feature.solvelog.model.entity.SolveLog
@@ -88,7 +89,7 @@ class SolveLogRouteListViewModelTest {
     fun `insertSolveLog should add a log and create initial questions`() = runTest(testDispatcher) {
         backgroundScope.launch { viewModel.displayItems.collect {} }
 
-        viewModel.insertSolveLog("New Log", 10, SelectionType.NUMBER, SelectionQuantity.FOUR)
+        viewModel.insertSolveLog("New Log", 10, AnswerFormat.MULTIPLE_CHOICE, SelectionType.NUMBER, SelectionQuantity.FOUR)
         
         val items = viewModel.displayItems.first { it.isNotEmpty() }
         assertEquals(1, items.size)
@@ -112,7 +113,7 @@ class SolveLogRouteListViewModelTest {
         
         // Create log inside folder A
         viewModel.selectFolder(folderA.id)
-        viewModel.insertSolveLog("Log in A", 5, SelectionType.ALPHABET, SelectionQuantity.FOUR)
+        viewModel.insertSolveLog("Log in A", 5, AnswerFormat.MULTIPLE_CHOICE, SelectionType.ALPHABET, SelectionQuantity.FOUR)
         
         // Items in folder A should have 1 log
         val itemsInA = viewModel.displayItems.first { it.any { item -> item is SolveLogListItem.LogItem } }
@@ -130,7 +131,7 @@ class SolveLogRouteListViewModelTest {
     fun `deleteSolveLog should remove log from displayItems`() = runTest(testDispatcher) {
         backgroundScope.launch { viewModel.displayItems.collect {} }
 
-        viewModel.insertSolveLog("To Delete", 5, SelectionType.NUMBER, SelectionQuantity.FOUR)
+        viewModel.insertSolveLog("To Delete", 5, AnswerFormat.MULTIPLE_CHOICE, SelectionType.NUMBER, SelectionQuantity.FOUR)
         val log = (viewModel.displayItems.first { it.isNotEmpty() }[0] as SolveLogListItem.LogItem).log
         
         viewModel.deleteSolveLog(log)
@@ -143,11 +144,11 @@ class SolveLogRouteListViewModelTest {
     fun `updateSolveLog should modify log and adjust questions if quantity changed`() = runTest(testDispatcher) {
         backgroundScope.launch { viewModel.displayItems.collect {} }
 
-        viewModel.insertSolveLog("Original", 5, SelectionType.NUMBER, SelectionQuantity.FOUR)
+        viewModel.insertSolveLog("Original", 5, AnswerFormat.MULTIPLE_CHOICE, SelectionType.NUMBER, SelectionQuantity.FOUR)
         val log = (viewModel.displayItems.first { it.isNotEmpty() }[0] as SolveLogListItem.LogItem).log
         
         // Increase quantity from 5 to 8
-        viewModel.updateSolveLog(log, "Updated", 8, SelectionType.ALPHABET, SelectionQuantity.FIVE)
+        viewModel.updateSolveLog(log, "Updated", 8, AnswerFormat.MULTIPLE_CHOICE, SelectionType.ALPHABET, SelectionQuantity.FIVE)
         
         val updatedItems = viewModel.displayItems.first { 
             (it.getOrNull(0) as? SolveLogListItem.LogItem)?.log?.name == "Updated" 
@@ -164,7 +165,7 @@ class SolveLogRouteListViewModelTest {
         backgroundScope.launch { viewModel.displayItems.collect {} }
 
         viewModel.insertFolder("Target Folder")
-        viewModel.insertSolveLog("Log to Move", 5, SelectionType.NUMBER, SelectionQuantity.FOUR)
+        viewModel.insertSolveLog("Log to Move", 5, AnswerFormat.MULTIPLE_CHOICE, SelectionType.NUMBER, SelectionQuantity.FOUR)
         
         val items = viewModel.displayItems.first { it.size == 2 }
         val folder = (items.find { it is SolveLogListItem.FolderItem } as SolveLogListItem.FolderItem).folder

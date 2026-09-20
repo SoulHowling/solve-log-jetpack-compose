@@ -3,6 +3,7 @@ package com.soulhowling.solvelog_jetpackcompose.feature.solvelog.compose
 import androidx.compose.ui.test.*
 import androidx.compose.ui.test.junit4.v2.createComposeRule
 import androidx.test.ext.junit.runners.AndroidJUnit4
+import com.soulhowling.solvelog_jetpackcompose.feature.solvelog.AnswerFormat
 import com.soulhowling.solvelog_jetpackcompose.feature.solvelog.Correctness
 import com.soulhowling.solvelog_jetpackcompose.feature.solvelog.SelectionQuantity
 import com.soulhowling.solvelog_jetpackcompose.feature.solvelog.SelectionType
@@ -27,6 +28,7 @@ class SolveLogRouteEditorScreenTest {
         id = 1,
         name = "Test Solve Log",
         questionQuantity = 3,
+        answerFormat = AnswerFormat.MULTIPLE_CHOICE.index,
         selectionType = SelectionType.NUMBER.index,
         selectionQuantity = SelectionQuantity.FOUR.index,
         attemptCount = 1,
@@ -36,8 +38,8 @@ class SolveLogRouteEditorScreenTest {
     )
 
     private val sampleQuestions = listOf(
-        Question(id = 1, attempt = 1, questionIndex = 0, selectedAnswer = 0, correctness = Correctness.CORRECT.index, solveLogId = 1),
-        Question(id = 2, attempt = 1, questionIndex = 1, selectedAnswer = 1, correctness = Correctness.INCORRECT.index, solveLogId = 1)
+        Question(id = 1, attempt = 1, questionIndex = 0, freeAnswerContent = null, selectedAnswer = 0, correctness = Correctness.CORRECT.index, solveLogId = 1),
+        Question(id = 2, attempt = 1, questionIndex = 1, freeAnswerContent = null, selectedAnswer = 1, correctness = Correctness.INCORRECT.index, solveLogId = 1)
     )
 
     @Test
@@ -47,8 +49,8 @@ class SolveLogRouteEditorScreenTest {
                 SolveLogEditorScreenContent(
                     solveLog = sampleSolveLog,
                     questions = emptyList(),
-                    selectionTypeStringList = listOf("1", "2", "3", "4"),
-                    onUpdate = { _, _, _, _ -> }
+                    selectionTypeStringList = listOf("-", "1", "2", "3", "4"),
+                    onUpdate = { _, _, _, _, _ -> }
                 )
             }
         }
@@ -66,8 +68,8 @@ class SolveLogRouteEditorScreenTest {
                 SolveLogEditorScreenContent(
                     solveLog = sampleSolveLog,
                     questions = emptyList(),
-                    selectionTypeStringList = listOf("1", "2", "3", "4"),
-                    onUpdate = { _, _, _, _ -> }
+                    selectionTypeStringList = listOf("-", "1", "2", "3", "4"),
+                    onUpdate = { _, _, _, _, _ -> }
                 )
             }
         }
@@ -87,8 +89,8 @@ class SolveLogRouteEditorScreenTest {
                 SolveLogEditorScreenContent(
                     solveLog = sampleSolveLog,
                     questions = sampleQuestions,
-                    selectionTypeStringList = listOf("1", "2", "3", "4"),
-                    onUpdate = { _, _, correctness, _ ->
+                    selectionTypeStringList = listOf("-", "1", "2", "3", "4"),
+                    onUpdate = { _, _, _, correctness, _ ->
                         updatedCorrectness = correctness
                     }
                 )
@@ -113,8 +115,8 @@ class SolveLogRouteEditorScreenTest {
                 SolveLogEditorScreenContent(
                     solveLog = sampleSolveLog,
                     questions = sampleQuestions,
-                    selectionTypeStringList = listOf("1", "2", "3", "4"),
-                    onUpdate = { _, _, _, isFlag ->
+                    selectionTypeStringList = listOf("-", "1", "2", "3", "4"),
+                    onUpdate = { _, _, _, _, isFlag ->
                         updatedFlag = isFlag
                     }
                 )
@@ -130,7 +132,7 @@ class SolveLogRouteEditorScreenTest {
     @Test
     fun `Dropdown should show choices and trigger onUpdate when selected`() {
         var selectedAnswerIndex: Int? = null
-        val selectionList = listOf("Option A", "Option B", "Option C", "Option D")
+        val selectionList = listOf("-", "Option A", "Option B", "Option C", "Option D")
         
         composeTestRule.setContent {
             SolveLogJetpackComposeTheme {
@@ -138,7 +140,7 @@ class SolveLogRouteEditorScreenTest {
                     solveLog = sampleSolveLog,
                     questions = emptyList(),
                     selectionTypeStringList = selectionList,
-                    onUpdate = { answer, _, _, _ ->
+                    onUpdate = { _, answer, _, _, _ ->
                         selectedAnswerIndex = answer
                     }
                 )
@@ -151,7 +153,7 @@ class SolveLogRouteEditorScreenTest {
         // Select an option
         composeTestRule.onNodeWithText("Option C").performClick()
         
-        assertEquals(2, selectedAnswerIndex) // Index of "Option C"
+        assertEquals(2, selectedAnswerIndex) // Index of "Option C" - 1 (offset)
     }
 
     @Test
@@ -163,8 +165,8 @@ class SolveLogRouteEditorScreenTest {
                 SolveLogEditorScreenContent(
                     solveLog = sampleSolveLog,
                     questions = emptyList(),
-                    selectionTypeStringList = listOf("1", "2", "3", "4"),
-                    onUpdate = { _, _, _, _ -> },
+                    selectionTypeStringList = listOf("-", "1", "2", "3", "4"),
+                    onUpdate = { _, _, _, _, _ -> },
                     correctnessArchives = archives
                 )
             }

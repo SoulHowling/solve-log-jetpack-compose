@@ -5,6 +5,7 @@ import androidx.room.Room
 import androidx.test.core.app.ApplicationProvider
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import com.soulhowling.solvelog_jetpackcompose.core.database.SolveLogDatabase
+import com.soulhowling.solvelog_jetpackcompose.feature.solvelog.AnswerFormat
 import com.soulhowling.solvelog_jetpackcompose.feature.solvelog.model.entity.Question
 import kotlinx.coroutines.test.runTest
 import org.junit.After
@@ -38,6 +39,7 @@ class QuestionRepositoryTest {
                     id = 1,
                     name = "Dummy Log",
                     questionQuantity = 10,
+                    answerFormat = AnswerFormat.MULTIPLE_CHOICE.index,
                     selectionType = 0,
                     selectionQuantity = 4,
                     attemptCount = 1,
@@ -51,6 +53,7 @@ class QuestionRepositoryTest {
                     id = 2,
                     name = "Dummy Log 2",
                     questionQuantity = 10,
+                    answerFormat = AnswerFormat.MULTIPLE_CHOICE.index,
                     selectionType = 0,
                     selectionQuantity = 4,
                     attemptCount = 1,
@@ -64,6 +67,7 @@ class QuestionRepositoryTest {
                     id = 3,
                     name = "Dummy Log 3",
                     questionQuantity = 10,
+                    answerFormat = AnswerFormat.MULTIPLE_CHOICE.index,
                     selectionType = 0,
                     selectionQuantity = 4,
                     attemptCount = 1,
@@ -86,6 +90,7 @@ class QuestionRepositoryTest {
             attempt = 1,
             selectedAnswer = 2,
             questionIndex = 0,
+            freeAnswerContent = "Test",
             correctness = 1,
             isFlag = true,
             solveLogId = 100
@@ -94,6 +99,7 @@ class QuestionRepositoryTest {
         assertEquals(0, question.id)
         assertEquals(1, question.attempt)
         assertEquals(2, question.selectedAnswer)
+        assertEquals("Test", question.freeAnswerContent)
         assertEquals(100, question.solveLogId)
         assertTrue(question.isFlag)
     }
@@ -102,10 +108,10 @@ class QuestionRepositoryTest {
     fun `decrementQuestionIndices should shift indices down for questions after deleted index`() = runTest {
         val solveLogId = 1
         val questions = listOf(
-            Question(attempt = 1, questionIndex = 0, solveLogId = solveLogId),
-            Question(attempt = 1, questionIndex = 1, solveLogId = solveLogId),
-            Question(attempt = 1, questionIndex = 2, solveLogId = solveLogId),
-            Question(attempt = 2, questionIndex = 1, solveLogId = solveLogId) // Different attempt, same log
+            Question(attempt = 1, questionIndex = 0, freeAnswerContent = null, solveLogId = solveLogId),
+            Question(attempt = 1, questionIndex = 1, freeAnswerContent = null, solveLogId = solveLogId),
+            Question(attempt = 1, questionIndex = 2, freeAnswerContent = null, solveLogId = solveLogId),
+            Question(attempt = 2, questionIndex = 1, freeAnswerContent = null, solveLogId = solveLogId) // Different attempt, same log
         )
         repository.insertQuestions(questions)
         
@@ -131,9 +137,9 @@ class QuestionRepositoryTest {
     fun `decrementAttemptIndices should shift attempt numbers down`() = runTest {
         val solveLogId = 1
         val questions = listOf(
-            Question(attempt = 1, questionIndex = 0, solveLogId = solveLogId),
-            Question(attempt = 2, questionIndex = 0, solveLogId = solveLogId),
-            Question(attempt = 3, questionIndex = 0, solveLogId = solveLogId)
+            Question(attempt = 1, questionIndex = 0, freeAnswerContent = null, solveLogId = solveLogId),
+            Question(attempt = 2, questionIndex = 0, freeAnswerContent = null, solveLogId = solveLogId),
+            Question(attempt = 3, questionIndex = 0, freeAnswerContent = null, solveLogId = solveLogId)
         )
         repository.insertQuestions(questions)
         
@@ -152,9 +158,9 @@ class QuestionRepositoryTest {
     @Test
     fun `getQuestionsBySolveLogIds should return questions for multiple logs`() = runTest {
         repository.insertQuestions(listOf(
-            Question(attempt = 1, questionIndex = 0, solveLogId = 1),
-            Question(attempt = 1, questionIndex = 0, solveLogId = 2),
-            Question(attempt = 1, questionIndex = 0, solveLogId = 3)
+            Question(attempt = 1, questionIndex = 0, freeAnswerContent = null, solveLogId = 1),
+            Question(attempt = 1, questionIndex = 0, freeAnswerContent = null, solveLogId = 2),
+            Question(attempt = 1, questionIndex = 0, freeAnswerContent = null, solveLogId = 3)
         ))
         
         val result = repository.getQuestionsBySolveLogIds(listOf(1, 3))
