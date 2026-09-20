@@ -4,6 +4,7 @@
     <!-- Common -->
     <string name="common_dialog_ok_button">OK</string>
     <string name="common_dialog_add_button">追加</string>
+    <string name="common_dialog_save_button">保存</string>
     <string name="common_dialog_update_button">更新</string>
     <string name="common_dialog_cancel_button">キャンセル</string>
     <string name="common_export_success">エクスポートに成功しました</string>
@@ -29,6 +30,7 @@
     <string name="log_list_description_question_quantity">問題数: %1$d</string>
     <string name="log_list_description_attempt_count">試行回数: %1$d</string>
     <string name="log_list_description_selection">%1$s / %2$s択</string>
+    <string name="log_list_description_free_response">記述式</string>
     <string name="log_list_dropdown_menu_item_edit">編集</string>
     <string name="log_list_dropdown_menu_item_move">移動</string>
     <string name="log_list_dropdown_menu_item_delete">削除</string>
@@ -48,6 +50,7 @@
     <string name="log_list_placeholder_log_title">例: 統計調査士 2019年過去問</string>
     <string name="log_list_label_question_quantity">問題数</string>
     <string name="log_list_placeholder_question_quantity">1~1000</string>
+    <string name="log_list_label_answer_format">回答形式</string>
     <string name="log_list_label_selection_type">選択肢の種類</string>
     <string name="log_list_label_selection_quantity">選択肢の数</string>
     <string name="log_list_dialog_move_to_folder_title">移動先を選択</string>
@@ -86,6 +89,14 @@
 
     <!-- Log editor -->
     <string name="log_edit">ログ編集</string>
+
+    <!-- Log answer format -->
+    <string name="log_answer_format_multiple_choice">択一式</string>
+    <string name="log_answer_format_free_response">記述式</string>
+
+    <!-- Log free answer dialog -->
+    <string name="log_free_answer_dialog_input_label">解答</string>
+    <string name="log_free_answer_dialog_input_text_count">%1$d 文字</string>
 
     <!-- Measurement -->
     <string name="measurement_stopwatch_title">ストップウォッチ</string>

@@ -14,6 +14,7 @@ object DBKeys {
     // Solve log params
     const val KEY_NAME = "name"
     const val KEY_QUESTION_QUANTITY = "questionQuantity"
+    const val KEY_ANSWER_FORMAT = "answerFormat"
     const val KEY_SELECTION_TYPE = "selectionType"
     const val KEY_SELECTION_QUANTITY = "selectionQuantity"
     const val KEY_ATTEMPT_COUNT = "attemptCount"
@@ -25,6 +26,7 @@ object DBKeys {
     // Question params
     const val KEY_ATTEMPT = "attempt"
     const val KEY_QUESTION_INDEX = "questionIndex"
+    const val KEY_FREE_ANSWER_CONTENT = "freeAnswerContent"
     const val KEY_SELECTED_ANSWER = "selectedAnswer"
     const val KEY_CORRECTNESS = "correctness"
     const val KEY_IS_FLAG = "isFlag"

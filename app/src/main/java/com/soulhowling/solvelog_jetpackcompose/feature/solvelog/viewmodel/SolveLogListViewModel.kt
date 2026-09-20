@@ -5,6 +5,7 @@ import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
 import androidx.room.withTransaction
 import com.soulhowling.solvelog_jetpackcompose.core.SolveLogApplication
+import com.soulhowling.solvelog_jetpackcompose.feature.solvelog.AnswerFormat
 import com.soulhowling.solvelog_jetpackcompose.feature.solvelog.Correctness
 import com.soulhowling.solvelog_jetpackcompose.feature.solvelog.SelectionQuantity
 import com.soulhowling.solvelog_jetpackcompose.feature.solvelog.SelectionType
@@ -179,6 +180,7 @@ class SolveLogListViewModel(application: Application) : AndroidViewModel(applica
     fun insertSolveLog(
         name: String,
         questionQuantity: Int,
+        answerFormat: AnswerFormat,
         selectionType: SelectionType,
         selectionQuantity: SelectionQuantity
     ) {
@@ -187,6 +189,7 @@ class SolveLogListViewModel(application: Application) : AndroidViewModel(applica
                 val solveLog = solveLogRepository.createSolveLog(
                     name = name,
                     questionQuantity = questionQuantity,
+                    answerFormat = answerFormat,
                     selectionType = selectionType,
                     selectionQuantity = selectionQuantity,
                     folderId = _currentFolderId.value
@@ -198,6 +201,7 @@ class SolveLogListViewModel(application: Application) : AndroidViewModel(applica
                         attempt = 1,
                         selectedAnswer = -1,
                         questionIndex = index,
+                        freeAnswerContent = null,
                         correctness = Correctness.NONE.index,
                         isFlag = false,
                         solveLogId = solveLogId
@@ -212,6 +216,7 @@ class SolveLogListViewModel(application: Application) : AndroidViewModel(applica
         solveLog: SolveLog,
         name: String,
         questionQuantity: Int,
+        answerFormat: AnswerFormat,
         selectionType: SelectionType,
         selectionQuantity: SelectionQuantity
     ) {
@@ -220,6 +225,7 @@ class SolveLogListViewModel(application: Application) : AndroidViewModel(applica
                 val updatedLog = solveLog.copy(
                     name = name,
                     questionQuantity = questionQuantity,
+                    answerFormat = answerFormat.index,
                     selectionType = selectionType.index,
                     selectionQuantity = selectionQuantity.index,
                     updatedAt = System.currentTimeMillis()
@@ -237,6 +243,7 @@ class SolveLogListViewModel(application: Application) : AndroidViewModel(applica
                                     attempt = attempt,
                                     selectedAnswer = -1,
                                     questionIndex = index,
+                                    freeAnswerContent = null,
                                     correctness = Correctness.NONE.index,
                                     isFlag = false,
                                     solveLogId = solveLog.id
@@ -561,6 +568,7 @@ class SolveLogListViewModel(application: Application) : AndroidViewModel(applica
         val solveLog = SolveLog(
             name = logJson.getString(DBKeys.KEY_NAME),
             questionQuantity = logJson.getInt(DBKeys.KEY_QUESTION_QUANTITY),
+            answerFormat = logJson.optInt(DBKeys.KEY_ANSWER_FORMAT, AnswerFormat.MULTIPLE_CHOICE.index),
             selectionType = logJson.getInt(DBKeys.KEY_SELECTION_TYPE),
             selectionQuantity = logJson.getInt(DBKeys.KEY_SELECTION_QUANTITY),
             attemptCount = logJson.optInt(DBKeys.KEY_ATTEMPT_COUNT, 1),
@@ -579,6 +587,7 @@ class SolveLogListViewModel(application: Application) : AndroidViewModel(applica
                     Question(
                         attempt = qJson.getInt(DBKeys.KEY_ATTEMPT),
                         questionIndex = qJson.getInt(DBKeys.KEY_QUESTION_INDEX),
+                        freeAnswerContent = if (qJson.isNull(DBKeys.KEY_FREE_ANSWER_CONTENT)) null else qJson.getString(DBKeys.KEY_FREE_ANSWER_CONTENT),
                         selectedAnswer = qJson.getInt(DBKeys.KEY_SELECTED_ANSWER),
                         correctness = qJson.getInt(DBKeys.KEY_CORRECTNESS),
                         isFlag = qJson.getBoolean(DBKeys.KEY_IS_FLAG),

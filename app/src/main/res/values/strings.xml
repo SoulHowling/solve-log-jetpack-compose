@@ -4,6 +4,7 @@
     <!-- Common -->
     <string name="common_dialog_ok_button">OK</string>
     <string name="common_dialog_add_button">Add</string>
+    <string name="common_dialog_save_button">Save</string>
     <string name="common_dialog_update_button">Update</string>
     <string name="common_dialog_cancel_button">Cancel</string>
     <string name="common_export_success">Exported successfully</string>
@@ -29,6 +30,7 @@
     <string name="log_list_description_question_quantity">Questions: %1$d</string>
     <string name="log_list_description_attempt_count">Attempts: %1$d</string>
     <string name="log_list_description_selection">%1$s / %2$s choices</string>
+    <string name="log_list_description_free_response">Free response</string>
     <string name="log_list_dropdown_menu_item_edit">Edit</string>
     <string name="log_list_dropdown_menu_item_move">Move</string>
     <string name="log_list_dropdown_menu_item_delete">Delete</string>
@@ -48,6 +50,7 @@
     <string name="log_list_placeholder_log_title">e.g. Statistics Expert 2019 Past Questions</string>
     <string name="log_list_label_question_quantity">Number of Questions</string>
     <string name="log_list_placeholder_question_quantity">1~1000</string>
+    <string name="log_list_label_answer_format">Answer Format</string>
     <string name="log_list_label_selection_type">Selection Type</string>
     <string name="log_list_label_selection_quantity">Number of Selections</string>
     <string name="log_list_dialog_move_to_folder_title">Select Destination</string>
@@ -86,6 +89,14 @@
 
     <!-- Log editor -->
     <string name="log_edit">Edit Log</string>
+
+    <!-- Log answer format -->
+    <string name="log_answer_format_multiple_choice">Multiple Choice</string>
+    <string name="log_answer_format_free_response">Free Response</string>
+
+    <!-- Log free answer dialog -->
+    <string name="log_free_answer_dialog_input_label">Answer</string>
+    <string name="log_free_answer_dialog_input_text_count">%1$d characters</string>
 
     <!-- Measurement -->
     <string name="measurement_stopwatch_title">Stopwatch</string>

@@ -15,6 +15,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Cancel
 import androidx.compose.material.icons.filled.Delete
+import androidx.compose.material.icons.filled.Description
 import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material.icons.filled.Flag
 import androidx.compose.material.icons.filled.Visibility
@@ -41,7 +42,9 @@ import com.soulhowling.solvelog_jetpackcompose.R
 import com.soulhowling.solvelog_jetpackcompose.core.CustomAppBarEffect
 import com.soulhowling.solvelog_jetpackcompose.core.LocalAppBarController
 import com.soulhowling.solvelog_jetpackcompose.core.LocalBottomBarVisibility
+import com.soulhowling.solvelog_jetpackcompose.feature.solvelog.AnswerFormat
 import com.soulhowling.solvelog_jetpackcompose.feature.solvelog.Correctness
+import com.soulhowling.solvelog_jetpackcompose.feature.solvelog.SelectionQuantity
 import com.soulhowling.solvelog_jetpackcompose.feature.solvelog.SelectionType
 import com.soulhowling.solvelog_jetpackcompose.feature.solvelog.model.entity.Question
 import com.soulhowling.solvelog_jetpackcompose.feature.solvelog.model.entity.SolveLog
@@ -266,6 +269,10 @@ fun SolveLogViewerScreenContent(
         questions.values.flatten().groupBy { it.attempt }
     }
 
+    val answerFormat = remember(solveLog.answerFormat) {
+        AnswerFormat.from(solveLog.answerFormat)
+    }
+
     val dynamicStickyWidth = if (isEditMode) expandedStickyColWidth else stickyColWidth
 
     val headerShape = MaterialTheme.shapes.medium.copy(
@@ -325,17 +332,19 @@ fun SolveLogViewerScreenContent(
                                     .align(Alignment.Bottom)
                                     .background(MaterialTheme.colorScheme.surfaceContainerLow)
                             ) {
-                                IconButton(
-                                    modifier = Modifier
-                                        .align(Alignment.Center)
-                                        .testTag(SolveLogViewerTestTags.VISIBILITY_TOGGLE),
-                                    onClick = { onAnswerVisibility() },
-                                ) {
-                                    Icon(
-                                        imageVector = if (isAnswerVisible) Icons.Default.VisibilityOff else Icons.Default.Visibility,
-                                        contentDescription = stringResource(R.string.log_viewer_cd_toggle_visibility),
-                                        tint = MaterialTheme.colorScheme.primary
-                                    )
+                                if (answerFormat != AnswerFormat.FREE_RESPONSE) {
+                                    IconButton(
+                                        modifier = Modifier
+                                            .align(Alignment.Center)
+                                            .testTag(SolveLogViewerTestTags.VISIBILITY_TOGGLE),
+                                        onClick = { onAnswerVisibility() },
+                                    ) {
+                                        Icon(
+                                            imageVector = if (isAnswerVisible) Icons.Default.VisibilityOff else Icons.Default.Visibility,
+                                            contentDescription = stringResource(R.string.log_viewer_cd_toggle_visibility),
+                                            tint = MaterialTheme.colorScheme.primary
+                                        )
+                                    }
                                 }
                             }
                             repeat(solveLog.attemptCount) { index ->
@@ -394,10 +403,13 @@ fun SolveLogViewerScreenContent(
 
                                 SolveLogItemCell(
                                     selectedAnswer = question?.let {
-                                        selectionType.getAnswerString(
-                                            it.selectedAnswer
-                                        )
-                                    } ?: "",
+                                        if (answerFormat == AnswerFormat.FREE_RESPONSE) {
+                                            if (it.freeAnswerContent.isNullOrEmpty()) stringResource(SelectionType.unselectedResId) else it.freeAnswerContent
+                                        } else {
+                                            selectionType.getAnswerString(it.selectedAnswer)
+                                        }
+                                    } ?: stringResource(SelectionType.unselectedResId),
+                                    answerFormat = answerFormat,
                                     correctness = question?.correctness ?: Correctness.NONE.index,
                                     isChecked = question?.isFlag ?: false,
                                     isLast = false, // Always show divider for cells now
@@ -647,6 +659,7 @@ fun AttemptHeader(
 @Composable
 fun SolveLogItemCell(
     selectedAnswer: String,
+    answerFormat: AnswerFormat,
     correctness: Int,
     isChecked: Boolean,
     isLast: Boolean,
@@ -678,6 +691,7 @@ fun SolveLogItemCell(
     ) {
         SolveLogRowItem(
             selectedAnswer = selectedAnswer,
+            answerFormat = answerFormat,
             correctness = correctness,
             isChecked = isChecked,
             isAnswerVisible = isAnswerVisible
@@ -728,19 +742,15 @@ fun ScoreFooter(
 @Composable
 fun SolveLogRowItem(
     selectedAnswer: String,
+    answerFormat: AnswerFormat,
     correctness: Int,
     isChecked: Boolean,
     isAnswerVisible: Boolean,
 ) {
     val correctnessType = Correctness.entries.getOrNull(correctness) ?: Correctness.NONE
     val isError = correctnessType == Correctness.INCORRECT
-    val displayedAnswer = if (selectedAnswer.isEmpty()) {
-        stringResource(R.string.log_viewer_unselected_answer)
-    } else if (isAnswerVisible) {
-        selectedAnswer
-    } else {
-        stringResource(R.string.log_viewer_invisible_answer)
-    }
+    val unselectedString = stringResource(SelectionType.unselectedResId)
+    val isUnselected = selectedAnswer == unselectedString || selectedAnswer.isEmpty()
 
     Row(
         modifier = Modifier
@@ -753,14 +763,43 @@ fun SolveLogRowItem(
             ),
         verticalAlignment = Alignment.CenterVertically
     ) {
-        Text(
-            text = displayedAnswer,
+        Box(
             modifier = Modifier.weight(1f),
-            style = MaterialTheme.typography.titleMedium,
-            fontWeight = FontWeight.ExtraBold,
-            color = if (isError) MaterialTheme.colorScheme.error else MaterialTheme.colorScheme.onSurface,
-            textAlign = TextAlign.Center
-        )
+            contentAlignment = Alignment.Center
+        ) {
+            if (isUnselected) {
+                Text(
+                    text = unselectedString,
+                    style = MaterialTheme.typography.titleMedium,
+                    fontWeight = FontWeight.ExtraBold,
+                    color = if (isError) MaterialTheme.colorScheme.error else MaterialTheme.colorScheme.onSurfaceVariant,
+                    textAlign = TextAlign.Center
+                )
+            } else if (answerFormat == AnswerFormat.FREE_RESPONSE) {
+                Icon(
+                    imageVector = Icons.Default.Description,
+                    contentDescription = null,
+                    modifier = Modifier.size(20.dp),
+                    tint = if (isError) MaterialTheme.colorScheme.error else MaterialTheme.colorScheme.primary
+                )
+            } else if (!isAnswerVisible) {
+                Text(
+                    text = stringResource(R.string.log_viewer_invisible_answer),
+                    style = MaterialTheme.typography.titleMedium,
+                    fontWeight = FontWeight.ExtraBold,
+                    color = if (isError) MaterialTheme.colorScheme.error else MaterialTheme.colorScheme.onSurface,
+                    textAlign = TextAlign.Center
+                )
+            } else {
+                Text(
+                    text = selectedAnswer,
+                    style = MaterialTheme.typography.titleMedium,
+                    fontWeight = FontWeight.ExtraBold,
+                    color = if (isError) MaterialTheme.colorScheme.error else MaterialTheme.colorScheme.onSurface,
+                    textAlign = TextAlign.Center
+                )
+            }
+        }
 
         val statusColor = when (correctnessType) {
             Correctness.CORRECT -> MaterialTheme.colorScheme.primary
@@ -799,8 +838,9 @@ fun SolveLogViewerScreenPreview() {
         createdAt = System.currentTimeMillis(),
         updatedAt = System.currentTimeMillis(),
         questionQuantity = 10,
-        selectionType = 0,
-        selectionQuantity = 0,
+        answerFormat = AnswerFormat.MULTIPLE_CHOICE.index,
+        selectionType = SelectionType.ALPHABET.index,
+        selectionQuantity = SelectionQuantity.FOUR.index,
         attemptCount = 3,
         folderId = null
     )
@@ -809,6 +849,7 @@ fun SolveLogViewerScreenPreview() {
             id = 1,
             attempt = 1,
             questionIndex = 0,
+            freeAnswerContent = null,
             selectedAnswer = 1,
             correctness = Correctness.CORRECT.index,
             isFlag = true,
@@ -818,6 +859,7 @@ fun SolveLogViewerScreenPreview() {
             id = 2,
             attempt = 1,
             questionIndex = 1,
+            freeAnswerContent = null,
             selectedAnswer = 1,
             correctness = Correctness.CORRECT.index,
             isFlag = true,
@@ -827,6 +869,7 @@ fun SolveLogViewerScreenPreview() {
             id = 3,
             attempt = 2,
             questionIndex = 0,
+            freeAnswerContent = null,
             selectedAnswer = 2,
             correctness = Correctness.INCORRECT.index,
             isFlag = false,

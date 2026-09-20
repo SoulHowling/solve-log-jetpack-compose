@@ -2,7 +2,7 @@
   "formatVersion": 1,
   "database": {
     "version": 3,
-    "identityHash": "a5c60e012493149fce96acff5020a31c",
+    "identityHash": "a76b2a20fdf4946462a3ccb6d107a042",
     "entities": [
       {
         "tableName": "timer_state",
@@ -66,7 +66,7 @@
       },
       {
         "tableName": "solve_log",
-        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`id` INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, `name` TEXT NOT NULL, `questionQuantity` INTEGER NOT NULL, `selectionType` INTEGER NOT NULL, `selectionQuantity` INTEGER NOT NULL, `attemptCount` INTEGER NOT NULL, `createdAt` INTEGER NOT NULL, `updatedAt` INTEGER NOT NULL, `folderId` INTEGER, `priority` INTEGER NOT NULL DEFAULT 0, FOREIGN KEY(`folderId`) REFERENCES `folder`(`id`) ON UPDATE NO ACTION ON DELETE CASCADE )",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`id` INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, `name` TEXT NOT NULL, `questionQuantity` INTEGER NOT NULL, `answerFormat` INTEGER NOT NULL, `selectionType` INTEGER NOT NULL, `selectionQuantity` INTEGER NOT NULL, `attemptCount` INTEGER NOT NULL, `createdAt` INTEGER NOT NULL, `updatedAt` INTEGER NOT NULL, `folderId` INTEGER, `priority` INTEGER NOT NULL DEFAULT 0, FOREIGN KEY(`folderId`) REFERENCES `folder`(`id`) ON UPDATE NO ACTION ON DELETE CASCADE )",
         "fields": [
           {
             "fieldPath": "id",
@@ -83,6 +83,12 @@
           {
             "fieldPath": "questionQuantity",
             "columnName": "questionQuantity",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "answerFormat",
+            "columnName": "answerFormat",
             "affinity": "INTEGER",
             "notNull": true
           },
@@ -234,7 +240,7 @@
       },
       {
         "tableName": "question",
-        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`id` INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, `attempt` INTEGER NOT NULL, `questionIndex` INTEGER NOT NULL, `selectedAnswer` INTEGER NOT NULL, `correctness` INTEGER NOT NULL, `isFlag` INTEGER NOT NULL, `solveLogId` INTEGER NOT NULL, FOREIGN KEY(`solveLogId`) REFERENCES `solve_log`(`id`) ON UPDATE NO ACTION ON DELETE CASCADE )",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`id` INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, `attempt` INTEGER NOT NULL, `questionIndex` INTEGER NOT NULL, `freeAnswerContent` TEXT, `selectedAnswer` INTEGER NOT NULL, `correctness` INTEGER NOT NULL, `isFlag` INTEGER NOT NULL, `solveLogId` INTEGER NOT NULL, FOREIGN KEY(`solveLogId`) REFERENCES `solve_log`(`id`) ON UPDATE NO ACTION ON DELETE CASCADE )",
         "fields": [
           {
             "fieldPath": "id",
@@ -253,6 +259,11 @@
             "columnName": "questionIndex",
             "affinity": "INTEGER",
             "notNull": true
+          },
+          {
+            "fieldPath": "freeAnswerContent",
+            "columnName": "freeAnswerContent",
+            "affinity": "TEXT"
           },
           {
             "fieldPath": "selectedAnswer",
@@ -313,7 +324,7 @@
     ],
     "setupQueries": [
       "CREATE TABLE IF NOT EXISTS room_master_table (id INTEGER PRIMARY KEY,identity_hash TEXT)",
-      "INSERT OR REPLACE INTO room_master_table (id,identity_hash) VALUES(42, 'a5c60e012493149fce96acff5020a31c')"
+      "INSERT OR REPLACE INTO room_master_table (id,identity_hash) VALUES(42, 'a76b2a20fdf4946462a3ccb6d107a042')"
     ]
   }
 }

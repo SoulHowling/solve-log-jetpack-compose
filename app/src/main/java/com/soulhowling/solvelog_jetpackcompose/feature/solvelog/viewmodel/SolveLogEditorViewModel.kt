@@ -4,6 +4,7 @@ import android.app.Application
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.viewModelScope
+import com.soulhowling.solvelog_jetpackcompose.R
 import com.soulhowling.solvelog_jetpackcompose.core.Screens
 import com.soulhowling.solvelog_jetpackcompose.core.SolveLogApplication
 import com.soulhowling.solvelog_jetpackcompose.feature.solvelog.Correctness
@@ -57,8 +58,11 @@ class SolveLogEditorViewModel(
     ) { solveLog, currentQuestions, allQuestions ->
         if (solveLog != null) {
             val selectionQuantity = SelectionQuantity.from(solveLog.selectionQuantity)
-            val choices =
-                SelectionType.getSelectionTypeStringList(solveLog.selectionType, selectionQuantity)
+            val unselectedSymbol = getApplication<Application>().getString(SelectionType.unselectedResId)
+            val choices = listOf(unselectedSymbol) + SelectionType.getSelectionTypeStringList(
+                solveLog.selectionType,
+                selectionQuantity
+            )
 
             val pastQuestionsByIndex = allQuestions
                 .filter { it.attempt < attempt }
@@ -91,6 +95,7 @@ class SolveLogEditorViewModel(
     )
 
     fun updateQuestion(
+        freeAnswerContent: String?,
         selectedAnswer: Int,
         questionIndex: Int,
         correctness: Correctness,
@@ -98,6 +103,7 @@ class SolveLogEditorViewModel(
     ) {
         viewModelScope.launch {
             upsertQuestion(
+                freeAnswerContent = freeAnswerContent,
                 selectedAnswer = selectedAnswer,
                 questionIndex = questionIndex,
                 correctness = correctness,
@@ -107,6 +113,7 @@ class SolveLogEditorViewModel(
     }
 
     private suspend fun upsertQuestion(
+        freeAnswerContent: String?,
         selectedAnswer: Int = -1,
         questionIndex: Int,
         correctness: Correctness = Correctness.NONE,
@@ -117,6 +124,7 @@ class SolveLogEditorViewModel(
 
         val newQuestion = questionRepository.createQuestion(
             attempt = attempt,
+            freeAnswerContent = freeAnswerContent,
             selectedAnswer = selectedAnswer,
             questionIndex = questionIndex,
             correctness = correctness.index,

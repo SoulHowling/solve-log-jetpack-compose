@@ -22,7 +22,7 @@ import kotlinx.coroutines.launch
 
 @Database(
     entities = [TimerState::class, SolveLog::class, Folder::class, Question::class],
-    version = 3,
+    version = 4,
     exportSchema = true
 )
 @TypeConverters(Converters::class)
@@ -73,13 +73,20 @@ abstract class SolveLogDatabase : RoomDatabase() {
             }
         }
 
+        private val MIGRATION_3_4 = object : Migration(3, 4) {
+            override fun migrate(db: SupportSQLiteDatabase) {
+                db.execSQL("ALTER TABLE ${DBKeys.TABLE_SOLVE_LOG} ADD COLUMN ${DBKeys.KEY_ANSWER_FORMAT} INTEGER NOT NULL DEFAULT 0")
+                db.execSQL("ALTER TABLE ${DBKeys.TABLE_QUESTION} ADD COLUMN ${DBKeys.KEY_FREE_ANSWER_CONTENT} TEXT")
+            }
+        }
+
         @Volatile
         private var instance: SolveLogDatabase? = null
 
         fun getDatabase(context: Context, scope: CoroutineScope): SolveLogDatabase {
             return instance ?: synchronized(this) {
                 val newInstance = Room.databaseBuilder(context, SolveLogDatabase::class.java, DATABASE_NAME)
-                    .addMigrations(MIGRATION_1_2, MIGRATION_2_3)
+                    .addMigrations(MIGRATION_1_2, MIGRATION_2_3, MIGRATION_3_4)
                     .addCallback(object: Callback() {
                         override fun onCreate(db: SupportSQLiteDatabase) {
                             super.onCreate(db)

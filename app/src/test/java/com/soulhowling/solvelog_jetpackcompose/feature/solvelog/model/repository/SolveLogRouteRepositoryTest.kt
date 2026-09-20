@@ -5,6 +5,7 @@ import androidx.room.Room
 import androidx.test.core.app.ApplicationProvider
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import com.soulhowling.solvelog_jetpackcompose.core.database.SolveLogDatabase
+import com.soulhowling.solvelog_jetpackcompose.feature.solvelog.AnswerFormat
 import com.soulhowling.solvelog_jetpackcompose.feature.solvelog.SelectionQuantity
 import com.soulhowling.solvelog_jetpackcompose.feature.solvelog.SelectionType
 import kotlinx.coroutines.flow.first
@@ -57,6 +58,7 @@ class SolveLogRouteRepositoryTest {
         val log = repository.createSolveLog(
             name = "Test Log",
             questionQuantity = 10,
+            answerFormat = AnswerFormat.MULTIPLE_CHOICE,
             selectionType = SelectionType.NUMBER,
             selectionQuantity = SelectionQuantity.FOUR,
             folderId = 5
@@ -72,7 +74,7 @@ class SolveLogRouteRepositoryTest {
 
     @Test
     fun `insertAndReturnId should save log and return new id`() = runTest {
-        val log = repository.createSolveLog("New Log", 20, SelectionType.ALPHABET, SelectionQuantity.FIVE, null)
+        val log = repository.createSolveLog("New Log", 20, AnswerFormat.MULTIPLE_CHOICE, SelectionType.ALPHABET, SelectionQuantity.FIVE, null)
         val id = repository.insertAndReturnId(log)
         
         val savedLog = repository.getSolveLog(id).first()
@@ -83,8 +85,8 @@ class SolveLogRouteRepositoryTest {
 
     @Test
     fun `getSolveLogListBy should return logs in specific folder`() = runTest {
-        val log1 = repository.createSolveLog("Log 1", 10, SelectionType.NUMBER, SelectionQuantity.FOUR, 1)
-        val log2 = repository.createSolveLog("Log 2", 10, SelectionType.NUMBER, SelectionQuantity.FOUR, 2)
+        val log1 = repository.createSolveLog("Log 1", 10, AnswerFormat.MULTIPLE_CHOICE, SelectionType.NUMBER, SelectionQuantity.FOUR, 1)
+        val log2 = repository.createSolveLog("Log 2", 10, AnswerFormat.MULTIPLE_CHOICE, SelectionType.NUMBER, SelectionQuantity.FOUR, 2)
         repository.insertSolveLog(log1)
         repository.insertSolveLog(log2)
         
@@ -95,7 +97,7 @@ class SolveLogRouteRepositoryTest {
 
     @Test
     fun `upsertSolveLog should update existing log`() = runTest {
-        val log = repository.createSolveLog("Old", 10, SelectionType.NUMBER, SelectionQuantity.FOUR, null)
+        val log = repository.createSolveLog("Old", 10, AnswerFormat.MULTIPLE_CHOICE, SelectionType.NUMBER, SelectionQuantity.FOUR, null)
         val id = repository.insertAndReturnId(log)
         
         val updated = log.copy(id = id, name = "New")

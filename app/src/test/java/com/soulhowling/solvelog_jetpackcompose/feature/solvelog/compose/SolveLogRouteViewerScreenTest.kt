@@ -3,6 +3,7 @@ package com.soulhowling.solvelog_jetpackcompose.feature.solvelog.compose
 import androidx.compose.ui.test.*
 import androidx.compose.ui.test.junit4.v2.createComposeRule
 import androidx.test.ext.junit.runners.AndroidJUnit4
+import com.soulhowling.solvelog_jetpackcompose.feature.solvelog.AnswerFormat
 import com.soulhowling.solvelog_jetpackcompose.feature.solvelog.Correctness
 import com.soulhowling.solvelog_jetpackcompose.feature.solvelog.model.entity.Question
 import com.soulhowling.solvelog_jetpackcompose.feature.solvelog.model.entity.SolveLog
@@ -25,6 +26,7 @@ class SolveLogRouteViewerScreenTest {
         id = 1,
         name = "Test Solve Log",
         questionQuantity = 3,
+        answerFormat = AnswerFormat.MULTIPLE_CHOICE.index,
         selectionType = 0,
         selectionQuantity = 4,
         attemptCount = 2,
@@ -35,11 +37,11 @@ class SolveLogRouteViewerScreenTest {
 
     private val sampleQuestions = mapOf(
         0 to listOf(
-            Question(id = 1, attempt = 1, questionIndex = 0, selectedAnswer = 0, correctness = Correctness.CORRECT.index, solveLogId = 1),
-            Question(id = 2, attempt = 2, questionIndex = 0, selectedAnswer = 1, correctness = Correctness.INCORRECT.index, solveLogId = 1)
+            Question(id = 1, attempt = 1, questionIndex = 0, freeAnswerContent = null, selectedAnswer = 0, correctness = Correctness.CORRECT.index, solveLogId = 1),
+            Question(id = 2, attempt = 2, questionIndex = 0, freeAnswerContent = null, selectedAnswer = 1, correctness = Correctness.INCORRECT.index, solveLogId = 1)
         ),
         1 to listOf(
-            Question(id = 3, attempt = 1, questionIndex = 1, selectedAnswer = 1, correctness = Correctness.INCORRECT.index, solveLogId = 1)
+            Question(id = 3, attempt = 1, questionIndex = 1, freeAnswerContent = null, selectedAnswer = 1, correctness = Correctness.INCORRECT.index, solveLogId = 1)
         )
     )
 
