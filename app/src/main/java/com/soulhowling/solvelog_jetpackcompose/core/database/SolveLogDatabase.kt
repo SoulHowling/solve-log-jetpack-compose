@@ -10,6 +10,8 @@ import androidx.room.migration.Migration
 import androidx.sqlite.db.SupportSQLiteDatabase
 import com.soulhowling.solvelog_jetpackcompose.feature.measurement.timer.model.TimerDao
 import com.soulhowling.solvelog_jetpackcompose.feature.measurement.timer.model.TimerState
+import com.soulhowling.solvelog_jetpackcompose.feature.memo.model.Memo
+import com.soulhowling.solvelog_jetpackcompose.feature.memo.model.MemoDao
 import com.soulhowling.solvelog_jetpackcompose.feature.solvelog.model.dao.FolderDao
 import com.soulhowling.solvelog_jetpackcompose.feature.solvelog.model.dao.QuestionDao
 import com.soulhowling.solvelog_jetpackcompose.feature.solvelog.model.dao.SolveLogDao
@@ -21,8 +23,8 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 
 @Database(
-    entities = [TimerState::class, SolveLog::class, Folder::class, Question::class],
-    version = 4,
+    entities = [TimerState::class, SolveLog::class, Folder::class, Question::class, Memo::class],
+    version = 6,
     exportSchema = true
 )
 @TypeConverters(Converters::class)
@@ -30,6 +32,7 @@ abstract class SolveLogDatabase : RoomDatabase() {
     abstract fun folderDao(): FolderDao
     abstract fun solveLogDao(): SolveLogDao
     abstract fun questionDao(): QuestionDao
+    abstract fun memoDao(): MemoDao
 
     abstract fun timerDao(): TimerDao
 
@@ -80,13 +83,36 @@ abstract class SolveLogDatabase : RoomDatabase() {
             }
         }
 
+        private val MIGRATION_4_5 = object : Migration(4, 5) {
+            override fun migrate(db: SupportSQLiteDatabase) {
+                db.execSQL("""
+                    CREATE TABLE IF NOT EXISTS ${DBKeys.TABLE_MEMO} (
+                        id INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,
+                        name TEXT NOT NULL,
+                        content TEXT NOT NULL,
+                        createdAt INTEGER NOT NULL,
+                        updatedAt INTEGER NOT NULL,
+                        priority INTEGER NOT NULL DEFAULT 0
+                    )
+                """.trimIndent())
+            }
+        }
+
+        private val MIGRATION_5_6 = object : Migration(5, 6) {
+            override fun migrate(db: SupportSQLiteDatabase) {
+                db.execSQL("ALTER TABLE ${DBKeys.TABLE_MEMO} ADD COLUMN folderId INTEGER")
+                db.execSQL("CREATE INDEX IF NOT EXISTS index_memo_folderId ON ${DBKeys.TABLE_MEMO}(folderId)")
+                db.execSQL("ALTER TABLE ${DBKeys.TABLE_FOLDER} ADD COLUMN folderType INTEGER NOT NULL DEFAULT 0")
+            }
+        }
+
         @Volatile
         private var instance: SolveLogDatabase? = null
 
         fun getDatabase(context: Context, scope: CoroutineScope): SolveLogDatabase {
             return instance ?: synchronized(this) {
                 val newInstance = Room.databaseBuilder(context, SolveLogDatabase::class.java, DATABASE_NAME)
-                    .addMigrations(MIGRATION_1_2, MIGRATION_2_3, MIGRATION_3_4)
+                    .addMigrations(MIGRATION_1_2, MIGRATION_2_3, MIGRATION_3_4, MIGRATION_4_5, MIGRATION_5_6)
                     .addCallback(object: Callback() {
                         override fun onCreate(db: SupportSQLiteDatabase) {
                             super.onCreate(db)

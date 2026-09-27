@@ -23,5 +23,5 @@ interface SolveLogDao: BaseDao<SolveLog> {
     suspend fun insertAndReturnId(solveLog: SolveLog): Long
 
     @Query("DELETE FROM solve_log")
-    override suspend fun deleteAll()
+    suspend fun deleteAll()
 }

@@ -3,6 +3,7 @@ package com.soulhowling.solvelog_jetpackcompose.feature.settings.wipedata
 import android.content.res.Configuration
 import android.widget.Toast
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
@@ -22,8 +23,11 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.soulhowling.solvelog_jetpackcompose.R
+import com.soulhowling.solvelog_jetpackcompose.core.LocalBottomBarVisibility
+import com.soulhowling.solvelog_jetpackcompose.ui.theme.Dimensions
 import com.soulhowling.solvelog_jetpackcompose.ui.theme.SolveLogJetpackComposeTheme
 
 @Composable
@@ -50,10 +54,13 @@ fun WipeDataContent(
         listOf(
             WipeDataItem.WipeAllData,
             WipeDataItem.WipeAllLogs,
-            WipeDataItem.WipeAllTimers
+            WipeDataItem.WipeAllTimers,
+            WipeDataItem.WipeAllMemos
         )
     }
     var selectedItem by remember { mutableStateOf<WipeDataItem?>(null) }
+    val isBottomBarVisible = LocalBottomBarVisibility.current
+    val bottomPadding = if (isBottomBarVisible) Dimensions.LIST_BOTTOM_WITH_FAB else 0.dp
 
     LaunchedEffect(wipeStatus) {
         when (wipeStatus) {
@@ -69,7 +76,10 @@ fun WipeDataContent(
         }
     }
 
-    LazyColumn(modifier = Modifier.fillMaxSize()) {
+    LazyColumn(
+        modifier = Modifier.fillMaxSize(),
+        contentPadding = PaddingValues(bottom = bottomPadding)
+    ) {
         items(
             items = wipeDataItems,
             key = { it.titleResId }

@@ -1,6 +1,7 @@
 package com.soulhowling.solvelog_jetpackcompose.feature.settings
 
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
@@ -21,6 +22,8 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
+import com.soulhowling.solvelog_jetpackcompose.core.LocalBottomBarVisibility
+import com.soulhowling.solvelog_jetpackcompose.ui.theme.Dimensions
 import com.soulhowling.solvelog_jetpackcompose.ui.theme.SolveLogJetpackComposeTheme
 import com.soulhowling.solvelog_jetpackcompose.ui.theme.ThemeMode
 import com.soulhowling.solvelog_jetpackcompose.utils.LogUtils
@@ -64,8 +67,13 @@ fun SettingScreenContent(
         )
     }
     val themeModeList: List<String> = ThemeMode.entries.map { stringResource(it.labelResId) }
+    val isBottomBarVisible = LocalBottomBarVisibility.current
+    val bottomPadding = if (isBottomBarVisible) Dimensions.LIST_BOTTOM_WITH_FAB else 0.dp
 
-    LazyColumn(modifier = Modifier.fillMaxSize()) {
+    LazyColumn(
+        modifier = Modifier.fillMaxSize(),
+        contentPadding = PaddingValues(bottom = bottomPadding)
+    ) {
         items(
             items = settingsItems,
             key = { it.titleResId }

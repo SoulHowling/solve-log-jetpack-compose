@@ -2,6 +2,7 @@ package com.soulhowling.solvelog_jetpackcompose.core
 
 import androidx.annotation.StringRes
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.StickyNote2
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material.icons.filled.Preview
@@ -15,6 +16,9 @@ private const val SOLVE_LOG_VIEWER_ROUTE = "solve_log_viewer"
 private const val SOLVE_LOG_EDITOR_ROUTE = "solve_log_editor"
 private const val MEASUREMENT_ROUTE = "measurement"
 private const val TIMER_ROUTE = "timer"
+private const val MEMO_LIST_ROUTE = "memo_list"
+private const val MEMO_EDITOR_ROUTE = "memo_editor"
+private const val MEMO_VIEW_ROUTE = "memo_view"
 private const val SETTING_ROUTE = "setting"
 private const val WIPE_DATA_ROUTE = "wipe_data"
 private const val ABOUT_THIS_APP_ROUTE = "about_this_app"
@@ -65,6 +69,34 @@ sealed class Screens(
         fun createRoute(timerStateId: Int) = TIMER_ROUTE + SLASH + "$timerStateId"
     }
 
+    data object MemoList : Screens(
+        route = MEMO_LIST_ROUTE,
+        title = R.string.tab_memo,
+        icon = Icons.AutoMirrored.Filled.StickyNote2
+    )
+
+    data object MemoEditor : Screens(
+        route = "$MEMO_EDITOR_ROUTE/{$ARG_MEMO_ID}?$ARG_FOLDER_ID={$ARG_FOLDER_ID}",
+        title = R.string.memo_editor_title,
+        icon = Icons.AutoMirrored.Filled.StickyNote2
+    ) {
+        fun createRoute(memoId: Int, folderId: Int? = null): String {
+            return if (folderId != null) {
+                "$MEMO_EDITOR_ROUTE/$memoId?$ARG_FOLDER_ID=$folderId"
+            } else {
+                "$MEMO_EDITOR_ROUTE/$memoId"
+            }
+        }
+    }
+
+    data object MemoView : Screens(
+        route = MEMO_VIEW_ROUTE + SLASH + "{$ARG_MEMO_ID}",
+        title = R.string.memo_title,
+        icon = Icons.AutoMirrored.Filled.StickyNote2
+    ) {
+        fun createRoute(memoId: Int) = MEMO_VIEW_ROUTE + SLASH + "$memoId"
+    }
+
     data object Setting : Screens(
         route = SETTING_ROUTE,
         title = R.string.tab_setting,
@@ -105,6 +137,8 @@ sealed class Screens(
         const val ARG_SOLVE_LOG_ID = "solveLogId"
         const val ARG_ATTEMPT = "attempt"
         const val ARG_TIMER_STATE_ID = "timerStateId"
+        const val ARG_MEMO_ID = "memoId"
+        const val ARG_FOLDER_ID = "folderId"
 
         fun getAllScreens(): List<Screens> = listOf(
             SolveLogRoute,
@@ -112,6 +146,9 @@ sealed class Screens(
             SolveLogEditor,
             Measurement,
             TimerPage,
+            MemoList,
+            MemoEditor,
+            MemoView,
             Setting,
             WipeData,
             AboutThisApp,
@@ -123,6 +160,7 @@ sealed class Screens(
         fun getBottomNaviScreens(): List<Screens> = listOf(
             SolveLogRoute,
             Measurement,
+            MemoList,
             Setting
         )
     }

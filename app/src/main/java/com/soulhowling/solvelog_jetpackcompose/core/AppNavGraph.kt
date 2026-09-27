@@ -13,6 +13,9 @@ import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.navArgument
 import com.soulhowling.solvelog_jetpackcompose.feature.measurement.MeasurementScreen
 import com.soulhowling.solvelog_jetpackcompose.feature.measurement.timer.compose.TimerPageScreen
+import com.soulhowling.solvelog_jetpackcompose.feature.memo.compose.MemoEditorScreen
+import com.soulhowling.solvelog_jetpackcompose.feature.memo.compose.MemoListScreen
+import com.soulhowling.solvelog_jetpackcompose.feature.memo.compose.MemoViewScreen
 import com.soulhowling.solvelog_jetpackcompose.feature.settings.SettingScreen
 import com.soulhowling.solvelog_jetpackcompose.feature.settings.aboutthisapp.AboutThisAppScreen
 import com.soulhowling.solvelog_jetpackcompose.feature.settings.help.HelpScreen
@@ -90,6 +93,52 @@ fun AppNavGraph(
         ) { backStackEntry ->
             LifecycleTouchGuard(isTargetScreen = backStackEntry == currentNavBackStackEntry) {
                 TimerPageScreen()
+            }
+        }
+        composable(Screens.MemoList.route) { backStackEntry ->
+            LifecycleTouchGuard(isTargetScreen = backStackEntry == currentNavBackStackEntry) {
+                MemoListScreen(
+                    onNavigateToView = { memoId ->
+                        navController.navigate(Screens.MemoView.createRoute(memoId))
+                    },
+                    onNavigateToEditor = { memoId, folderId ->
+                        navController.navigate(Screens.MemoEditor.createRoute(memoId, folderId))
+                    }
+                )
+            }
+        }
+        composable(
+            route = Screens.MemoEditor.route,
+            arguments = listOf(
+                navArgument(Screens.ARG_MEMO_ID) { type = NavType.IntType },
+                navArgument(Screens.ARG_FOLDER_ID) {
+                    type = NavType.IntType
+                    defaultValue = -1
+                }
+            )
+        ) { backStackEntry ->
+            val memoId = backStackEntry.arguments?.getInt(Screens.ARG_MEMO_ID) ?: -1
+            val rawFolderId = backStackEntry.arguments?.getInt(Screens.ARG_FOLDER_ID) ?: -1
+            val folderId = if (rawFolderId == -1) null else rawFolderId
+            LifecycleTouchGuard(isTargetScreen = backStackEntry == currentNavBackStackEntry) {
+                MemoEditorScreen(
+                    memoId = memoId,
+                    folderId = folderId
+                )
+            }
+        }
+        composable(
+            route = Screens.MemoView.route,
+            arguments = listOf(navArgument(Screens.ARG_MEMO_ID) { type = NavType.IntType })
+        ) { backStackEntry ->
+            val memoId = backStackEntry.arguments?.getInt(Screens.ARG_MEMO_ID) ?: -1
+            LifecycleTouchGuard(isTargetScreen = backStackEntry == currentNavBackStackEntry) {
+                MemoViewScreen(
+                    memoId = memoId,
+                    onNavigateToEditor = { id ->
+                        navController.navigate(Screens.MemoEditor.createRoute(id))
+                    }
+                )
             }
         }
         composable(Screens.Setting.route) { backStackEntry ->

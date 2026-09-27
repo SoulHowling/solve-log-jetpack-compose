@@ -19,6 +19,9 @@ interface FolderDao: BaseDao<Folder> {
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun insertAndReturnId(folder: Folder): Long
 
+    @Query("DELETE FROM folder WHERE folderType = :folderType")
+    suspend fun deleteAllBy(folderType: Int)
+
     @Query("DELETE FROM folder")
-    override suspend fun deleteAll()
+    suspend fun deleteAll()
 }

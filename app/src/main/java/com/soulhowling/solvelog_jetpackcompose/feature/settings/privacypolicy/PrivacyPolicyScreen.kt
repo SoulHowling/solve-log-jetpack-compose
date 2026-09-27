@@ -14,6 +14,8 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.soulhowling.solvelog_jetpackcompose.R
 import com.soulhowling.solvelog_jetpackcompose.core.CustomAppBarEffect
+import com.soulhowling.solvelog_jetpackcompose.core.LocalBottomBarVisibility
+import com.soulhowling.solvelog_jetpackcompose.ui.theme.Dimensions
 import com.soulhowling.solvelog_jetpackcompose.ui.theme.SolveLogJetpackComposeTheme
 
 @Composable
@@ -28,12 +30,19 @@ fun PrivacyPolicyScreenContent() {
     )
 
     val scrollState = rememberScrollState()
+    val isBottomBarVisible = LocalBottomBarVisibility.current
+    val bottomPadding = if (isBottomBarVisible) Dimensions.LIST_BOTTOM_WITH_FAB else Dimensions.PADDING_MEDIUM
 
     Column(
         modifier = Modifier
             .fillMaxSize()
             .verticalScroll(scrollState)
-            .padding(16.dp)
+            .padding(
+                start = Dimensions.PADDING_MEDIUM,
+                top = Dimensions.PADDING_MEDIUM,
+                end = Dimensions.PADDING_MEDIUM,
+                bottom = bottomPadding
+            )
     ) {
         Text(
             text = stringResource(id = R.string.privacy_policy_content),

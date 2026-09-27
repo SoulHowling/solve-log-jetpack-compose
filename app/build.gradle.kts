@@ -50,6 +50,7 @@ ksp {
 }
 
 dependencies {
+    implementation(libs.androidx.compose.ui.text)
     implementation(libs.androidx.core.ktx)
     implementation(libs.androidx.lifecycle.runtime.ktx)
     implementation(libs.androidx.activity.compose)
@@ -61,6 +62,15 @@ dependencies {
     implementation(libs.androidx.navigation)
     implementation(libs.androidx.compose.material.icons.extended)
     implementation(libs.aboutLibraries.compose)
+
+    // Markwon
+    implementation(libs.markwon.core)
+    implementation(libs.markwon.inline.parser)
+    implementation(libs.markwon.ext.latex)
+    implementation(libs.markwon.ext.tasklist)
+    implementation(libs.markwon.linkfy)
+    implementation(libs.markwon.ext.strikethrough)
+    implementation(libs.markwon.ext.tables)
 
     // Room
     implementation(libs.androidx.room.runtime)

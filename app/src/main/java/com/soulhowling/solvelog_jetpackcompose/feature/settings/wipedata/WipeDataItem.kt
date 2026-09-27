@@ -21,4 +21,9 @@ sealed class WipeDataItem(
         titleResId = R.string.wipe_data_timers,
         descriptionResId = R.string.wipe_data_timers_description,
     )
+
+    data object WipeAllMemos : WipeDataItem(
+        titleResId = R.string.wipe_data_memos,
+        descriptionResId = R.string.wipe_data_memos_description,
+    )
 }

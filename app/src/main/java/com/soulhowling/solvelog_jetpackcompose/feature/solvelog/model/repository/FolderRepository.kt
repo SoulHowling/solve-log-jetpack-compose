@@ -1,5 +1,7 @@
 package com.soulhowling.solvelog_jetpackcompose.feature.solvelog.model.repository
 
+import com.soulhowling.solvelog_jetpackcompose.feature.memo.viewmodel.MemoExportTarget
+import com.soulhowling.solvelog_jetpackcompose.feature.solvelog.FolderType
 import com.soulhowling.solvelog_jetpackcompose.feature.solvelog.model.dao.FolderDao
 import com.soulhowling.solvelog_jetpackcompose.feature.solvelog.model.entity.Folder
 import kotlinx.coroutines.flow.Flow
@@ -36,6 +38,10 @@ class FolderRepository(private val folderDao: FolderDao) {
 
     suspend fun deleteFolder(folder: Folder) {
         folderDao.delete(folder)
+    }
+
+    suspend fun deleteAllBy(folderType: FolderType) {
+        folderDao.deleteAllBy(folderType.index)
     }
 
     suspend fun deleteAll() {

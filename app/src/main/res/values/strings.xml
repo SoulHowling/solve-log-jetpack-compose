@@ -7,6 +7,7 @@
     <string name="common_dialog_save_button">Save</string>
     <string name="common_dialog_update_button">Update</string>
     <string name="common_dialog_cancel_button">Cancel</string>
+    <string name="common_dialog_close_button">Close</string>
     <string name="common_export_success">Exported successfully</string>
     <string name="common_export_failed">Export failed</string>
     <string name="common_import_success">Imported successfully</string>
@@ -21,6 +22,7 @@
     <!--  Tab title  -->
     <string name="tab_editor">Logs</string>
     <string name="tab_measurement">Measure</string>
+    <string name="tab_memo">Memo</string>
     <string name="tab_setting">Settings</string>
 
     <!-- Log list -->
@@ -66,6 +68,7 @@
     <string name="log_list_cd_toggle_view">Toggle view mode</string>
     <string name="log_list_cd_more_options">More options</string>
     <string name="log_list_cd_drag_handle">Drag to reorder</string>
+    <string name="log_list_empty_log_message">No logs yet</string>
 
     <!-- Log viewer -->
     <string name="log_view">View Log</string>
@@ -133,6 +136,18 @@
     <string name="timer_dialog_overwrite_title">Switch Timer</string>
     <string name="timer_dialog_overwrite_message">Do you want to stop the current timer and start a new one?</string>
 
+    <!-- Memo -->
+    <string name="memo_title">Memo</string>
+    <string name="memo_editor_title">Edit memo</string>
+    <string name="memo_list_add_new_memo">Memo</string>
+    <string name="memo_list_empty_message">No memos yet</string>
+    <string name="memo_editor_template_dialog_title_heading">Heading Templates</string>
+    <string name="memo_editor_template_dialog_title_latex">LaTeX Templates</string>
+    <string name="memo_editor_table_dialog_title">Create Table</string>
+    <string name="memo_editor_table_dialog_rows">Rows</string>
+    <string name="memo_editor_table_dialog_cols">Columns</string>
+    <string name="memo_editor_table_dialog_preview">Preview</string>
+
     <!-- Setting -->
     <string name="setting_app_theme">App theme</string>
     <string name="setting_wipe_data">Wipe data</string>
@@ -149,6 +164,8 @@
     <string name="help_section_logging_content">You can create folders and logs to record your study progress. In the log viewer, you can input your answers and check your accuracy for each attempt.</string>
     <string name="help_section_measurement_title">Measurement</string>
     <string name="help_section_measurement_content">Use the stopwatch to measure your study time, or the repeat timer for interval-based sessions (work and break sets).</string>
+    <string name="help_section_memo_title">Memo Feature</string>
+    <string name="help_section_memo_content">You can take notes using Markdown, LaTeX math formulas, tables, and more. Organize them with folders, and export or import your memos as JSON files.</string>
     <string name="help_section_settings_title">Settings</string>
     <string name="help_section_settings_content">You can change the app theme or wipe all your data from the settings menu.</string>
 
@@ -157,10 +174,13 @@
     <string name="wipe_data_all">Wipe all data</string>
     <string name="wipe_data_logs">Wipe all logs</string>
     <string name="wipe_data_timers">Wipe all timers</string>
+    <string name="wipe_data_memos">Wipe all memos</string>
+    <string name="memo_editor_title_label">Title</string>
     <string name="wipe_data_description_prefix">Wipes the following data. This action cannot be undone.</string>
-    <string name="wipe_data_all_description">[Logs]\n・Folders\n・Logs\n・Answer data\n[Timers]\n・Timer settings</string>
+    <string name="wipe_data_all_description">[Logs]\n・Folders\n・Logs\n・Answer data\n[Timers]\n・Timer settings\n[Memos]\n・Folders\n・Memos</string>
     <string name="wipe_data_logs_description">[Logs]\n・Folders\n・Logs\n・Answer data</string>
     <string name="wipe_data_timers_description">[Timers]\n・Timer settings</string>
+    <string name="wipe_data_memos_description">[Memos]\n・Folders\n・Memos</string>
     <string name="wipe_data_description_suffix">Do you want to wipe?</string>
     <string name="wipe_data_success">Data wiped successfully</string>
     <string name="wipe_data_failed">Failed to wipe data</string>
@@ -187,4 +207,6 @@
     <!-- content description -->
     <!-- Editor -->
     <string name="talkback_new_log_button">Add new log</string>
+
+    <string name="talkback_new_memo_button">Add new memo</string>
 </resources>
