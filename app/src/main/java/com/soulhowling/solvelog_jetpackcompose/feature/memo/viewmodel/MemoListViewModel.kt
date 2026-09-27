@@ -216,7 +216,9 @@ class MemoListViewModel(application: Application) : AndroidViewModel(application
                     memoRepository.deleteMemo(memo)
                 }
 
-                folderRepository.deleteFolder(folder)
+                allFoldersList.filter { it.id in descendantFolderIds }.forEach { f ->
+                    folderRepository.deleteFolder(f)
+                }
             }
         }
     }

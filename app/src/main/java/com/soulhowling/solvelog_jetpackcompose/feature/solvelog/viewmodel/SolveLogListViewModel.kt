@@ -309,7 +309,9 @@ class SolveLogListViewModel(application: Application) : AndroidViewModel(applica
                     solveLogRepository.deleteSolveLog(log)
                 }
 
-                folderRepository.deleteFolder(folder)
+                allFoldersList.filter { it.id in descendantFolderIds }.forEach { f ->
+                    folderRepository.deleteFolder(f)
+                }
             }
         }
     }
