@@ -200,7 +200,24 @@ class MemoListViewModel(application: Application) : AndroidViewModel(application
 
     fun deleteFolder(folder: Folder) {
         viewModelScope.launch {
-            folderRepository.deleteFolder(folder)
+            database.withTransaction {
+                val allFoldersList = allFolders.first()
+                val descendantFolderIds = mutableSetOf<Int>()
+                fun collectFolderIds(id: Int) {
+                    if (descendantFolderIds.add(id)) {
+                        allFoldersList.filter { it.parentFolderId == id }
+                            .forEach { collectFolderIds(it.id) }
+                    }
+                }
+                collectFolderIds(folder.id)
+
+                val allMemosList = allMemos.first()
+                allMemosList.filter { it.folderId in descendantFolderIds }.forEach { memo ->
+                    memoRepository.deleteMemo(memo)
+                }
+
+                folderRepository.deleteFolder(folder)
+            }
         }
     }
 

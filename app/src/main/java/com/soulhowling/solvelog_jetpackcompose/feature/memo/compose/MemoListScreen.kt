@@ -57,6 +57,7 @@ import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberUpdatedState
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.Alignment
@@ -110,7 +111,7 @@ fun MemoListScreen(
     val viewType by viewModel.viewType.collectAsStateWithLifecycle()
     val context = LocalContext.current
 
-    var pendingExportTarget by remember { mutableStateOf<MemoExportTarget?>(null) }
+    var pendingExportTarget by rememberSaveable { mutableStateOf<MemoExportTarget?>(null) }
     val exportDocumentLauncher = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.CreateDocument("application/json")
     ) { uri: Uri? ->

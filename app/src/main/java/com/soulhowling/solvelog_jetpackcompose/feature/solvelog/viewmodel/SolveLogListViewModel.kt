@@ -293,7 +293,24 @@ class SolveLogListViewModel(application: Application) : AndroidViewModel(applica
 
     fun deleteFolder(folder: Folder) {
         viewModelScope.launch {
-            folderRepository.deleteFolder(folder)
+            database.withTransaction {
+                val allFoldersList = allFolders.first()
+                val descendantFolderIds = mutableSetOf<Int>()
+                fun collectFolderIds(id: Int) {
+                    if (descendantFolderIds.add(id)) {
+                        allFoldersList.filter { it.parentFolderId == id }
+                            .forEach { collectFolderIds(it.id) }
+                    }
+                }
+                collectFolderIds(folder.id)
+
+                val allLogsList = solveLogRepository.allSolveLogs.first()
+                allLogsList.filter { it.folderId in descendantFolderIds }.forEach { log ->
+                    solveLogRepository.deleteSolveLog(log)
+                }
+
+                folderRepository.deleteFolder(folder)
+            }
         }
     }
 
