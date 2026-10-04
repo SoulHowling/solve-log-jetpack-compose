@@ -843,6 +843,14 @@ fun MemoListItemView(
 
     ListItem(
         modifier = Modifier.clickable(enabled = !isSortMode, onClick = onClick),
+        leadingContent = {
+            Icon(
+                imageVector = Icons.AutoMirrored.Outlined.StickyNote2,
+                contentDescription = null,
+                modifier = Modifier.size(30.dp),
+                tint = MaterialTheme.colorScheme.onSurfaceVariant
+            )
+        },
         headlineContent = {
             Text(
                 text = memo.name.ifBlank { "No Title" },
@@ -961,7 +969,7 @@ fun MemoActionButtons(
 
 @Preview(showBackground = true)
 @Composable
-private fun MemoListScreenContentPreview() {
+private fun MemoListScreenContentCardPreview() {
     SolveLogJetpackComposeTheme {
         val createdAt = System.currentTimeMillis()
         MemoListScreenContent(
@@ -990,6 +998,55 @@ private fun MemoListScreenContentPreview() {
             folders = emptyList(),
             currentFolderPath = null,
             isCardView = true,
+            isSortMode = false,
+            onMemoClick = {},
+            onSelectFolder = {},
+            onNavigateBack = {},
+            onExportMemo = {},
+            onExportFolder = {},
+            onAddFolder = {},
+            onDeleteMemo = {},
+            onDeleteFolder = {},
+            onMoveMemo = { _, _ -> },
+            onMoveFolder = { _, _ -> },
+            onUpdateFolder = { _, _ -> },
+            onAddMemoClick = {},
+            onReorder = { _, _ -> }
+        )
+    }
+}
+
+@Preview(showBackground = true)
+@Composable
+private fun MemoListScreenContentListPreview() {
+    SolveLogJetpackComposeTheme {
+        val createdAt = System.currentTimeMillis()
+        MemoListScreenContent(
+            displayItems = listOf(
+                MemoListItem.MemoItem(
+                    Memo(
+                        id = 1,
+                        name = "Memo 1",
+                        content = "Sample content line 1",
+                        createdAt = createdAt,
+                        updatedAt = createdAt,
+                        priority = 0
+                    )
+                ),
+                MemoListItem.MemoItem(
+                    Memo(
+                        id = 2,
+                        name = "Memo 2",
+                        content = "Sample content line 2",
+                        createdAt = createdAt,
+                        updatedAt = createdAt,
+                        priority = 0
+                    )
+                )
+            ),
+            folders = emptyList(),
+            currentFolderPath = null,
+            isCardView = false,
             isSortMode = false,
             onMemoClick = {},
             onSelectFolder = {},
