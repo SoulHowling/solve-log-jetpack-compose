@@ -17,6 +17,8 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.soulhowling.solvelog_jetpackcompose.R
 import com.soulhowling.solvelog_jetpackcompose.core.CustomAppBarEffect
+import com.soulhowling.solvelog_jetpackcompose.core.LocalBottomBarVisibility
+import com.soulhowling.solvelog_jetpackcompose.ui.theme.Dimensions
 import com.soulhowling.solvelog_jetpackcompose.ui.theme.SolveLogJetpackComposeTheme
 
 @Composable
@@ -31,12 +33,19 @@ fun HelpScreenContent() {
     )
 
     val scrollState = rememberScrollState()
+    val isBottomBarVisible = LocalBottomBarVisibility.current
+    val bottomPadding = if (isBottomBarVisible) Dimensions.LIST_BOTTOM_WITH_FAB else Dimensions.PADDING_MEDIUM
 
     Column(
         modifier = Modifier
             .fillMaxSize()
             .verticalScroll(scrollState)
-            .padding(16.dp)
+            .padding(
+                start = Dimensions.PADDING_MEDIUM,
+                top = Dimensions.PADDING_MEDIUM,
+                end = Dimensions.PADDING_MEDIUM,
+                bottom = bottomPadding
+            )
     ) {
         HelpSection(
             title = stringResource(id = R.string.help_section_logging_title),
@@ -53,11 +62,18 @@ fun HelpScreenContent() {
         Spacer(modifier = Modifier.height(24.dp))
 
         HelpSection(
+            title = stringResource(id = R.string.help_section_memo_title),
+            content = stringResource(id = R.string.help_section_memo_content)
+        )
+
+        Spacer(modifier = Modifier.height(24.dp))
+
+        HelpSection(
             title = stringResource(id = R.string.help_section_settings_title),
             content = stringResource(id = R.string.help_section_settings_content)
         )
 
-        Spacer(modifier = Modifier.height(32.dp))
+        Spacer(modifier = Modifier.height(16.dp))
     }
 }
 

@@ -17,5 +17,5 @@ interface TimerDao: BaseDao<TimerState> {
     suspend fun deleteTimerState(id: Int)
 
     @Query("DELETE FROM timer_state")
-    override suspend fun deleteAll()
+    suspend fun deleteAll()
 }

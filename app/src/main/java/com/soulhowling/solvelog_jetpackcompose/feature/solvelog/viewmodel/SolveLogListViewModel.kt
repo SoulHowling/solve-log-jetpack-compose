@@ -7,6 +7,7 @@ import androidx.room.withTransaction
 import com.soulhowling.solvelog_jetpackcompose.core.SolveLogApplication
 import com.soulhowling.solvelog_jetpackcompose.feature.solvelog.AnswerFormat
 import com.soulhowling.solvelog_jetpackcompose.feature.solvelog.Correctness
+import com.soulhowling.solvelog_jetpackcompose.feature.solvelog.FolderType
 import com.soulhowling.solvelog_jetpackcompose.feature.solvelog.SelectionQuantity
 import com.soulhowling.solvelog_jetpackcompose.feature.solvelog.SelectionType
 import com.soulhowling.solvelog_jetpackcompose.feature.solvelog.model.entity.Folder
@@ -28,6 +29,7 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
@@ -70,7 +72,9 @@ class SolveLogListViewModel(application: Application) : AndroidViewModel(applica
 
     val viewType: StateFlow<ViewType> = PreferenceRepository.viewType
 
-    private val allFolders = folderRepository.allFolders
+    private val allFolders = folderRepository.allFolders.map { list ->
+        list.filter { it.folderType == FolderType.SOLVE_LOG.index }
+    }
     private val allSolveLogs = solveLogRepository.allSolveLogs
 
     val folders: StateFlow<List<Folder>> = allFolders.stateIn(
@@ -272,7 +276,7 @@ class SolveLogListViewModel(application: Application) : AndroidViewModel(applica
             val folder = folderRepository.createFolder(
                 name = name,
                 parentFolderId = _currentFolderId.value
-            ).copy(priority = getNextPriority())
+            ).copy(priority = getNextPriority(), folderType = FolderType.SOLVE_LOG.index)
             folderRepository.insertFolder(folder)
         }
     }
@@ -289,7 +293,26 @@ class SolveLogListViewModel(application: Application) : AndroidViewModel(applica
 
     fun deleteFolder(folder: Folder) {
         viewModelScope.launch {
-            folderRepository.deleteFolder(folder)
+            database.withTransaction {
+                val allFoldersList = allFolders.first()
+                val descendantFolderIds = mutableSetOf<Int>()
+                fun collectFolderIds(id: Int) {
+                    if (descendantFolderIds.add(id)) {
+                        allFoldersList.filter { it.parentFolderId == id }
+                            .forEach { collectFolderIds(it.id) }
+                    }
+                }
+                collectFolderIds(folder.id)
+
+                val allLogsList = solveLogRepository.allSolveLogs.first()
+                allLogsList.filter { it.folderId in descendantFolderIds }.forEach { log ->
+                    solveLogRepository.deleteSolveLog(log)
+                }
+
+                allFoldersList.filter { it.id in descendantFolderIds }.forEach { f ->
+                    folderRepository.deleteFolder(f)
+                }
+            }
         }
     }
 

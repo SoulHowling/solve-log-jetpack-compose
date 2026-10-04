@@ -39,5 +39,5 @@ interface QuestionDao: BaseDao<Question> {
     suspend fun getQuestionsBySolveLogIds(solveLogIds: List<Int>): List<Question>
 
     @Query("DELETE FROM question")
-    override suspend fun deleteAll()
+    suspend fun deleteAll()
 }

@@ -6,6 +6,7 @@ import androidx.room.ForeignKey
 import androidx.room.Index
 import androidx.room.PrimaryKey
 import com.soulhowling.solvelog_jetpackcompose.core.database.DBKeys
+import com.soulhowling.solvelog_jetpackcompose.feature.solvelog.FolderType
 
 @Entity(
     tableName = DBKeys.TABLE_FOLDER,
@@ -29,5 +30,7 @@ data class Folder(
     val updatedAt: Long,
     val parentFolderId: Int?,
     @ColumnInfo(defaultValue = "0")
-    val priority: Int = 0
+    val priority: Int = 0,
+    @ColumnInfo(defaultValue = "0")
+    val folderType: Int = FolderType.SOLVE_LOG.index
 )

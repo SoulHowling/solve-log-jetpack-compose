@@ -109,7 +109,7 @@ private fun FreeAnswerInputDialogPreview() {
     SolveLogJetpackComposeTheme {
         FreeAnswerInputDialog(
             title = "12",
-            content = "回答",
+            content = "解答",
             onConfirm = {},
             onDismiss = {}
         )

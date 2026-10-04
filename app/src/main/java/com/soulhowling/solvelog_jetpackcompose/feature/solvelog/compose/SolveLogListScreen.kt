@@ -39,8 +39,8 @@ import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.automirrored.filled.Assignment
+import androidx.compose.material.icons.automirrored.outlined.Assignment
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Category
 import androidx.compose.material.icons.filled.CreateNewFolder
@@ -75,9 +75,7 @@ import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.draw.drawBehind
 import androidx.compose.ui.draw.rotate
-import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.LocalContext
@@ -102,6 +100,9 @@ import com.soulhowling.solvelog_jetpackcompose.feature.solvelog.viewmodel.SolveL
 import com.soulhowling.solvelog_jetpackcompose.feature.solvelog.viewmodel.SolveLogListViewModel
 import com.soulhowling.solvelog_jetpackcompose.ui.theme.Dimensions
 import com.soulhowling.solvelog_jetpackcompose.ui.theme.SolveLogJetpackComposeTheme
+import com.soulhowling.solvelog_jetpackcompose.utils.compose.CurrentFolderHeader
+import com.soulhowling.solvelog_jetpackcompose.utils.compose.ItemCard
+import com.soulhowling.solvelog_jetpackcompose.utils.compose.ItemOverflowMenu
 import kotlin.time.Duration.Companion.milliseconds
 
 object SolveLogListTestTags {
@@ -444,273 +445,290 @@ internal fun SolveLogListScreenContent(
                 CurrentFolderHeader(
                     currentFolderPath = currentFolderPath,
                     onNavigateBack = onNavigateBack,
+                    backButtonTestTag = SolveLogListTestTags.BACK_BUTTON
                 )
             }
-
-            LazyColumn(
-                state = listState,
-                modifier = Modifier.weight(1f),
-                contentPadding = contentPadding,
-                verticalArrangement = verticalArrangement
-            ) {
-                itemsIndexed(
-                    items = localItems,
-                    key = { _, item ->
-                        when (item) {
+            if (localItems.isEmpty()) {
+                Box(
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .weight(1f),
+                    contentAlignment = Alignment.Center
+                ) {
+                    Text(
+                        text = stringResource(R.string.log_list_empty_log_message),
+                        style = MaterialTheme.typography.bodyLarge,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
+                }
+            } else {
+                LazyColumn(
+                    state = listState,
+                    modifier = Modifier.weight(1f),
+                    contentPadding = contentPadding,
+                    verticalArrangement = verticalArrangement
+                ) {
+                    itemsIndexed(
+                        items = localItems,
+                        key = { _, item ->
+                            when (item) {
+                                is SolveLogListItem.FolderItem -> "folder_${item.folder.id}"
+                                is SolveLogListItem.LogItem -> "log_${item.log.id}"
+                            }
+                        }
+                    ) { _, item ->
+                        val itemKey = when (item) {
                             is SolveLogListItem.FolderItem -> "folder_${item.folder.id}"
                             is SolveLogListItem.LogItem -> "log_${item.log.id}"
                         }
-                    }
-                ) { _, item ->
-                    val itemKey = when (item) {
-                        is SolveLogListItem.FolderItem -> "folder_${item.folder.id}"
-                        is SolveLogListItem.LogItem -> "log_${item.log.id}"
-                    }
 
-                    val isDragging = draggedItemKey == itemKey
-                    val isTarget = targetSwapKey == itemKey
-                    val scale by animateFloatAsState(
-                        targetValue = if (isDragging) 1.05f else 1.0f,
-                        label = "scale"
-                    )
-                    val elevation by animateDpAsState(
-                        targetValue = if (isDragging) 8.dp else 0.dp,
-                        label = "elevation"
-                    )
-                    val zIndex = if (isDragging) 10f else 0f
+                        val isDragging = draggedItemKey == itemKey
+                        val isTarget = targetSwapKey == itemKey
+                        val scale by animateFloatAsState(
+                            targetValue = if (isDragging) 1.05f else 1.0f,
+                            label = "scale"
+                        )
+                        val elevation by animateDpAsState(
+                            targetValue = if (isDragging) 8.dp else 0.dp,
+                            label = "elevation"
+                        )
+                        val zIndex = if (isDragging) 10f else 0f
 
-                    val dragModifier = if (isSortMode) {
-                        Modifier.pointerInput(itemKey) {
-                            detectDragGestures(
-                                onDragStart = {
-                                    val currentList = localItems
-                                    draggedItemKey = itemKey
-                                    dragOffset = 0f
-                                    startIndex = currentList.indexOfFirst {
-                                        val key = when (it) {
-                                            is SolveLogListItem.FolderItem -> "folder_${it.folder.id}"
-                                            is SolveLogListItem.LogItem -> "log_${it.log.id}"
-                                        }
-                                        key == itemKey
-                                    }
-                                },
-                                onDrag = { change, dragAmount ->
-                                    change.consume()
-                                    dragOffset += dragAmount.y
-
-                                    val layoutInfo = listState.layoutInfo
-                                    val visibleItems = layoutInfo.visibleItemsInfo
-                                    val draggedItemInfo = visibleItems.find { it.key == itemKey }
-                                        ?: return@detectDragGestures
-
-                                    // 常に最新の localItems の状態に基づいて検索
-                                    val currentList = localItems
-                                    val currentIndex = currentList.indexOfFirst {
-                                        val key = when (it) {
-                                            is SolveLogListItem.FolderItem -> "folder_${it.folder.id}"
-                                            is SolveLogListItem.LogItem -> "log_${it.log.id}"
-                                        }
-                                        key == itemKey
-                                    }
-
-                                    val draggedVisualCenter =
-                                        draggedItemInfo.offset + draggedItemInfo.size / 2 + dragOffset
-                                    val targetItemInfo = visibleItems.find { itemInfo ->
-                                        if (itemInfo.key == itemKey) return@find false
-                                        val itemTop = itemInfo.offset.toFloat()
-                                        val itemBottom = (itemInfo.offset + itemInfo.size).toFloat()
-                                        draggedVisualCenter > itemTop && draggedVisualCenter < itemBottom
-                                    }
-
-                                    if (targetItemInfo != null) {
-                                        // targetItemInfo.index はリスト全体でのインデックス
-                                        val targetIndex = targetItemInfo.index
-                                        if (targetIndex != -1 && currentIndex != -1 && targetIndex != currentIndex) {
-                                            val targetMidPoint =
-                                                targetItemInfo.offset + targetItemInfo.size / 2
-
-                                            if ((targetIndex > currentIndex && draggedVisualCenter > targetMidPoint) ||
-                                                (targetIndex < currentIndex && draggedVisualCenter < targetMidPoint)
-                                            ) {
-
-                                                val oldOffset = draggedItemInfo.offset.toFloat()
-                                                val newOffset = targetItemInfo.offset.toFloat()
-
-                                                val newList = localItems.toMutableList()
-                                                val moved = newList.removeAt(currentIndex)
-                                                newList.add(targetIndex, moved)
-                                                localItems = newList
-
-                                                // スワップが発生したので指の位置を補正
-                                                dragOffset += (oldOffset - newOffset)
-                                                targetSwapKey = null
-                                            } else {
-                                                targetSwapKey = targetItemInfo.key
+                        val dragModifier = if (isSortMode) {
+                            Modifier.pointerInput(itemKey) {
+                                detectDragGestures(
+                                    onDragStart = {
+                                        val currentList = localItems
+                                        draggedItemKey = itemKey
+                                        dragOffset = 0f
+                                        startIndex = currentList.indexOfFirst {
+                                            val key = when (it) {
+                                                is SolveLogListItem.FolderItem -> "folder_${it.folder.id}"
+                                                is SolveLogListItem.LogItem -> "log_${it.log.id}"
                                             }
+                                            key == itemKey
                                         }
-                                    } else {
+                                    },
+                                    onDrag = { change, dragAmount ->
+                                        change.consume()
+                                        dragOffset += dragAmount.y
+
+                                        val layoutInfo = listState.layoutInfo
+                                        val visibleItems = layoutInfo.visibleItemsInfo
+                                        val draggedItemInfo =
+                                            visibleItems.find { it.key == itemKey }
+                                                ?: return@detectDragGestures
+
+                                        // 常に最新の localItems の状態に基づいて検索
+                                        val currentList = localItems
+                                        val currentIndex = currentList.indexOfFirst {
+                                            val key = when (it) {
+                                                is SolveLogListItem.FolderItem -> "folder_${it.folder.id}"
+                                                is SolveLogListItem.LogItem -> "log_${it.log.id}"
+                                            }
+                                            key == itemKey
+                                        }
+
+                                        val draggedVisualCenter =
+                                            draggedItemInfo.offset + draggedItemInfo.size / 2 + dragOffset
+                                        val targetItemInfo = visibleItems.find { itemInfo ->
+                                            if (itemInfo.key == itemKey) return@find false
+                                            val itemTop = itemInfo.offset.toFloat()
+                                            val itemBottom =
+                                                (itemInfo.offset + itemInfo.size).toFloat()
+                                            draggedVisualCenter > itemTop && draggedVisualCenter < itemBottom
+                                        }
+
+                                        if (targetItemInfo != null) {
+                                            // targetItemInfo.index はリスト全体でのインデックス
+                                            val targetIndex = targetItemInfo.index
+                                            if (targetIndex != -1 && currentIndex != -1 && targetIndex != currentIndex) {
+                                                val targetMidPoint =
+                                                    targetItemInfo.offset + targetItemInfo.size / 2
+
+                                                if ((targetIndex > currentIndex && draggedVisualCenter > targetMidPoint) ||
+                                                    (targetIndex < currentIndex && draggedVisualCenter < targetMidPoint)
+                                                ) {
+
+                                                    val oldOffset = draggedItemInfo.offset.toFloat()
+                                                    val newOffset = targetItemInfo.offset.toFloat()
+
+                                                    val newList = localItems.toMutableList()
+                                                    val moved = newList.removeAt(currentIndex)
+                                                    newList.add(targetIndex, moved)
+                                                    localItems = newList
+
+                                                    // スワップが発生したので指の位置を補正
+                                                    dragOffset += (oldOffset - newOffset)
+                                                    targetSwapKey = null
+                                                } else {
+                                                    targetSwapKey = targetItemInfo.key
+                                                }
+                                            }
+                                        } else {
+                                            targetSwapKey = null
+                                        }
+                                    },
+                                    onDragEnd = {
+                                        val currentList = localItems
+                                        val finalIndex = currentList.indexOfFirst { listItem ->
+                                            val key = when (listItem) {
+                                                is SolveLogListItem.FolderItem -> "folder_${listItem.folder.id}"
+                                                is SolveLogListItem.LogItem -> "log_${listItem.log.id}"
+                                            }
+                                            key == draggedItemKey
+                                        }
+                                        if (startIndex != -1 && finalIndex != -1 && startIndex != finalIndex) {
+                                            currentOnReorder(startIndex, finalIndex)
+                                        }
+                                        draggedItemKey = null
+
+                                        // 最新の displayItems を参照して同期チェック
+                                        if (lastSyncedDisplayItems != currentDisplayItems) {
+                                            localItems = currentDisplayItems
+                                            lastSyncedDisplayItems = currentDisplayItems
+                                        }
+
                                         targetSwapKey = null
-                                    }
-                                },
-                                onDragEnd = {
-                                    val currentList = localItems
-                                    val finalIndex = currentList.indexOfFirst { listItem ->
-                                        val key = when (listItem) {
-                                            is SolveLogListItem.FolderItem -> "folder_${listItem.folder.id}"
-                                            is SolveLogListItem.LogItem -> "log_${listItem.log.id}"
+                                        dragOffset = 0f
+                                        startIndex = -1
+                                    },
+                                    onDragCancel = {
+                                        draggedItemKey = null
+
+                                        // キャンセル時も最新の displayItems で同期
+                                        if (lastSyncedDisplayItems != currentDisplayItems) {
+                                            localItems = currentDisplayItems
+                                            lastSyncedDisplayItems = currentDisplayItems
                                         }
-                                        key == draggedItemKey
+
+                                        targetSwapKey = null
+                                        dragOffset = 0f
+                                        startIndex = -1
                                     }
-                                    if (startIndex != -1 && finalIndex != -1 && startIndex != finalIndex) {
-                                        currentOnReorder(startIndex, finalIndex)
-                                    }
-                                    draggedItemKey = null
-
-                                    // 最新の displayItems を参照して同期チェック
-                                    if (lastSyncedDisplayItems != currentDisplayItems) {
-                                        localItems = currentDisplayItems
-                                        lastSyncedDisplayItems = currentDisplayItems
-                                    }
-
-                                    targetSwapKey = null
-                                    dragOffset = 0f
-                                    startIndex = -1
-                                },
-                                onDragCancel = {
-                                    draggedItemKey = null
-
-                                    // キャンセル時も最新の displayItems で同期
-                                    if (lastSyncedDisplayItems != currentDisplayItems) {
-                                        localItems = currentDisplayItems
-                                        lastSyncedDisplayItems = currentDisplayItems
-                                    }
-
-                                    targetSwapKey = null
-                                    dragOffset = 0f
-                                    startIndex = -1
-                                }
-                            )
-                        }
-                    } else Modifier
-
-                    Box(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .zIndex(zIndex)
-                            .animateItem(
-                                placementSpec = if (isDragging) null else spring(),
-                                fadeInSpec = null,
-                                fadeOutSpec = null
-                            )
-                            .graphicsLayer {
-                                scaleX = scale
-                                scaleY = scale
-                                translationY = if (isDragging) dragOffset else 0f
-                                shadowElevation = elevation.toPx()
-                                shape = RoundedCornerShape(if (isCardView) 12.dp else 0.dp)
-                                clip = isDragging
+                                )
                             }
-                    ) {
-                        if (isTarget) {
-                            HorizontalDivider(
-                                modifier = Modifier
-                                    .align(Alignment.TopCenter)
-                                    .offset(y = (-Dimensions.SPACING_MEDIUM / 2))
-                                    .zIndex(2f),
-                                thickness = 4.dp,
-                                color = MaterialTheme.colorScheme.primary
-                            )
-                        }
+                        } else Modifier
 
-                        if (isCardView) {
-                            when (item) {
-                                is SolveLogListItem.FolderItem -> {
-                                    FolderItemCard(
-                                        title = item.folder.name,
-                                        onClick = { onSelectFolder(item.folder.id) },
-                                        onDelete = { onDeleteFolder(item.folder) },
-                                        onMove = { movingFolder = item.folder },
-                                        onExportFolder = { onExportFolder(item.folder) },
-                                        onEdit = { editingFolder = item.folder },
-                                        isSortMode = isSortMode,
-                                        dragHandle = { modifier ->
-                                            DragIndicator(
-                                                modifier.then(
-                                                    dragModifier
-                                                )
-                                            )
-                                        },
-                                        modifier = Modifier.testTag(SolveLogListTestTags.FOLDER_ITEM + item.folder.id)
-                                    )
+                        Box(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .zIndex(zIndex)
+                                .animateItem(
+                                    placementSpec = if (isDragging) null else spring(),
+                                    fadeInSpec = null,
+                                    fadeOutSpec = null
+                                )
+                                .graphicsLayer {
+                                    scaleX = scale
+                                    scaleY = scale
+                                    translationY = if (isDragging) dragOffset else 0f
+                                    shadowElevation = elevation.toPx()
+                                    shape = RoundedCornerShape(if (isCardView) 12.dp else 0.dp)
+                                    clip = isDragging
                                 }
-
-                                is SolveLogListItem.LogItem -> {
-                                    SolveLogItemCard(
-                                        title = item.log.name,
-                                        questionQuantity = item.log.questionQuantity,
-                                        attemptCount = item.log.attemptCount,
-                                        answerFormat = item.log.answerFormat,
-                                        selectionTypeIndex = item.log.selectionType,
-                                        selectionQuantityIndex = item.log.selectionQuantity,
-                                        onClick = { onNavigateToViewer(item.log.id) },
-                                        onDelete = { onDeleteSolveLog(item.log) },
-                                        onMove = { movingLog = item.log },
-                                        onExport = { onExportLog(item.log) },
-                                        onEdit = { editingLog = item.log },
-                                        isSortMode = isSortMode,
-                                        dragHandle = { modifier ->
-                                            DragIndicator(
-                                                modifier.then(
-                                                    dragModifier
-                                                )
-                                            )
-                                        },
-                                        modifier = Modifier.testTag(SolveLogListTestTags.LOG_ITEM + item.log.id)
-                                    )
-                                }
+                        ) {
+                            if (isTarget) {
+                                HorizontalDivider(
+                                    modifier = Modifier
+                                        .align(Alignment.TopCenter)
+                                        .offset(y = (-Dimensions.SPACING_MEDIUM / 2))
+                                        .zIndex(2f),
+                                    thickness = 4.dp,
+                                    color = MaterialTheme.colorScheme.primary
+                                )
                             }
-                        } else {
-                            when (item) {
-                                is SolveLogListItem.FolderItem -> {
-                                    SolveListItem(
-                                        isLog = false,
-                                        title = item.folder.name,
-                                        onClick = { onSelectFolder(item.folder.id) },
-                                        onDelete = { onDeleteFolder(item.folder) },
-                                        onMove = { movingFolder = item.folder },
-                                        onExport = { onExportFolder(item.folder) },
-                                        onEdit = { editingFolder = item.folder },
-                                        isSortMode = isSortMode,
-                                        dragHandle = { modifier ->
-                                            DragIndicator(
-                                                modifier.then(
-                                                    dragModifier
-                                                )
-                                            )
-                                        },
-                                        modifier = Modifier.testTag(SolveLogListTestTags.FOLDER_ITEM + item.folder.id)
-                                    )
-                                }
 
-                                is SolveLogListItem.LogItem -> {
-                                    SolveListItem(
-                                        isLog = true,
-                                        title = item.log.name,
-                                        onClick = { onNavigateToViewer(item.log.id) },
-                                        onDelete = { onDeleteSolveLog(item.log) },
-                                        onMove = { movingLog = item.log },
-                                        onExport = { onExportLog(item.log) },
-                                        onEdit = { editingLog = item.log },
-                                        isSortMode = isSortMode,
-                                        dragHandle = { modifier ->
-                                            DragIndicator(
-                                                modifier.then(
-                                                    dragModifier
+                            if (isCardView) {
+                                when (item) {
+                                    is SolveLogListItem.FolderItem -> {
+                                        FolderItemCard(
+                                            title = item.folder.name,
+                                            onClick = { onSelectFolder(item.folder.id) },
+                                            onDelete = { onDeleteFolder(item.folder) },
+                                            onMove = { movingFolder = item.folder },
+                                            onExportFolder = { onExportFolder(item.folder) },
+                                            onEdit = { editingFolder = item.folder },
+                                            isSortMode = isSortMode,
+                                            dragHandle = { modifier ->
+                                                DragIndicator(
+                                                    modifier.then(
+                                                        dragModifier
+                                                    )
                                                 )
-                                            )
-                                        },
-                                        modifier = Modifier.testTag(SolveLogListTestTags.LOG_ITEM + item.log.id)
-                                    )
+                                            },
+                                            modifier = Modifier.testTag(SolveLogListTestTags.FOLDER_ITEM + item.folder.id)
+                                        )
+                                    }
+
+                                    is SolveLogListItem.LogItem -> {
+                                        SolveLogItemCard(
+                                            title = item.log.name,
+                                            questionQuantity = item.log.questionQuantity,
+                                            attemptCount = item.log.attemptCount,
+                                            answerFormat = item.log.answerFormat,
+                                            selectionTypeIndex = item.log.selectionType,
+                                            selectionQuantityIndex = item.log.selectionQuantity,
+                                            onClick = { onNavigateToViewer(item.log.id) },
+                                            onDelete = { onDeleteSolveLog(item.log) },
+                                            onMove = { movingLog = item.log },
+                                            onExport = { onExportLog(item.log) },
+                                            onEdit = { editingLog = item.log },
+                                            isSortMode = isSortMode,
+                                            dragHandle = { modifier ->
+                                                DragIndicator(
+                                                    modifier.then(
+                                                        dragModifier
+                                                    )
+                                                )
+                                            },
+                                            modifier = Modifier.testTag(SolveLogListTestTags.LOG_ITEM + item.log.id)
+                                        )
+                                    }
+                                }
+                            } else {
+                                when (item) {
+                                    is SolveLogListItem.FolderItem -> {
+                                        SolveListItem(
+                                            isLog = false,
+                                            title = item.folder.name,
+                                            onClick = { onSelectFolder(item.folder.id) },
+                                            onDelete = { onDeleteFolder(item.folder) },
+                                            onMove = { movingFolder = item.folder },
+                                            onExport = { onExportFolder(item.folder) },
+                                            onEdit = { editingFolder = item.folder },
+                                            isSortMode = isSortMode,
+                                            dragHandle = { modifier ->
+                                                DragIndicator(
+                                                    modifier.then(
+                                                        dragModifier
+                                                    )
+                                                )
+                                            },
+                                            modifier = Modifier.testTag(SolveLogListTestTags.FOLDER_ITEM + item.folder.id)
+                                        )
+                                    }
+
+                                    is SolveLogListItem.LogItem -> {
+                                        SolveListItem(
+                                            isLog = true,
+                                            title = item.log.name,
+                                            onClick = { onNavigateToViewer(item.log.id) },
+                                            onDelete = { onDeleteSolveLog(item.log) },
+                                            onMove = { movingLog = item.log },
+                                            onExport = { onExportLog(item.log) },
+                                            onEdit = { editingLog = item.log },
+                                            isSortMode = isSortMode,
+                                            dragHandle = { modifier ->
+                                                DragIndicator(
+                                                    modifier.then(
+                                                        dragModifier
+                                                    )
+                                                )
+                                            },
+                                            modifier = Modifier.testTag(SolveLogListTestTags.LOG_ITEM + item.log.id)
+                                        )
+                                    }
                                 }
                             }
                         }
@@ -833,34 +851,12 @@ private fun FolderItemCard(
     modifier: Modifier = Modifier,
     dragHandle: @Composable (Modifier) -> Unit = {},
 ) {
-    Card(
-        modifier = modifier
-            .fillMaxWidth()
-            .clickable(enabled = !isSortMode) { onClick() },
-        elevation = CardDefaults.cardElevation(defaultElevation = Dimensions.SPACING_SMALL),
-        colors = CardDefaults.cardColors(
-            containerColor = MaterialTheme.colorScheme.surfaceVariant
-        ),
-    ) {
-        Row(
-            modifier = Modifier
-                .padding(Dimensions.PADDING_MEDIUM)
-                .fillMaxWidth(),
-            verticalAlignment = Alignment.CenterVertically
-        ) {
-            Icon(
-                imageVector = Icons.Default.Folder,
-                contentDescription = null,
-                modifier = Modifier
-                    .padding(end = Dimensions.PADDING_MEDIUM)
-                    .size(40.dp),
-                tint = MaterialTheme.colorScheme.onSurfaceVariant
-            )
-            Text(
-                text = title,
-                style = MaterialTheme.typography.titleLarge,
-                modifier = Modifier.weight(1f)
-            )
+    ItemCard(
+        modifier = modifier,
+        icon = Icons.Default.Folder,
+        onClick = onClick,
+        enabled = !isSortMode,
+        trailingContent = {
             if (isSortMode) {
                 dragHandle(Modifier)
             } else {
@@ -872,6 +868,11 @@ private fun FolderItemCard(
                 )
             }
         }
+    ) {
+        Text(
+            text = title,
+            style = MaterialTheme.typography.titleLarge
+        )
     }
 }
 
@@ -906,58 +907,12 @@ private fun SolveLogItemCard(
         )
     }
 
-    Card(
-        modifier = modifier
-            .fillMaxWidth()
-            .clickable(enabled = !isSortMode) { onClick() },
-        elevation = CardDefaults.cardElevation(defaultElevation = Dimensions.SPACING_SMALL),
-        colors = CardDefaults.cardColors(
-            containerColor = MaterialTheme.colorScheme.surfaceVariant
-        ),
-    ) {
-        Row(
-            modifier = Modifier
-                .padding(Dimensions.PADDING_MEDIUM)
-                .fillMaxWidth(),
-            verticalAlignment = Alignment.CenterVertically
-        ) {
-            Icon(
-                imageVector = Icons.AutoMirrored.Filled.Assignment,
-                contentDescription = null,
-                modifier = Modifier
-                    .padding(end = Dimensions.PADDING_MEDIUM)
-                    .size(40.dp),
-                tint = MaterialTheme.colorScheme.onSurfaceVariant
-            )
-
-            Column(
-                modifier = Modifier
-                    .weight(1f)
-            ) {
-                Text(
-                    text = title,
-                    style = MaterialTheme.typography.titleLarge
-                )
-                HorizontalDivider(
-                    modifier = Modifier.padding(top = 4.dp, bottom = 2.dp),
-                    color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.5f)
-                )
-                InfoBadge(
-                    icon = Icons.Default.Numbers,
-                    text = stringResource(
-                        R.string.log_list_description_question_quantity,
-                        questionQuantity
-                    )
-                )
-                InfoBadge(
-                    icon = Icons.Default.History,
-                    text = stringResource(R.string.log_list_description_attempt_count, attemptCount)
-                )
-                InfoBadge(
-                    icon = Icons.Default.Category,
-                    text = categoryText
-                )
-            }
+    ItemCard(
+        modifier = modifier,
+        icon = Icons.AutoMirrored.Outlined.Assignment,
+        onClick = onClick,
+        enabled = !isSortMode,
+        trailingContent = {
             if (isSortMode) {
                 dragHandle(Modifier)
             } else {
@@ -969,6 +924,30 @@ private fun SolveLogItemCard(
                 )
             }
         }
+    ) {
+        Text(
+            text = title,
+            style = MaterialTheme.typography.titleLarge
+        )
+        HorizontalDivider(
+            modifier = Modifier.padding(top = 4.dp, bottom = 2.dp),
+            color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.5f)
+        )
+        InfoBadge(
+            icon = Icons.Default.Numbers,
+            text = stringResource(
+                R.string.log_list_description_question_quantity,
+                questionQuantity
+            )
+        )
+        InfoBadge(
+            icon = Icons.Default.History,
+            text = stringResource(R.string.log_list_description_attempt_count, attemptCount)
+        )
+        InfoBadge(
+            icon = Icons.Default.Category,
+            text = categoryText
+        )
     }
 }
 
@@ -1061,77 +1040,12 @@ private fun OverFlowMenu(
     onExport: () -> Unit,
     onEdit: () -> Unit,
 ) {
-    var isExpanded by remember { mutableStateOf(false) }
-    Box {
-        IconButton(
-            onClick = { isExpanded = true }
-        ) {
-            Icon(
-                imageVector = Icons.Default.MoreVert,
-                contentDescription = stringResource(R.string.log_list_cd_more_options)
-            )
-        }
-        DropdownMenu(
-            modifier = Modifier
-                .background(MaterialTheme.colorScheme.background)
-                .clip(RoundedCornerShape(16.dp)),
-            expanded = isExpanded,
-            onDismissRequest = { isExpanded = false }
-        ) {
-            DropdownMenuItem(
-                onClick = {
-                    onEdit()
-                    isExpanded = false
-                },
-                text = {
-                    Text(
-                        text = stringResource(R.string.log_list_dropdown_menu_item_edit),
-                        style = MaterialTheme.typography.titleMedium,
-                        modifier = Modifier
-                    )
-                }
-            )
-            DropdownMenuItem(
-                onClick = {
-                    onMove()
-                    isExpanded = false
-                },
-                text = {
-                    Text(
-                        text = stringResource(R.string.log_list_dropdown_menu_item_move),
-                        style = MaterialTheme.typography.titleMedium,
-                        modifier = Modifier
-                    )
-                }
-            )
-            DropdownMenuItem(
-                onClick = {
-                    onDelete()
-                    isExpanded = false
-                },
-                text = {
-                    Text(
-                        text = stringResource(R.string.log_list_dropdown_menu_item_delete),
-                        style = MaterialTheme.typography.titleMedium,
-                        modifier = Modifier
-                    )
-                }
-            )
-            DropdownMenuItem(
-                onClick = {
-                    onExport()
-                    isExpanded = false
-                },
-                text = {
-                    Text(
-                        text = stringResource(R.string.log_list_dropdown_menu_item_export),
-                        style = MaterialTheme.typography.titleMedium,
-                        modifier = Modifier
-                    )
-                }
-            )
-        }
-    }
+    ItemOverflowMenu(
+        onEdit = onEdit,
+        onMove = onMove,
+        onDelete = onDelete,
+        onExport = onExport
+    )
 }
 
 @Composable
@@ -1151,45 +1065,7 @@ private fun DragIndicator(
     }
 }
 
-@Composable
-fun CurrentFolderHeader(
-    currentFolderPath: String,
-    onNavigateBack: () -> Unit,
-) {
-    val dividerColor = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.5f)
-    Row(
-        modifier = Modifier
-            .fillMaxWidth()
-            .padding(horizontal = Dimensions.PADDING_MEDIUM, vertical = Dimensions.PADDING_SMALL)
-            .drawBehind {
-                drawLine(
-                    color = dividerColor,
-                    start = Offset(0f, size.height),
-                    end = Offset(size.width, size.height),
-                    strokeWidth = 1.dp.toPx()
-                )
-            },
-        verticalAlignment = Alignment.CenterVertically
-    ) {
-        IconButton(
-            onClick = { onNavigateBack() },
-            modifier = Modifier.testTag(SolveLogListTestTags.BACK_BUTTON)
-        ) {
-            Icon(
-                imageVector = Icons.AutoMirrored.Filled.ArrowBack,
-                contentDescription = stringResource(R.string.log_list_cd_back)
-            )
-        }
-        Text(
-            text = currentFolderPath,
-            style = MaterialTheme.typography.titleMedium,
-            modifier = Modifier
-                .weight(1f)
-                .padding(start = Dimensions.PADDING_SMALL)
-        )
-    }
 
-}
 
 @Composable
 private fun NewActionButtons(

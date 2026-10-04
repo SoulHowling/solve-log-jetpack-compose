@@ -178,9 +178,9 @@ class SolveLogRouteViewerViewModelTest {
         var nextAttempt: Int? = null
         viewModel.startNewAttempt { nextAttempt = it }
         
-        // Wait for attempt count to increase in the UI state
+        // Wait for attempt count to increase in the UI state and onComplete callback to run
         viewModel.uiState.first { 
-            (it as? SolveLogViewerUiState.Success)?.solveLog?.attemptCount == 2 
+            (it as? SolveLogViewerUiState.Success)?.solveLog?.attemptCount == 2 && nextAttempt == 2
         }
 
         assertEquals("onComplete should be called with next attempt number", 2, nextAttempt)

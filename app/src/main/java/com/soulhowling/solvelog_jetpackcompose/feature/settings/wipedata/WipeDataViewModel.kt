@@ -7,6 +7,8 @@ import androidx.room.withTransaction
 import com.soulhowling.solvelog_jetpackcompose.core.SolveLogApplication
 import com.soulhowling.solvelog_jetpackcompose.core.database.SolveLogDatabase
 import com.soulhowling.solvelog_jetpackcompose.feature.measurement.timer.model.TimerRepository
+import com.soulhowling.solvelog_jetpackcompose.feature.memo.model.MemoRepository
+import com.soulhowling.solvelog_jetpackcompose.feature.solvelog.FolderType
 import com.soulhowling.solvelog_jetpackcompose.feature.solvelog.model.repository.FolderRepository
 import com.soulhowling.solvelog_jetpackcompose.feature.solvelog.model.repository.QuestionRepository
 import com.soulhowling.solvelog_jetpackcompose.feature.solvelog.model.repository.SolveLogRepository
@@ -31,6 +33,7 @@ class WipeDataViewModel(application: Application): AndroidViewModel(application)
     private val solveLogRepository: SolveLogRepository
     private val questionRepository: QuestionRepository
     private val timerRepository: TimerRepository
+    private val memoRepository: MemoRepository
     private val database: SolveLogDatabase = (application as SolveLogApplication).database
 
     init {
@@ -38,6 +41,7 @@ class WipeDataViewModel(application: Application): AndroidViewModel(application)
         solveLogRepository = SolveLogRepository(database.solveLogDao())
         questionRepository = QuestionRepository(database.questionDao())
         timerRepository = TimerRepository(database.timerDao())
+        memoRepository = MemoRepository(database.memoDao())
     }
 
     fun onWipeConfirm(item: WipeDataItem) {
@@ -47,6 +51,7 @@ class WipeDataViewModel(application: Application): AndroidViewModel(application)
                 is WipeDataItem.WipeAllData -> wipeAllData()
                 is WipeDataItem.WipeAllLogs -> wipeAllLogs()
                 is WipeDataItem.WipeAllTimers -> wipeAllTimers()
+                is WipeDataItem.WipeAllMemos -> wipeAllMemos()
             }
             _wipeStatus.value = if (success) WipeStatus.Success else WipeStatus.Error
         }
@@ -63,6 +68,7 @@ class WipeDataViewModel(application: Application): AndroidViewModel(application)
                 solveLogRepository.deleteAll()
                 folderRepository.deleteAll()
                 timerRepository.deleteAll()
+                memoRepository.deleteAll()
             }
             true
         } catch (e: Exception) {
@@ -76,7 +82,7 @@ class WipeDataViewModel(application: Application): AndroidViewModel(application)
             database.withTransaction {
                 questionRepository.deleteAll()
                 solveLogRepository.deleteAll()
-                folderRepository.deleteAll()
+                folderRepository.deleteAllBy(FolderType.SOLVE_LOG)
             }
             true
         } catch (e: Exception) {
@@ -91,6 +97,17 @@ class WipeDataViewModel(application: Application): AndroidViewModel(application)
             true
         } catch (e: Exception) {
             LogUtils.e("Failed to wipe all timers", e)
+            false
+        }
+    }
+
+    private suspend fun wipeAllMemos(): Boolean {
+        return try {
+            memoRepository.deleteAll()
+            folderRepository.deleteAllBy(FolderType.MEMO)
+            true
+        } catch (e: Exception) {
+            LogUtils.e("Failed to wipe all memos", e)
             false
         }
     }

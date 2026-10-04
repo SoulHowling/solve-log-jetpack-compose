@@ -7,6 +7,7 @@
     <string name="common_dialog_save_button">保存</string>
     <string name="common_dialog_update_button">更新</string>
     <string name="common_dialog_cancel_button">キャンセル</string>
+    <string name="common_dialog_close_button">閉じる</string>
     <string name="common_export_success">エクスポートに成功しました</string>
     <string name="common_export_failed">エクスポートに失敗しました</string>
     <string name="common_not_implemented">未実装</string>
@@ -19,8 +20,9 @@
     <string name="app_bar_title_setting">設定</string>
 
     <!--  Tab title  -->
-    <string name="tab_editor">ログ一覧</string>
+    <string name="tab_editor">ログ</string>
     <string name="tab_measurement">計測</string>
+    <string name="tab_memo">メモ</string>
     <string name="tab_setting">設定</string>
 
     <!-- Log list -->
@@ -50,7 +52,7 @@
     <string name="log_list_placeholder_log_title">例: 統計調査士 2019年過去問</string>
     <string name="log_list_label_question_quantity">問題数</string>
     <string name="log_list_placeholder_question_quantity">1~1000</string>
-    <string name="log_list_label_answer_format">回答形式</string>
+    <string name="log_list_label_answer_format">解答形式</string>
     <string name="log_list_label_selection_type">選択肢の種類</string>
     <string name="log_list_label_selection_quantity">選択肢の数</string>
     <string name="log_list_dialog_move_to_folder_title">移動先を選択</string>
@@ -66,6 +68,7 @@
     <string name="log_list_cd_toggle_view">表示形式を切り替え</string>
     <string name="log_list_cd_more_options">メニュー</string>
     <string name="log_list_cd_drag_handle">ドラッグして並べ替え</string>
+    <string name="log_list_empty_log_message">ログがありません</string>
 
     <!-- Log viewer -->
     <string name="log_view">ログ閲覧</string>
@@ -85,7 +88,7 @@
     <string name="log_viewer_cd_edit">編集</string>
     <string name="log_viewer_cd_delete_attempt">削除</string>
     <string name="log_viewer_cd_flag">フラグ</string>
-    <string name="log_viewer_cd_toggle_visibility">回答の表示を切り替え</string>
+    <string name="log_viewer_cd_toggle_visibility">解答の表示を切り替え</string>
 
     <!-- Log editor -->
     <string name="log_edit">ログ編集</string>
@@ -133,6 +136,19 @@
     <string name="timer_dialog_overwrite_title">タイマーの切り替え</string>
     <string name="timer_dialog_overwrite_message">現在アクティブなタイマーを終了して、新しいタイマーを開始しますか？</string>
 
+    <!-- Memo -->
+    <string name="memo_title">メモ</string>
+    <string name="memo_editor_title">メモ編集</string>
+    <string name="memo_list_add_new_memo">メモ</string>
+    <string name="memo_list_empty_message">メモがありません</string>
+    <string name="memo_editor_title_label">タイトル</string>
+    <string name="memo_editor_template_dialog_title_heading">見出しテンプレート</string>
+    <string name="memo_editor_template_dialog_title_latex">LaTeXテンプレート</string>
+    <string name="memo_editor_table_dialog_title">表の作成</string>
+    <string name="memo_editor_table_dialog_rows">行数</string>
+    <string name="memo_editor_table_dialog_cols">列数</string>
+    <string name="memo_editor_table_dialog_preview">プレビュー</string>
+
     <!-- Setting -->
     <string name="setting_app_theme">アプリのテーマ</string>
     <string name="setting_wipe_data">データ消去</string>
@@ -146,9 +162,11 @@
 
     <!-- Help -->
     <string name="help_section_logging_title">ログの記録</string>
-    <string name="help_section_logging_content">フォルダやログを作成して、学習の進捗を記録できます。ログ閲覧画面では、回答を入力して試行ごとの正答率を確認できます。</string>
+    <string name="help_section_logging_content">フォルダやログを作成して、学習の進捗を記録できます。ログ閲覧画面では、解答を入力して試行ごとの正答率を確認できます。</string>
     <string name="help_section_measurement_title">計測機能</string>
     <string name="help_section_measurement_content">ストップウォッチで学習時間を計測したり、リピートタイマーを使ってインターバル形式（作業と休憩のセット）での学習が可能です。</string>
+    <string name="help_section_memo_title">メモ機能</string>
+    <string name="help_section_memo_content">Markdown記法やLaTeX数式、テーブルなどを使ってノートやメモを記録できます。フォルダで整理したり、JSONファイルとしてエクスポート・インポートも可能です。</string>
     <string name="help_section_settings_title">設定</string>
     <string name="help_section_settings_content">アプリのテーマ変更や、すべてのデータの消去を設定メニューから行えます。</string>
 
@@ -157,10 +175,12 @@
     <string name="wipe_data_all">すべてのデータを消去</string>
     <string name="wipe_data_logs">すべてのログを消去</string>
     <string name="wipe_data_timers">すべてのタイマーを消去</string>
+    <string name="wipe_data_memos">すべてのメモを消去</string>
     <string name="wipe_data_description_prefix">以下のデータを消去します。この操作は取り消せません。</string>
-    <string name="wipe_data_all_description">[ログ]\n・フォルダ\n・ログ\n・回答データ\n[タイマー]\n・タイマー設定</string>
-    <string name="wipe_data_logs_description">[ログ]\n・フォルダ\n・ログ\n・回答データ</string>
+    <string name="wipe_data_all_description">[ログ]\n・フォルダ\n・ログ\n・解答データ\n[タイマー]\n・タイマー設定\n[メモ]\n・フォルダ\n・メモ</string>
+    <string name="wipe_data_logs_description">[ログ]\n・フォルダ\n・ログ\n・解答データ</string>
     <string name="wipe_data_timers_description">[タイマー]\n・タイマー設定</string>
+    <string name="wipe_data_memos_description">[メモ]\n・フォルダ\n・メモ</string>
     <string name="wipe_data_description_suffix">消去しますか？</string>
     <string name="wipe_data_success">消去が完了しました</string>
     <string name="wipe_data_failed">消去に失敗しました</string>
@@ -187,4 +207,7 @@
     <!-- content description -->
     <!-- Editor -->
     <string name="talkback_new_log_button">新しいログを追加</string>
+
+    <string name="talkback_new_memo_button">新しいメモを追加</string>
+
 </resources>
