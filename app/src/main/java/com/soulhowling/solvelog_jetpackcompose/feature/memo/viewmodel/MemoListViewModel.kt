@@ -378,7 +378,7 @@ class MemoListViewModel(application: Application) : AndroidViewModel(application
     }
 
     private suspend fun importAllMemoData(jsonObject: JSONObject, currentFolderId: Int?) {
-        val oldFolderIdToNewFolderId = mutableMapOf<Int, Int>()
+        val oldToNewFolderId = mutableMapOf<Int, Int?>()
 
         if (jsonObject.has(FileUtils.KEY_FOLDERS)) {
             val foldersArray = jsonObject.getJSONArray(FileUtils.KEY_FOLDERS)
@@ -387,35 +387,41 @@ class MemoListViewModel(application: Application) : AndroidViewModel(application
                 foldersToInsert.add(foldersArray.getJSONObject(i))
             }
 
+            val importFolderIds = foldersToInsert.map { it.getInt(DBKeys.KEY_ID) }.toSet()
             val remainingFolders = foldersToInsert.toMutableList()
             var prevSize = -1
+
             while (remainingFolders.isNotEmpty() && remainingFolders.size != prevSize) {
                 prevSize = remainingFolders.size
                 val iterator = remainingFolders.iterator()
                 while (iterator.hasNext()) {
                     val folderJson = iterator.next()
                     val oldId = folderJson.getInt(DBKeys.KEY_ID)
-                    val name = folderJson.getString(DBKeys.KEY_NAME)
                     val oldParentId = if (folderJson.has(DBKeys.KEY_PARENT_FOLDER_ID) && !folderJson.isNull(DBKeys.KEY_PARENT_FOLDER_ID)) {
                         folderJson.getInt(DBKeys.KEY_PARENT_FOLDER_ID)
                     } else null
 
-                    if (oldParentId == null) {
-                        val newFolder = folderRepository.createFolder(
-                            name = name,
-                            parentFolderId = currentFolderId
-                        ).copy(folderType = FolderType.MEMO.index)
-                        val newId = folderRepository.insertAndReturnId(newFolder)
-                        oldFolderIdToNewFolderId[oldId] = newId.toInt()
-                        iterator.remove()
-                    } else if (oldFolderIdToNewFolderId.containsKey(oldParentId)) {
-                        val newParentId = oldFolderIdToNewFolderId[oldParentId]
-                        val newFolder = folderRepository.createFolder(
-                            name = name,
+                    val isParentAvailable = oldParentId == null
+                            || !importFolderIds.contains(oldParentId)
+                            || oldToNewFolderId.containsKey(oldParentId)
+
+                    if (isParentAvailable) {
+                        val newParentId = if (oldParentId == null || !importFolderIds.contains(oldParentId)) {
+                            currentFolderId
+                        } else {
+                            oldToNewFolderId[oldParentId]
+                        }
+                        val folder = folderRepository.createFolder(
+                            name = folderJson.getString(DBKeys.KEY_NAME),
                             parentFolderId = newParentId
-                        ).copy(folderType = FolderType.MEMO.index)
-                        val newId = folderRepository.insertAndReturnId(newFolder)
-                        oldFolderIdToNewFolderId[oldId] = newId.toInt()
+                        ).copy(
+                            folderType = FolderType.MEMO.index,
+                            priority = folderJson.optInt(DBKeys.KEY_PRIORITY, 0),
+                            createdAt = folderJson.optLong(DBKeys.KEY_CREATED_AT, System.currentTimeMillis()),
+                            updatedAt = folderJson.optLong(DBKeys.KEY_UPDATED_AT, System.currentTimeMillis())
+                        )
+                        val newId = folderRepository.insertAndReturnId(folder)
+                        oldToNewFolderId[oldId] = newId.toInt()
                         iterator.remove()
                     }
                 }
@@ -427,13 +433,21 @@ class MemoListViewModel(application: Application) : AndroidViewModel(application
             for (i in 0 until memosArray.length()) {
                 val memoJson = memosArray.getJSONObject(i)
                 val memo = FileUtils.parseMemoJson(memoJson)
-                val targetFolderId = if (memo.folderId != null && oldFolderIdToNewFolderId.containsKey(memo.folderId)) {
-                    oldFolderIdToNewFolderId[memo.folderId]
-                } else if (memo.folderId == null) {
-                    currentFolderId
-                } else null
 
-                memoRepository.upsertMemo(memo.copy(id = 0, folderId = targetFolderId))
+                val newFolderId = if (memo.folderId == null) {
+                    currentFolderId
+                } else if (oldToNewFolderId.containsKey(memo.folderId)) {
+                    oldToNewFolderId[memo.folderId]
+                } else {
+                    currentFolderId
+                }
+
+                memoRepository.upsertMemo(
+                    memo.copy(
+                        id = 0,
+                        folderId = newFolderId
+                    )
+                )
             }
         }
     }
