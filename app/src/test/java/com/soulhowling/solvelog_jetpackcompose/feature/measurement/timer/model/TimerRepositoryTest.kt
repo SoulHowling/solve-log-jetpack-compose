@@ -85,14 +85,18 @@ class FakeTimerDao : TimerDao {
         entities.forEach { insert(it) }
     }
 
-    override suspend fun upsert(entity: TimerState) {
+    override suspend fun upsert(entity: TimerState): Long {
         val index = timers.indexOfFirst { it.id == entity.id && it.id != 0 }
-        if (index != -1) {
+        val id = if (index != -1) {
             timers[index] = entity
+            entity.id.toLong()
         } else {
-            insert(entity)
+            val timerWithId = if (entity.id == 0) entity.copy(id = nextId++) else entity
+            timers.add(timerWithId)
+            timerWithId.id.toLong()
         }
         flow.value = timers.toList()
+        return id
     }
 
     override suspend fun delete(entity: TimerState) {
