@@ -586,30 +586,33 @@ fun rememberTextIconPainter(
     val density = LocalDensity.current
     val contentColor = LocalContentColor.current
 
-    // アイコンの標準サイズ（24dp）をピクセルに変換
-    val sizePx = with(density) { 24.dp.toPx() }
-    val sizeConstraints = Constraints.fixed(sizePx.toInt(), sizePx.toInt())
+    return remember(text, style, density, contentColor) {
 
-    // テキストの配置や色を計測
-    val textLayoutResult = textMeasurer.measure(
-        text = text,
-        style = style.copy(color = contentColor),
-        constraints = sizeConstraints
-    )
+        // アイコンの標準サイズ（24dp）をピクセルに変換
+        val sizePx = with(density) { 24.dp.toPx() }
+        val sizeConstraints = Constraints.fixed(sizePx.toInt(), sizePx.toInt())
 
-    return object : Painter() {
-        // マテリアルアイコン標準の 24dp × 24dp を返す
-        override val intrinsicSize = Size(sizePx, sizePx)
+        // テキストの配置や色を計測
+        val textLayoutResult = textMeasurer.measure(
+            text = text,
+            style = style.copy(color = contentColor),
+            constraints = sizeConstraints
+        )
 
-        override fun DrawScope.onDraw() {
-            // 24dp の枠内の中央に配置するための位置（オフセット）を計算
-            val x = (size.width - textLayoutResult.size.width + 8) / 2f
-            val y = (size.height - textLayoutResult.size.height + 8) / 2f
+        object : Painter() {
+            // マテリアルアイコン標準の 24dp × 24dp を返す
+            override val intrinsicSize = Size(sizePx, sizePx)
 
-            drawText(
-                textLayoutResult = textLayoutResult,
-                topLeft = Offset(x, y)
-            )
+            override fun DrawScope.onDraw() {
+                // 24dp の枠内の中央に配置するための位置（オフセット）を計算
+                val x = (size.width - textLayoutResult.size.width + 8) / 2f
+                val y = (size.height - textLayoutResult.size.height + 8) / 2f
+
+                drawText(
+                    textLayoutResult = textLayoutResult,
+                    topLeft = Offset(x, y)
+                )
+            }
         }
     }
 }
