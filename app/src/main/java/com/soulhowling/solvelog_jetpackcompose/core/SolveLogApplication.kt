@@ -8,7 +8,7 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
 
 class SolveLogApplication : Application() {
-    private val applicationScope = CoroutineScope(SupervisorJob() + Dispatchers.Main)
+    val applicationScope = CoroutineScope(SupervisorJob() + Dispatchers.Main)
     val database: SolveLogDatabase
         get() = SolveLogDatabase.getDatabase(this, applicationScope)
 

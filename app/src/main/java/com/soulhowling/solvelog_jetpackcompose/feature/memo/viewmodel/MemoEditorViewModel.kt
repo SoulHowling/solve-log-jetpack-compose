@@ -9,17 +9,16 @@ import com.soulhowling.solvelog_jetpackcompose.core.SolveLogApplication
 import com.soulhowling.solvelog_jetpackcompose.feature.memo.model.Memo
 import com.soulhowling.solvelog_jetpackcompose.feature.memo.model.MemoRepository
 import kotlinx.coroutines.Job
-import kotlinx.coroutines.NonCancellable
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.firstOrNull
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.withContext
 import kotlin.time.Duration.Companion.milliseconds
 
 class MemoEditorViewModel(application: Application) : AndroidViewModel(application) {
+    private val applicationScope = (application as SolveLogApplication).applicationScope
     private val database = (application as SolveLogApplication).database
     private val memoRepository = MemoRepository(database.memoDao())
 
@@ -121,34 +120,32 @@ class MemoEditorViewModel(application: Application) : AndroidViewModel(applicati
             return
         }
 
-        viewModelScope.launch {
-            withContext(NonCancellable) {
-                val now = System.currentTimeMillis()
-                val memo = if (memoId == -1) {
-                    val maxPriority = database.memoDao().getMaxPriority() ?: -1
-                    memoRepository.createMemo(name, content, folderId = currentFolderId).copy(priority = maxPriority + 1)
-                } else {
-                    initialMemo?.copy(
-                        name = name,
-                        content = content,
-                        updatedAt = now
-                    ) ?: Memo(
-                        id = memoId,
-                        name = name,
-                        content = content,
-                        createdAt = now,
-                        updatedAt = now,
-                        folderId = currentFolderId
-                    )
-                }
-
-                val savedId = memoRepository.upsertMemo(memo)
-                if (memoId == -1) {
-                    memoId = savedId.toInt()
-                }
-                initialMemo = memo.copy(id = memoId)
-                onSaved?.invoke(memoId)
+        applicationScope.launch {
+            val now = System.currentTimeMillis()
+            val memo = if (memoId == -1) {
+                val maxPriority = database.memoDao().getMaxPriority() ?: -1
+                memoRepository.createMemo(name, content, folderId = currentFolderId).copy(priority = maxPriority + 1)
+            } else {
+                initialMemo?.copy(
+                    name = name,
+                    content = content,
+                    updatedAt = now
+                ) ?: Memo(
+                    id = memoId,
+                    name = name,
+                    content = content,
+                    createdAt = now,
+                    updatedAt = now,
+                    folderId = currentFolderId
+                )
             }
+
+            val savedId = memoRepository.upsertMemo(memo)
+            if (memoId == -1) {
+                memoId = savedId.toInt()
+            }
+            initialMemo = memo.copy(id = memoId)
+            onSaved?.invoke(memoId)
         }
     }
 }
