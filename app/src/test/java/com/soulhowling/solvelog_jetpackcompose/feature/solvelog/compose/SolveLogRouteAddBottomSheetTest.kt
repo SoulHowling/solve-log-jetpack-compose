@@ -56,7 +56,7 @@ class SolveLogRouteAddBottomSheetTest {
         composeTestRule.onNode(hasText("5") and hasAnyAncestor(hasTestTag(SolveLogAddBottomSheetTestTags.SELECTION_QUANTITY_SELECTOR))).performClick()
 
         // Click confirm
-        composeTestRule.onNodeWithTag(SolveLogAddBottomSheetTestTags.CONFIRM_BUTTON).performClick()
+        composeTestRule.onNodeWithTag(SolveLogAddBottomSheetTestTags.CONFIRM_BUTTON).performScrollTo().performClick()
 
         assertEquals("New Log", confirmedName)
         assertEquals(50, confirmedQuantity)
@@ -119,7 +119,7 @@ class SolveLogRouteAddBottomSheetTest {
         // Confirm
         composeTestRule.onNodeWithTag(SolveLogAddBottomSheetTestTags.TITLE_FIELD).performTextInput("Test")
         composeTestRule.onNodeWithTag(SolveLogAddBottomSheetTestTags.QUANTITY_FIELD).performTextInput("10")
-        composeTestRule.onNodeWithTag(SolveLogAddBottomSheetTestTags.CONFIRM_BUTTON).performClick()
+        composeTestRule.onNodeWithTag(SolveLogAddBottomSheetTestTags.CONFIRM_BUTTON).performScrollTo().performClick()
 
         assertEquals(SelectionQuantity.TWO, confirmedSelQuantity)
     }
