@@ -28,6 +28,8 @@ import androidx.compose.ui.unit.sp
 import androidx.compose.ui.viewinterop.AndroidView
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
+import com.hrm.markdown.renderer.Markdown
+import com.hrm.markdown.renderer.MarkdownTheme
 import com.soulhowling.solvelog_jetpackcompose.R
 import com.soulhowling.solvelog_jetpackcompose.core.CustomAppBarEffect
 import com.soulhowling.solvelog_jetpackcompose.feature.memo.viewmodel.MemoViewViewModel
@@ -100,23 +102,28 @@ private fun MemoViewScreenContent(
         modifier = modifier.fillMaxSize(),
         color = MaterialTheme.colorScheme.background
     ) {
-        AndroidView(
-            factory = { ctx ->
-                TextView(ctx).apply {
-                    setPadding(paddingPx, paddingPx, paddingPx, paddingPx)
-                    setTextColor(textColor)
-                    textSize = 16f
-                    movementMethod = LinkMovementMethod.getInstance()
-                }
-            },
-            update = { textView ->
-                LogUtils.d("text: $contentText")
-                markwon.setMarkdown(textView, contentText)
-            },
-            modifier = modifier
-                .fillMaxSize()
-                .verticalScroll(rememberScrollState())
+        Markdown(
+            markdown = contentText,
+            modifier = Modifier.fillMaxSize(),
+            theme = MarkdownTheme.material3()
         )
+//        AndroidView(
+//            factory = { ctx ->
+//                TextView(ctx).apply {
+//                    setPadding(paddingPx, paddingPx, paddingPx, paddingPx)
+//                    setTextColor(textColor)
+//                    textSize = 16f
+//                    movementMethod = LinkMovementMethod.getInstance()
+//                }
+//            },
+//            update = { textView ->
+//                LogUtils.d("text: $contentText")
+//                markwon.setMarkdown(textView, contentText)
+//            },
+//            modifier = modifier
+//                .fillMaxSize()
+//                .verticalScroll(rememberScrollState())
+//        )
     }
 }
 
@@ -142,13 +149,22 @@ private fun MemoViewScreenContentPreview() {
     val textColor = MaterialTheme.colorScheme.onBackground.toArgb()
     val density = LocalDensity.current
     val paddingPx = with(density) { 16.dp.toPx() }.toInt()
+    val contentText = """
+        test
+        ~~test~~
+        **Test**
+        - 箇条書き1
+        - 箇条書き2
+        1. 番号付き
+        2. 番号付き
+    """.trimIndent()
     SolveLogJetpackComposeTheme {
         MemoViewScreenContent(
             context = context,
             density = density,
             paddingPx = paddingPx,
             textColor = textColor,
-            contentText = "test\n~~test~~\n**Bold**",
+            contentText = contentText,
         )
     }
 }

@@ -80,6 +80,10 @@ dependencies {
     implementation(libs.markwon.ext.strikethrough)
     implementation(libs.markwon.ext.tables)
 
+    implementation(libs.markdown.parser)
+    implementation(libs.markdown.runtime)
+    implementation(libs.markdown.renderer)
+
     // Room
     implementation(libs.androidx.room.runtime)
     implementation(libs.androidx.room.ktx)
