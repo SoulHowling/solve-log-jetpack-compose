@@ -342,7 +342,7 @@ fun MemoEditorScreenContent(
             title = stringResource(R.string.memo_editor_template_dialog_title_latex),
             onDismiss = { showMathDialog = false },
             onSelectTemplate = { snippet ->
-                onTemplateClick("$$$snippet$$")
+                onTemplateClick("$$snippet$")
                 showMathDialog = false
             },
             templates = latexTemplates

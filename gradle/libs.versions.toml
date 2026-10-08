@@ -14,9 +14,8 @@ room = "2.8.5"
 robolectric = "4.17"
 aboutLibraries = "15.2.0"
 kotlinxCoroutines = "1.11.0"
-markwon = "4.6.2"
 uiText = "1.12.1"
-markdown = "1.5.0"
+markdown = "1.5.3"
 
 [libraries]
 androidx-core-ktx = { group = "androidx.core", name = "core-ktx", version.ref = "coreKtx" }
@@ -41,13 +40,6 @@ androidx-room-compiler = { group = "androidx.room", name = "room-compiler", vers
 robolectric = { group = "org.robolectric", name = "robolectric", version.ref = "robolectric" }
 aboutLibraries-compose = { group = "com.mikepenz", name = "aboutlibraries-compose-m3", version.ref = "aboutLibraries" }
 kotlinx-coroutines-test = { group = "org.jetbrains.kotlinx", name = "kotlinx-coroutines-test", version.ref = "kotlinxCoroutines" }
-markwon-core = { group = "io.noties.markwon", name = "core", version.ref = "markwon" }
-markwon-inline-parser = { group = "io.noties.markwon", name = "inline-parser", version.ref = "markwon" }
-markwon-ext-latex = { group = "io.noties.markwon", name = "ext-latex", version.ref = "markwon" }
-markwon-linkfy = { group = "io.noties.markwon", name = "linkify", version.ref = "markwon" }
-markwon-ext-tasklist = { group = "io.noties.markwon", name = "ext-tasklist", version.ref = "markwon" }
-markwon-ext-strikethrough = { group = "io.noties.markwon", name = "ext-strikethrough", version.ref = "markwon" }
-markwon-ext-tables = { group = "io.noties.markwon", name = "ext-tables", version.ref = "markwon" }
 androidx-compose-ui-text = { group = "androidx.compose.ui", name = "ui-text", version.ref = "uiText" }
 markdown-parser = { module = "io.github.huarangmeng:markdown-parser", version.ref = "markdown" }
 markdown-runtime = { module = "io.github.huarangmeng:markdown-runtime", version.ref = "markdown" }
