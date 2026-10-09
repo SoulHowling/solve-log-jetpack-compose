@@ -97,10 +97,23 @@ fun SoftwareLicenseScreenContent(libraries: Libs?) {
 
     val library = selectedLibrary
     if (library != null) {
-        val license = library.licenses.firstOrNull()
-        val content = license?.licenseContent?.takeIf { it.isNotBlank() }
-            ?: license?.url?.takeIf { it.isNotBlank() }
-            ?: "No license content available."
+        val licenseNames = library.licenses
+            .mapNotNull { it.name.takeIf { name -> name.isNotBlank() } }
+            .distinct()
+            .joinToString(", ")
+
+        val licenseContents = library.licenses
+            .mapNotNull { lic ->
+                lic.licenseContent?.takeIf { it.isNotBlank() }
+                    ?: lic.url?.takeIf { it.isNotBlank() }
+            }
+            .distinct()
+
+        val content = if (licenseContents.isNotEmpty()) {
+            licenseContents.joinToString("\n\n----------------------------------------\n\n")
+        } else {
+            "No license content available."
+        }
 
         AlertDialog(
             onDismissRequest = { selectedLibrary = null },
@@ -111,9 +124,9 @@ fun SoftwareLicenseScreenContent(libraries: Libs?) {
                         style = MaterialTheme.typography.titleMedium,
                         fontWeight = FontWeight.Bold
                     )
-                    if (license?.name != null) {
+                    if (licenseNames.isNotBlank()) {
                         Text(
-                            text = license.name,
+                            text = licenseNames,
                             style = MaterialTheme.typography.labelMedium,
                             color = MaterialTheme.colorScheme.primary
                         )
