@@ -67,11 +67,123 @@ class MemoEditorViewModel(application: Application) : AndroidViewModel(applicati
     }
 
     fun onContentChange(newContent: TextFieldValue) {
-        val textChanged = _memoContent.value.text != newContent.text
-        _memoContent.value = newContent
-        if (textChanged) {
-            triggerAutoSave()
+        val oldContent = _memoContent.value
+        val textChanged = oldContent.text != newContent.text
+
+        if (!textChanged) {
+            _memoContent.value = newContent
+            return
         }
+
+        val oldText = oldContent.text
+        val newText = newContent.text
+        val oldSelection = oldContent.selection
+
+        if (newText.length == oldText.length + 1 &&
+            oldSelection.start == oldSelection.end &&
+            oldSelection.start < newText.length &&
+            newText[oldSelection.start] == '\n'
+        ) {
+            val enterIndex = oldSelection.start
+            val lineStart = oldText.lastIndexOf('\n', enterIndex - 1) + 1
+            val lineBeforeEnter = oldText.substring(lineStart, enterIndex)
+            val textAfterEnter = oldText.substring(enterIndex)
+
+            val checklistRegex = Regex("^(\\s*(?:[-*+]|\\d+\\.)\\s*\\[[ xX]])\\s*(.*)$")
+            val checklistMatch = checklistRegex.find(lineBeforeEnter)
+
+            if (checklistMatch != null) {
+                val marker = checklistMatch.groupValues[1]
+                val rest = checklistMatch.groupValues[2]
+
+                if (rest.isBlank()) {
+                    val prefixText = oldText.substring(0, lineStart)
+                    val updatedText = prefixText + textAfterEnter
+                    _memoContent.value = TextFieldValue(
+                        text = updatedText,
+                        selection = TextRange(lineStart)
+                    )
+                    triggerAutoSave()
+                    return
+                } else {
+                    val indentAndBullet = marker.replace(Regex("\\[[ xX]]"), "[ ]")
+                    val nextMarker = "\n$indentAndBullet "
+                    val prefixText = oldText.substring(0, enterIndex)
+                    val updatedText = prefixText + nextMarker + textAfterEnter
+                    val newCursor = enterIndex + nextMarker.length
+                    _memoContent.value = TextFieldValue(
+                        text = updatedText,
+                        selection = TextRange(newCursor)
+                    )
+                    triggerAutoSave()
+                    return
+                }
+            }
+
+            val numberedRegex = Regex("^(\\s*)(\\d+)\\.\\s+(.*)$")
+            val numberedMatch = numberedRegex.find(lineBeforeEnter)
+
+            if (numberedMatch != null) {
+                val indent = numberedMatch.groupValues[1]
+                val num = numberedMatch.groupValues[2].toIntOrNull() ?: 1
+                val rest = numberedMatch.groupValues[3]
+
+                if (rest.isBlank()) {
+                    val prefixText = oldText.substring(0, lineStart)
+                    val updatedText = prefixText + textAfterEnter
+                    _memoContent.value = TextFieldValue(
+                        text = updatedText,
+                        selection = TextRange(lineStart)
+                    )
+                    triggerAutoSave()
+                    return
+                } else {
+                    val nextMarker = "\n$indent${num + 1}. "
+                    val prefixText = oldText.substring(0, enterIndex)
+                    val updatedText = prefixText + nextMarker + textAfterEnter
+                    val newCursor = enterIndex + nextMarker.length
+                    _memoContent.value = TextFieldValue(
+                        text = updatedText,
+                        selection = TextRange(newCursor)
+                    )
+                    triggerAutoSave()
+                    return
+                }
+            }
+
+            val bulletRegex = Regex("^(\\s*[-*+]\\s+)(.*)$")
+            val bulletMatch = bulletRegex.find(lineBeforeEnter)
+
+            if (bulletMatch != null) {
+                val bulletPrefix = bulletMatch.groupValues[1]
+                val rest = bulletMatch.groupValues[2]
+
+                if (rest.isBlank()) {
+                    val prefixText = oldText.substring(0, lineStart)
+                    val updatedText = prefixText + textAfterEnter
+                    _memoContent.value = TextFieldValue(
+                        text = updatedText,
+                        selection = TextRange(lineStart)
+                    )
+                    triggerAutoSave()
+                    return
+                } else {
+                    val nextMarker = "\n$bulletPrefix"
+                    val prefixText = oldText.substring(0, enterIndex)
+                    val updatedText = prefixText + nextMarker + textAfterEnter
+                    val newCursor = enterIndex + nextMarker.length
+                    _memoContent.value = TextFieldValue(
+                        text = updatedText,
+                        selection = TextRange(newCursor)
+                    )
+                    triggerAutoSave()
+                    return
+                }
+            }
+        }
+
+        _memoContent.value = newContent
+        triggerAutoSave()
     }
 
     fun insertTemplate(template: String) {
