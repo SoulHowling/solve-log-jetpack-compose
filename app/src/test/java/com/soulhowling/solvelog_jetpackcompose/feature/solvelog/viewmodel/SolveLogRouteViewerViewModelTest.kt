@@ -13,6 +13,7 @@ import com.soulhowling.solvelog_jetpackcompose.feature.solvelog.model.entity.Que
 import com.soulhowling.solvelog_jetpackcompose.feature.solvelog.model.entity.SolveLog
 import com.soulhowling.solvelog_jetpackcompose.feature.solvelog.model.repository.QuestionRepository
 import com.soulhowling.solvelog_jetpackcompose.feature.solvelog.model.repository.SolveLogRepository
+import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.first
@@ -175,15 +176,16 @@ class SolveLogRouteViewerViewModelTest {
         viewModel.uiState.first { it is SolveLogViewerUiState.Success }
         assertTrue("ViewModel should be in Success state", viewModel.uiState.value is SolveLogViewerUiState.Success)
 
-        var nextAttempt: Int? = null
-        viewModel.startNewAttempt { nextAttempt = it }
+        val nextAttemptDeferred = CompletableDeferred<Int>()
+        viewModel.startNewAttempt { nextAttemptDeferred.complete(it) }
         
+        val nextAttempt = nextAttemptDeferred.await()
+        assertEquals("onComplete should be called with next attempt number", 2, nextAttempt)
+
         // Wait for attempt count to increase in the UI state
         viewModel.uiState.first { 
             (it as? SolveLogViewerUiState.Success)?.solveLog?.attemptCount == 2
         }
-
-        assertEquals("onComplete should be called with next attempt number", 2, nextAttempt)
 
         val updatedSolveLog = solveLogRepository.getSolveLog(solveLogId).first { it?.attemptCount == 2 }
         assertEquals(2, updatedSolveLog?.attemptCount)
