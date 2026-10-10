@@ -69,7 +69,7 @@ fun MemoViewScreen(
 }
 
 @Composable
-private fun MemoViewScreenContent(
+fun MemoViewScreenContent(
     contentText: String,
     modifier: Modifier = Modifier
 ) {
