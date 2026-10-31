@@ -25,11 +25,17 @@ class NotificationUtilsTest {
     }
 
     @Test
-    fun `createNotificationChannel should create a channel with correct parameters`() {
+    fun channelId_constantsAreCorrect() {
+        assertEquals("stopwatch_channel", NotificationUtils.STOPWATCH_CHANNEL_ID)
+        assertEquals("timer_channel", NotificationUtils.TIMER_CHANNEL_ID)
+    }
+
+    @Test
+    fun createNotificationChannel_shouldCreateChannelWithCorrectParameters() {
         val channelId = "test_channel"
         val name = "Test Name"
         val description = "Test Description"
-        
+
         NotificationUtils.createNotificationChannel(
             context,
             channelId,
@@ -46,33 +52,30 @@ class NotificationUtilsTest {
     }
 
     @Test
-    fun `getBaseNotificationBuilder should set correct properties`() {
+    fun getBaseNotificationBuilder_shouldSetCorrectProperties() {
         val channelId = "test_channel"
         val title = "Test Title"
         val content = "Test Content"
-        
+
         val builder = NotificationUtils.getBaseNotificationBuilder(
             context,
             channelId,
             title,
             content
         )
-        
+
         val notification = builder.build()
-        
-        // Use shadow or inspection to verify properties
-        // In Robolectric, we can inspect the notification object
+
         assertEquals(title, notification.extras.getCharSequence("android.title").toString())
         assertEquals(content, notification.extras.getCharSequence("android.text").toString())
         assertEquals(channelId, notification.channelId)
     }
 
     @Test
-    fun `showNotification should trigger notify on NotificationManager`() {
+    fun showNotification_shouldTriggerNotifyOnNotificationManager() {
         val notificationId = 123
         val channelId = "test_channel"
-        
-        // In Robolectric, we can check active notifications
+
         NotificationUtils.showNotification(
             context,
             notificationId,
@@ -80,7 +83,7 @@ class NotificationUtilsTest {
             "Title",
             "Content"
         )
-        
+
         val activeNotifications = notificationManager.activeNotifications
         val notification = activeNotifications.find { it.id == notificationId }
         assertNotNull("Notification with ID $notificationId should be present", notification)
